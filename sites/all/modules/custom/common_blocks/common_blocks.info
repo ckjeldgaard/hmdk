@@ -1,0 +1,7 @@
+name = Common blocks
+description = Provides a collection of common blocks for the heavymetal.dk site.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = common_blocks.module

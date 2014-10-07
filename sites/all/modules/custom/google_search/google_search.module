@@ -1,0 +1,163 @@
+<?php
+/**
+ * Provides integration with Google Site Search.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function google_search_menu() {
+  $items['admin/config/search/google_site_search'] = array(
+    'title' => 'Google Site Search settings',
+    'description' => 'Manage and configure Google Site Search module settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_google_search_settings_form'),
+    'access arguments' => array('administer google search module'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'google_search.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_block_info().
+ */
+function google_search_block_info() {
+  $blocks = array();
+  $blocks["google_search"] = array(
+    "info" => "Google Search",
+  );
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_view().
+ */
+function google_search_block_view($delta = "") {
+  switch ($delta) {
+    case "google_search":
+      $search = _google_search_results();
+      $options = array("search" => $search);
+      $block = array(
+        "subject" => t("Google Search"),
+        "content" => theme("block-google-search", $options),
+      );
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function google_search_theme() {
+  $path = drupal_get_path('theme', variable_get('theme_default', NULL)) . '/templates';
+  return array(
+    "block-google-search" => array(
+      "template" => "block-google-search",
+      "path" => $path,
+      "arguments" => array(
+        "content" => NULL,
+        "class" => NULL, 
+      ),
+    ),
+  );
+}
+
+/**
+ * Performs a Google Site Search.
+ *
+ * @return array Returns an array of search info and results or a string on failure.
+ */
+function _google_search_results() {
+
+  $return = array();
+  $offset = 1;
+  
+  if (isset($_GET['s']) && strlen($_GET['s']) > 0) {
+    // Make query safe.
+    $query = htmlspecialchars($_GET['s'], ENT_NOQUOTES, 'UTF-8');
+
+    $key = variable_get('google_developer_key'); // The developer key (simple api key).
+    $cx = variable_get('google_custom_search_engine_id'); // The custom search engine ID to scope this search query.
+    $per_page = variable_get('search_results_per_page', '10');
+    
+    // Include dependencies.
+    module_load_include('php', 'google_search', 'google-api-php-client/src/Google_Client');
+    module_load_include('php', 'google_search', 'google-api-php-client/src/contrib/Google_CustomsearchService');
+    
+    $client = new Google_Client();
+    $client->setApplicationName(variable_get('google_search_application_name', 'Google CustomSearch Application'));
+    
+    // Docs: http://code.google.com/apis/customsearch/v1/using_rest.html
+    // Visit https://code.google.com/apis/console?api=customsearch to generate your developer key (simple api key).
+    $client->setDeveloperKey($key);
+    $search = new Google_CustomsearchService($client);
+
+    // Executing search
+    try {
+      $page = pager_find_page();
+      $offset = $per_page * $page + 1;
+      
+      $result = $search->cse->listCse($query, array(
+        'cx' => $cx,
+        'lr' => 'lang_da',
+        'start' => $offset,
+      ));
+      
+      $endIndex = $result['queries']['request'][0]['startIndex'] + $result['queries']['request'][0]['count'] - 1;
+      $result['endIndex'] = $endIndex;
+  
+      // Initialize the pager
+      $current_page = pager_default_initialize($result['searchInformation']['totalResults'], $per_page);
+      $pager = theme('pager', array('quantity', $result['searchInformation']['totalResults']));
+      
+      // Find endindex:
+      $end_index = $result['queries']['request'][0]['startIndex'] + variable_get('search_results_per_page', '10') - 1;
+      if ($result['searchInformation']['totalResults'] < $end_index) {
+        $end_index = $result['searchInformation']['totalResults'];
+      }
+      
+      $items = (isset($result['items'])) ? $result['items'] : array();
+      $return = array(
+        'info' => $result,
+        'end_index' => $end_index,
+        'items' => $items,
+        'pager' => $pager,
+        'form' => drupal_get_form('search_page_form'),
+      );
+
+    } catch (Exception $e) {
+      $msg = $e->getMessage();
+      watchdog('google_search', $msg, NULL, WATCHDOG_ERROR);
+      $return = variable_get('google_search_error_message', t('An error occured.'));
+    }
+  }
+  return $return;
+}
+
+/**
+ * Defines the search form on the search result page:
+ */
+function search_page_form($form, &$form_state) {
+  $form = array();
+  $form['#method'] = 'get';
+  $form['#action'] = url('search');
+  
+  $form['s'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Search'),
+    '#default_value' => (isset($_GET['s'])) ? check_plain($_GET['s']) : null,
+    '#size' => null,
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#title_display' => 'invisible',
+  );
+  $form['search'] = array(
+    '#type' => 'submit',
+    '#value' => t('Search'),
+    '#name' => 'search-btn',
+  );
+  
+  return $form;
+}

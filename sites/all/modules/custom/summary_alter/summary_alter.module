@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * Implements hook_form_alter(). Disable WYSIWYG editors on summary fields.
+ */
+function summary_alter_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['body'][LANGUAGE_NONE][0]['summary'])) {
+    $form['body'][LANGUAGE_NONE][0]['summary']['#wysiwyg'] = FALSE;
+    // Trigger click on summary link. Ensure that the summary field is visible:
+    if (arg(0) == 'node' && arg(1) == 'add') {
+      $script = 'jQuery(document).ready(function(){ jQuery(".link-edit-summary").click(); });';
+      drupal_add_js($script, 'inline');
+    }
+  }
+}

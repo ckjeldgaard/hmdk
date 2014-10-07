@@ -1,0 +1,23 @@
+.contentInner, .siteTitle {
+  width: 66%;
+  float:left;
+}
+
+.sidebar, .secondary {
+  width: 33%;
+  float:right;
+}
+
+.mainContent:after, header:after, footer:after {
+   content: " "; /* Older browser do not support empty content */
+   visibility: hidden;
+   display: block;
+   height: 0;
+   clear: both;
+   margin-bottom: 10px;
+}
+
+footer .pure-u-md-1-3 {
+  width: 33%;
+  float:left;
+}

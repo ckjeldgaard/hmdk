@@ -1,0 +1,7 @@
+name = Concert calendar
+description = Provides a block displaying a list/table of upcoming concerts and festivals.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = concert_calendar.module

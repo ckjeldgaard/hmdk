@@ -1,0 +1,9 @@
+name = Instagram feed
+description = Provides a block displaying photos from Instagram tagged with hashtags defined by a editor.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+configure = admin/config/system/instagram_feed
+
+files[] = instagram_feed.install
+files[] = instagram_feed.module

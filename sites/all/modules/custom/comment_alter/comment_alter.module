@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * Implements hook_form_alter().
+ */
+function comment_alter_form_comment_form_alter(&$form, &$form_state, $form_id) {
+  $form['comment_body']['#after_build'][] = '_comment_alter_customize_comment_form';
+}
+
+/**
+ * Removes text formatting options from comment forms.
+ */
+function _comment_alter_customize_comment_form(&$form) {
+  $form[LANGUAGE_NONE][0]['format']['#access'] = FALSE;
+  return $form;
+}

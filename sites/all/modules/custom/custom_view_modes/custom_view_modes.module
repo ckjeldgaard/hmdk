@@ -1,0 +1,15 @@
+<?php
+
+/**
+* Implements hook_entity_info_alter().
+*/
+function custom_view_modes_entity_info_alter(&$entity_info) {
+  $entity_info['node']['view modes']['topfront'] = array(
+    'label' => t('Topfront'),
+    'custom settings' => TRUE,
+  );
+  $entity_info['node']['view modes']['focus'] = array(
+    'label' => t('Focus'),
+    'custom settings' => TRUE,
+  );
+}

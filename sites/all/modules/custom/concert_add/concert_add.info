@@ -1,0 +1,7 @@
+name = Concert add
+description = Enables authenticated users to add concerts.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = concert_add.module

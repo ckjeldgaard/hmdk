@@ -1,0 +1,9 @@
+name = Recent reviews
+description = Provides a block displaying a list of recent published reviews in the sidebar.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = recent_reviews.module
+
+dependencies[] = publication_date

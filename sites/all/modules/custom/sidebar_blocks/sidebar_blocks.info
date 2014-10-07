@@ -1,0 +1,7 @@
+name = Sidebar blocks
+description = Defining custom sidebar blocks like 'Become reviewer' or 'User signup'
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = sidebar_blocks.module

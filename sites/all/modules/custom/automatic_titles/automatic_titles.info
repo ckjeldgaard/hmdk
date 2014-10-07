@@ -1,0 +1,7 @@
+name = Automatic titles
+description = Gør det muligt at skjule indholdets titelfelt og automatisk generere en titel.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = automatic_titles.module

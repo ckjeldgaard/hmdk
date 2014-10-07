@@ -1,0 +1,236 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function concert_calendar_block_info() {
+  $blocks['block-concert-calendar'] = array(
+    'info' => t('Concert calendar'),
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function concert_calendar_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-concert-calendar':
+      $block['subject'] = t('Concert calendar');
+      $block['content'] = theme('block-concert-calendar', array('concerts' => concert_calendar_contents(), 'provinces' => _get_provinces()));
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function concert_calendar_theme() {
+  $path_to_theme = drupal_get_path('theme', variable_get('theme_default'));
+  return array(
+    'block-concert-calendar' => array(
+      'template' => 'block--concert-calendar',
+      'variables' => array('form' => NULL),
+      'path' => $path_to_theme . '/templates',
+    ),
+  );
+}
+
+/**
+ * Get a list of all available provinces.
+ *
+ * @return array
+ */
+function _get_provinces() {
+  
+  $current = (isset($_GET['landsdel'])) ? $_GET['landsdel'] : FALSE; 
+  
+  $provinces = array(
+    'koebenhavn' => array('name' => 'København'),
+    'nordsjaelland' => array('name' => 'Nordsjælland'),
+    'bornholm' => array('name' => 'Bornholm'),
+    'sjaelland' => array('name' => 'Sjælland'),
+    'fyn' => array('name' => 'Fyn'),
+    'syd-soenderjylland' => array('name' => 'Syd- og Sønderjylland'),
+    'vestjylland' => array('name' => 'Vestjylland'),
+    'midtjylland' => array('name' => 'Midtjylland'),
+    'nordjylland' => array('name' => 'Nordjylland'),
+    'udlandet' => array('name' => 'Udlandet'),
+  );
+  foreach ($provinces as $k => $v) {
+    $provinces[$k]['selected'] = ($current == $k) ? TRUE : FALSE;
+  }
+  return $provinces;
+}
+
+/**
+ * @param string $province The province machine-name. E.g. 'koebenhavn'
+ * @return array Returns an array of venue term tids.
+ */
+function _get_venue_tids_by_province($province) {
+  $query = db_select('field_data_field_province', 'p');
+  $query->fields('p', array('entity_id'));
+  $query->condition('p.field_province_value', $province);
+  
+  $rs = $query->execute();
+  $tids = array();
+  foreach ($rs as $row) {
+    $tids[] = $row->entity_id;
+  }
+  return $tids;
+}
+
+function concert_calendar_contents() {
+
+  if (isset($_GET['landsdel'])) {
+    if (array_key_exists($_GET['landsdel'], _get_provinces())) {
+      $province = $_GET['landsdel'];
+      $venues = _get_venue_tids_by_province($province);
+      drupal_set_title('Landsdel');
+    } else {
+      drupal_goto('koncertkalender', array(), 302);
+      drupal_exit();
+    }
+  }
+  else {
+    $province = FALSE;
+  }
+  
+  $sql = "SELECT n.nid, n.title, ";
+  $sql .= "d.field_event_date_value AS startdate, d.field_event_date_value2 AS enddate ";
+  $sql .= "FROM node n ";
+  $sql .= "LEFT OUTER JOIN field_data_field_event_date d ON n.nid = d.entity_id ";
+  $sql .= "WHERE n.type = :type1 AND n.status = :status AND d.field_event_date_value > (UNIX_TIMESTAMP(NOW())-86400) ";
+  $sql .= "ORDER BY startdate";
+  
+  $rs = db_query($sql, array(':type1' => 'concert', 'status' => 1));
+  $events = array();
+  foreach ($rs as $row) {
+    $node = node_load($row->nid);
+    
+    // Check of concert/festival should be filtered out:
+    $continue = TRUE;
+    if ($province) {
+      $continue = FALSE;
+      if (isset($node->field_venue[LANGUAGE_NONE]) && in_array($node->field_venue[LANGUAGE_NONE][0]['tid'], $venues)) {
+        $continue = TRUE;
+      }
+    }
+    
+    if ($continue) {
+      $new = ((time() - $node->created) < 86400) ? TRUE : FALSE;
+      if ($node->type == 'concert') {
+        
+        // If festival:
+        if ($node->field_is_festival[LANGUAGE_NONE][0]['value'] == 1) {
+          $artist_string = "<strong>" . l($node->title, 'node/' . $node->nid) . "</strong>: ";
+          $band_limit = 5;
+          $artists = array();
+          for ($i = 0; $i < $band_limit; $i++) {
+            if (isset($node->field_artists[LANGUAGE_NONE][$i])) {
+              $artists[] = l(_get_artist_name($node->field_artists[LANGUAGE_NONE][$i]), 'node/' . $node->field_artists[LANGUAGE_NONE][$i]['target_id']);
+            }
+          }
+          $artist_string.= implode(", ", $artists);
+          if (count($node->field_artists[LANGUAGE_NONE]) > $band_limit) {
+            $artist_string .= ", m.fl.";
+          }
+        }
+        else {
+          // If concert:
+          $artists = array();
+          if (isset($node->field_artists[LANGUAGE_NONE])) {
+            foreach ($node->field_artists[LANGUAGE_NONE] as $a) {
+              $artists[] = l(_get_artist_name($a['target_id']), 'node/' . $a['target_id']);
+            }
+          }
+          if (isset($node->field_support_artists[LANGUAGE_NONE])) {
+            foreach ($node->field_support_artists[LANGUAGE_NONE] as $b) {
+              $artists[] = l(_get_artist_name($b['target_id']), 'node/' . $b['target_id']);
+            }
+          }
+          
+          $artist_string = implode(", ", $artists);
+        }
+        
+        $events[_month_name($row->startdate)][] = array(
+          'nid' => $row->nid,
+          'node' => $node,
+          'startdate' => _day($row->startdate),
+          'enddate' => ($row->startdate != $row->enddate) ? _day($row->enddate, 'endDate') : FALSE,
+          'artists' => $artist_string,
+          'venue' => (isset($node->field_venue[LANGUAGE_NONE])) ? _get_venue_name($node->field_venue[LANGUAGE_NONE][0]['tid']) : '',
+          'venue_tid' => (isset($node->field_venue[LANGUAGE_NONE])) ? $node->field_venue[LANGUAGE_NONE][0]['tid'] : NULL,
+          'cancelled' => ($node->field_cancelled[LANGUAGE_NONE][0]['value'] == 1) ? TRUE : FALSE,
+          'new' => $new,
+        );
+      }
+    }
+  }
+  
+  return $events;
+}
+
+/**
+ * Get artist name by node ID.
+ *
+ * @param int $nid The artist node ID.
+ * @return string Returns the artist name or NULL if not found.
+ */
+function _get_artist_name($nid) {
+  $query = db_select('node', 'n');
+  $query->fields('n', array('title'));
+  $query->condition('n.type', 'artist');
+  $query->condition('n.nid', $nid);
+  $obj = $query->execute()->fetchObject();
+  return (is_object($obj)) ? $obj->title : NULL;
+}
+
+function _get_venue_name($tid) {
+  $query = db_select('taxonomy_term_data', 't');
+  $query->fields('t', array('name'));
+  $query->addField('a', 'field_address_locality', 'city');
+  $query->join('field_data_field_address', 'a', 'a.entity_id = t.tid');
+  $query->condition('t.tid', $tid);
+  $obj = $query->execute()->fetchObject();
+  if (is_object($obj)) {
+    return (strlen($obj->city) > 0) ? $obj->name . ", " . $obj->city : $obj->name;
+  }
+  return NULL;
+}
+
+function _month_name($ts) {
+  $name = '';
+  switch (date('n', $ts)) {
+    case 1: $name = 'Januar'; break;
+    case 2: $name = 'Februar'; break;
+    case 3: $name = 'Marts'; break;
+    case 4: $name = 'April'; break;
+    case 5: $name = 'Maj'; break;
+    case 6: $name = 'Juni'; break;
+    case 7: $name = 'Juli'; break;
+    case 8: $name = 'August'; break;
+    case 9: $name = 'September'; break;
+    case 10: $name = 'Oktober'; break;
+    case 11: $name = 'November'; break;
+    case 12: $name = 'December'; break;
+  }
+  return $name . ' ' . date('Y', $ts);
+}
+
+function _day($ts, $itemprop = 'startDate') {
+  $date = '<meta itemprop="' . $itemprop . '" content="' . date ('Y-m-d', $ts) . '">';
+  $date .= date('j', $ts) . ". ";
+  switch (date('N', $ts)) {
+    case 1: $date .= '(man)'; break;
+    case 2: $date .= '(tir)'; break;
+    case 3: $date .= '(ons)'; break;
+    case 4: $date .= '(tor)'; break;
+    case 5: $date .= '(fre)'; break;
+    case 6: $date .= '(lør)'; break;
+    case 7: $date .= '(søn)'; break;
+  }
+  return $date;
+}

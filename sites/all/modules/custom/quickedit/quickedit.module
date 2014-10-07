@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * Implementation of hook_init().
+ */
+function quickedit_init() {
+  if (user_access("access administration pages")) {
+    drupal_add_css(drupal_get_path('module', 'quickedit') . '/css/quickedit.css');
+    drupal_add_js(drupal_get_path('module', 'quickedit') . '/js/quickedit.js');
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function quickedit_permission() {
+  return array(
+    'show editlinks' => array(
+      'title' => t('Show edit links'),
+    )
+  );
+}
+
+/**
+ * Get possible edit classes for frontend editing
+ *
+ * @return string with classes
+ */ 
+function get_edit_classes($node) {
+  global $user;
+  
+  $classes = "";
+  if (user_access("show editlinks", $user)) {
+    if (is_term($node)) {
+      $classes = " quickedit edit-term-" . $node->tid;
+    }
+    else {
+      $classes = node_access('update', $node, $user) ? " quickedit edit-node-" . $node->nid : '';
+    }
+  }
+  return $classes;
+}
+
+/**
+ * Is an object a term?
+ * @param $obj object to check
+ * @return TRUE if it is, FALSE otherwise
+ */
+function is_term($obj) {
+  return (isset($obj->tid) ? TRUE : FALSE);
+}

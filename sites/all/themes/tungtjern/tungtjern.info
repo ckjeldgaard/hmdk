@@ -1,0 +1,33 @@
+; Basic information
+name = Tungt jern
+description = Standard frontend theme for the Heavymetal.dk site.
+core = 7.x
+engine = phptemplate
+
+stylesheets[all][] = styles/pure-min.css
+stylesheets[all][] = styles/grids-responsive-min.css
+stylesheets[all][] = styles/font-awesome.min.css
+stylesheets[all][] = styles/lightbox.css
+stylesheets[all][] = styles/style.css
+
+scripts[] = scripts/raty/jquery.raty.min.js
+scripts[] = scripts/jquery.pajinate.min.js
+scripts[] = scripts/lightbox.min.js
+scripts[] = scripts/site.js
+
+blacklist[stylesheets][] = "modules/system/*"
+blacklist[stylesheets][] = "modules/comment/*"
+blacklist[stylesheets][] = "modules/field/*"
+blacklist[stylesheets][] = "modules/node/*"
+blacklist[stylesheets][] = "modules/user/*"
+blacklist[stylesheets][] = "modules/shortcut/*"
+blacklist[stylesheets][] = "sites/all/modules/contrib/ckeditor/*"
+blacklist[stylesheets][] = "sites/all/modules/contrib/ctools/*"
+blacklist[stylesheets][] = "sites/all/modules/contrib/panels/*"
+blacklist[stylesheets][] = "sites/all/themes/tungtjern/layouts/standard/*"
+
+blacklist[scripts][] = "sites/default/files/languages/*"
+blacklist[scripts][] = "*/modules/contrib/panels/*"
+
+; Panel layouts
+plugins[panels][layouts] = layouts

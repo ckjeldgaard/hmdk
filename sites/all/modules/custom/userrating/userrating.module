@@ -1,0 +1,127 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function userrating_menu() {
+  $items['user_rating/%/%'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => '_user_rating_add',
+    'page arguments' => array(1, 2),
+    'access arguments' => array('access content'),
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+/**
+ * Add a new user rating for an item.
+ *
+ * @param int $nid The review node ID to rate.
+ * @param int $rating The rating value between 1 and 10.
+ * @return NULL Outputs a JSON object containing information about the request.
+ */
+function _user_rating_add($nid, $rating) {
+
+  // Default (pessimistic) return value:
+  $return = array(
+    'success' => FALSE,
+    'message' => t('An error occured. Please try again later.'),
+  );
+  
+  // Basic check of paramters:
+  if ($nid > 0 && $rating > 0 && $rating <= 10) {
+    
+    global $user;
+    if ($user->uid > 0) {
+      // Check wheter nid represents a review node:
+      $query = db_select('node', 'n');
+      $query->fields('n', array('nid'));
+      $query->condition('n.nid', $nid);
+      $query->condition('n.type', 'review');
+      $query->range(0, 1);
+      $result = $query->execute()->fetchField();
+      
+      if ($result > 0) {
+        // Check if user has already rated this item:
+        if (_get_user_rating($user->uid, $nid) > 0) {
+          // Update the rating:
+          $upd = db_update('user_rating')
+          ->fields(array('rating' => $rating))
+          ->condition('uid', $user->uid)
+          ->condition('nid', $nid)
+          ->execute();
+        } else {
+          // Insert new rating in database table:
+          $nid = db_insert('user_rating')->fields(array('uid' => $user->uid, 'nid' => $nid, 'rating' => $rating))->execute();
+        }
+        $return['success'] = TRUE;
+        $return['message'] = t('Your rating has successfully been registered.');
+
+        $return = array_merge($return, _get_item_user_rating($nid));
+      }
+    }
+    else {
+      $return['message'] = t('Log in or register to rate.');
+    }
+  }
+  header('Content-Type: application/json');
+  print drupal_json_encode($return);
+  
+  return NULL;
+}
+
+/**
+ * Get a particular user's rating for an item.
+ *
+ * @param int $uid The user ID.
+ * @param int $nid The review node ID.
+ * @return int|bool Returns a rating value between 1 and 10, or FALSE on failure.
+ */
+function _get_user_rating($uid, $nid) {
+  $query = db_select('user_rating', 'u');
+  $query->fields('u', array('rating'));
+  $query->condition('u.uid', $uid);
+  $query->condition('u.nid', $nid);
+  $query->range(0, 1);
+  $rating = $query->execute()->fetchField();
+  return ($rating > 0) ? $rating : FALSE;
+}
+
+/**
+ * Get the user rating statistics for an item.
+ *
+ * @param int $nid The review node ID.
+ * @return array_bool Returns an associative array containing average rating, rating count, text string and eventually the current user's rating, or FALSE if the item is not rated.
+ */
+function _get_item_user_rating($nid) {
+  $result = db_query('SELECT COUNT(*) AS cnt, SUM(u.rating) AS ratingsum FROM user_rating u WHERE u.nid = :nid', array(':nid' => $nid));
+  $record = $result->fetchObject();  
+  if ($record->cnt > 0) {
+    $avg = round($record->ratingsum / $record->cnt, 1);
+    $avg_formatted = number_format($avg, 1, ',', '');
+    if (substr($avg_formatted, -2) == ',0') {
+      $avg_formatted = substr($avg_formatted, 0, -2);
+    }
+    
+    $stats = array(
+      'avg' => $avg,
+      'cnt' => $record->cnt,
+    );
+    
+    $text = format_plural($record->cnt, '!avg/10 based on 1 rating.', '!avg/10 based on @count ratings.', array('!avg' => $avg_formatted));
+    
+    global $user;
+    if ($ur =_get_user_rating($user->uid, $nid)) {
+      $text .= ' ' . t('You gave !rating', array('!rating' => $ur));
+      $stats['user'] =  $ur;
+    }
+    else {
+      $stats['user'] =  NULL;
+    }
+    $stats['text'] = $text;
+    
+    return $stats;
+  }
+  return FALSE;
+}

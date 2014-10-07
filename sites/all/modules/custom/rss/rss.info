@@ -1,0 +1,9 @@
+name = RSS
+description = General RSS feed for heavymetal.dk containing all content types.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = rss.module
+
+dependencies[] = publication_date

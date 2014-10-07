@@ -1,0 +1,7 @@
+name = Metatag fix
+description = Adds meta information to pages which the Metatag is uncapable of.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = metatag_fix.module

@@ -1,0 +1,158 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function workflow_block_info() {
+  $blocks['block-unreviewed-releases'] = array(
+    'info' => t('Unreviewed releases'),
+  );
+  $blocks['block-my-reviews'] = array(
+    'info' => t('My reviews'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function workflow_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-unreviewed-releases':
+      $block['subject'] = t('Unreviewed releases');
+      $block['content'] = theme('block-unreviewed-releases', array('content' => _block_unreviewed_releases()));
+      break;
+    case 'block-my-reviews':
+      $block['subject'] = t('My reviews');
+      $block['content'] = theme('block-my-reviews', array('content' => _block_my_reviews()));
+      break;
+  }
+  return $block;
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function workflow_theme() {
+  return array(
+    'block-unreviewed-releases' => array(
+      'template' => 'block--block-unreviewed-releases',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-my-reviews' => array(
+      'template' => 'block--block-my-reviews',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+  );
+}
+
+/**
+ * Creates a sortable table displaying releases with no reviews attached.
+ */
+function _block_unreviewed_releases() {
+
+  $header = array(
+    array('data' => t('Name'), 'field' => 'title'),
+    array('data' => t('Release date'), 'field' => 'field_release_date_value'),
+    array('data' => t('Updated'), 'field' => 'changed', 'sort' => 'desc'),
+    array('data' => t('Actions')),
+    array('data' => t('Create review')),
+  );
+  
+  # set the database table
+  $query = db_select('node', 'n')
+    ->extend('PagerDefault')
+    ->limit(10)
+    ->extend('TableSort')
+    ->orderByHeader($header);
+  $query->fields('n', array('nid', 'title', 'changed'));
+  $query->fields('d', array('field_release_date_value'));
+  $query->join('field_data_field_release_date', 'd', 'd.entity_id = n.nid');
+  $query->leftJoin('field_data_field_release', 'r', 'r.field_release_target_id = n.nid');
+  $query->condition('n.status', 1);
+  $query->condition('n.type', 'release');
+  $query->condition('r.entity_id', NULL);
+  
+  $results = $query->execute();
+
+  # build the table fields
+  $rows = array();
+  foreach ($results as $row) {
+    $rows[] = array(
+      $row->title,
+      format_date($row->field_release_date_value, 'displaydate_short'),
+      format_date($row->changed, 'short'),
+      l(t('edit'), 'node/' . $row->nid . '/edit') . '&emsp;' . l(t('delete'), 'node/' . $row->nid . '/delete'),
+      l(t('Create review'), 'node/add/review', array('query' => array('release_nid' => $row->nid))),
+    );
+  }
+  
+  $output = theme('table', array('header' => $header, 'rows' => $rows ));
+
+  # add the pager
+  $output .= theme('pager');
+  
+  global $pager_total_items;
+
+  return array(
+    'table' => $output,
+    'count' => $pager_total_items[0],
+  );
+
+}
+
+/**
+ * Implement hook_form_alter(). Pre-selects a target release in review add form from get parameter 'release_nid'.
+ */
+function workflow_form_alter(&$form, $form_state, $form_id) {
+  if (isset($_GET['release_nid'])) {
+    $release_nid = $_GET['release_nid'];
+    if ($form_id == 'review_node_form' && arg(1) == 'add' && is_numeric($release_nid)) {
+      $node = node_load($release_nid);
+      if ($node->type == 'release') {
+	$form['field_release'][LANGUAGE_NONE][0]['target_id']['#entity'] = $node;
+	$form['field_release'][LANGUAGE_NONE][0]['target_id']['#default_value'] = $node->title . ' (' . $node->nid . ')';
+      }
+    }
+  }
+}
+
+/**
+ * Creates a table displaying unpublished reviews that the currently logged in user is responsible for.
+ * (I.e. the unpublished review nodes the user is the author of).
+ */
+function _block_my_reviews() {
+  
+  global $user;
+  
+  $header = array(t('Title'), t('Actions'));
+  
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid', 'title'));
+  $query->condition('n.type', 'review');
+  $query->condition('n.status', 0);
+  $query->condition('n.uid', $user->uid);
+  $query->orderBy('n.title');
+  $results = $query->execute();
+  
+  $rows = array();
+  foreach ($results as $row) {
+    $rows[] = array(
+      $row->title,
+      l(t('edit'), 'node/' . $row->nid . '/edit'),
+    );
+  }
+  
+  if (count($rows) > 0) {
+    $output = '<p>' . t('Reviews assigned to you:') . "</p>\n";
+    $output.= theme('table', array('header' => $header, 'rows' => $rows ));
+  } else {
+    $output = '<p>' . t('You currently have no reviews.') . "</p>\n";
+  }
+  
+  return $output;
+}

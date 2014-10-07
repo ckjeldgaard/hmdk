@@ -1,0 +1,178 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function review_publish_menu() {
+  $items['admin/config/system/review_publish'] = array(
+    'title' => 'Review publish e-mails',
+    'description' => 'Manage the e-mail contents sent to labels and distributors when reviews are published',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_review_publish_settings_form'),
+    'access arguments' => array('administer review publish settings'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function review_publish_permission() {
+  return array(
+    'administer review publish settings' => array(
+      'title' => t('Administer review publish settings'),
+    ),
+    'reorder frontpage' => array(
+      'title' => t('Reorder frontpage'),
+    ),
+  );
+}
+
+/**
+ * Defines the review publish settings form.
+ */
+function _review_publish_settings_form() {
+  $form = array();
+  
+  $form['email'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('E-mail contents'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['email']['review_publish_email_subject'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Subject'),
+    '#default_value' => variable_get('review_publish_email_subject'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#description' => t('Subject of the review publish notification e-mail sent to labels and distributors. Possible placeholders: !release_title = release title (incl. artist name).'),
+  );
+  $form['email']['review_publish_email_body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('E-mail body'),
+    '#default_value' => variable_get('review_publish_email_body'),
+    '#required' => TRUE,
+    '#description' => t('Body of the review publish notification e-mail sent to labels and distributors.<br />Possible placeholders:<br><ul><li>!name = Name of receiver.</li><li>!release_title = release title (incl. artist name).</li><li>!rating = The review rating.</li><li>!link = Link to the review on heavymetal.dk.</li></ul>'),
+  );
+  
+  return system_settings_form($form);
+}
+
+/**
+ * Implement hook_form_alter().
+ */
+function review_publish_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'review_node_form' && $node = _review_publish_get_node_from_form_state($form_state)) {
+    if ($node->status == 0) {
+      
+      $onclick = "return confirm('" . t('This button publishes the review and sends e-mail notifications to the selected label and/or distributor about it. Are you sure you want to continue?') . "');";
+      $form['actions']['notify'] = array(
+	'#type' => 'submit',
+	'#value' => t('Publish and notify label/distro'),
+	'#weight' => 40,
+	'#submit' => array('node_form_submit', 'review_publish_node_form_submit'),
+	'#attributes' => array(
+	  'onclick' => $onclick
+	),
+      );
+    }
+  }
+}
+
+/**
+ * Submit handler for the 'Publish and notify label/distro' button.
+ */
+function review_publish_node_form_submit($form, &$form_state) {
+  if ($node = _review_publish_get_node_from_form_state($form_state)) {
+
+    // Publish the node:
+    $node->status = 1;
+    node_save($node);
+  
+    // Send e-mails:
+    _review_publish_send_mails($node);
+  }
+}
+
+/**
+ * Sends e-mails to label and distributor
+ *
+ * @param int $release_nid Node id of the release being published.
+ */
+function _review_publish_send_mails(&$review_node) {
+
+  $site_email = variable_get('site_mail', '');
+  $languages = language_list();
+  $language = $languages['en'];
+  $release = node_load($review_node->field_release[LANGUAGE_NONE][0]['target_id']);
+  
+  // Set up common placeholder values:
+  $params = array(
+    'contact_name' => '',
+    'release_title' => $review_node->title,
+    'rating' => (isset($review_node->field_rating[LANGUAGE_NONE][0]['value'])) ? $review_node->field_rating[LANGUAGE_NONE][0]['value'] . "/10" : NULL,
+    'link' => url('node/' . $review_node->nid, array('absolute' => TRUE)),
+  );
+  
+  // If label contact is set:
+  if (isset($release->field_label[LANGUAGE_NONE][0]['tid'])) {
+    $label_term = taxonomy_term_load($release->field_label[LANGUAGE_NONE][0]['tid']);
+    if (isset($label_term->field_contact_email[LANGUAGE_NONE][0]['email'])) {
+      //$email = $label_term->field_contact_email[LANGUAGE_NONE][0]['email'];
+      $email = 'christoffer@sappy.dk';
+      if (isset($label_term->field_contact_name[LANGUAGE_NONE][0]['value'])) {
+	$params['contact_name'] = $label_term->field_contact_name[LANGUAGE_NONE][0]['value'];
+      }
+      drupal_mail('review_publish', 'notice', $email, $language, $params, $site_email);
+    }
+  }
+  
+  // If distributor contact is set:
+  if (isset($release->field_distributor[LANGUAGE_NONE][0]['tid'])) {
+    $distro_term = taxonomy_term_load($release->field_distributor[LANGUAGE_NONE][0]['tid']);
+    if (isset($distro_term->field_contact_email[LANGUAGE_NONE][0]['email'])) {
+      //$email = $distro_term->field_contact_email[LANGUAGE_NONE][0]['email'];
+      $email = 'christoffer@sappy.dk';
+      if (isset($distro_term->field_contact_name[LANGUAGE_NONE][0]['value'])) {
+	$params['contact_name'] = $distro_term->field_contact_name[LANGUAGE_NONE][0]['value'];
+      }
+      drupal_mail('review_publish', 'notice', $email, $language, $params, $site_email);
+    }
+  }
+}
+
+/**
+ * Implement hook_mail(). Sends the notification e-mail to label and/or distributor.
+ */
+function review_publish_mail($key, &$message, $params) {
+  switch($key) {
+    case 'notice':
+
+    $langcode = $message['language']->language;
+    $message['subject'] = t(variable_get('review_publish_email_subject'), array('!release_title' => $params['release_title']));
+    $body_args = array(
+      '!name' => $params['contact_name'],
+      '!release_title' => $params['release_title'],
+      '!rating' => $params['rating'],
+      '!link' => $params['link'],
+    );
+    $message['body'][] = t(variable_get('review_publish_email_body'), $body_args);
+    break;
+  }
+}
+
+/**
+ * Internal helper function to get the node from a $form_state
+ */
+function _review_publish_get_node_from_form_state(&$form_state) {
+  // Check the node is in the form state - if it isn't, something has gone very
+  // wrong... Best not to continue
+  if (!isset($form_state['node'])) {
+    return FALSE;
+  }
+
+  // Return the node
+  return $form_state['node'];
+}

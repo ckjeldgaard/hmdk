@@ -1,0 +1,1 @@
+<h1><a href="<?php print url($site_frontpage); ?>"><?php print $site_name; ?></a></h1>

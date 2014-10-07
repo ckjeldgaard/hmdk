@@ -1,0 +1,21 @@
+@import url(http://fonts.googleapis.com/css?family=PT+Sans);
+
+body {
+  font-family: 'PT Sans', 'Helvetica', 'Arial', sans-serif;
+}
+
+p {
+  margin: 1em 0 2em 0;
+}
+
+h2, h3 {
+  margin: 1em 0 0 0;
+}
+
+blockquote {
+  border-left: 5px solid #dddddd;
+  color: #666666;
+  font-style: italic;
+  line-height: 1.8;
+  padding-left: 1.5em;
+}

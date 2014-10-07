@@ -1,0 +1,9 @@
+name = Related
+description = Provides a block displaying a nodes related to the current band/artist being viewed.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = related.module
+
+dependencies[] = publication_date

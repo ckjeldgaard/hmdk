@@ -1,0 +1,7 @@
+name = Userrating
+description = Enables user ratings of reviews.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = userrating.module

@@ -1,0 +1,59 @@
+8
+
+dir
+31206
+svn+ssh://svn.dwarf.dk/prod/dwarf/repository/drupal/faxe/trunk/sites/all/modules/custom/google_search/google-api-php-client/src
+svn+ssh://svn.dwarf.dk/prod/dwarf/repository
+
+
+
+2013-12-10T10:18:51.121836Z
+29717
+cpt
+
+
+svn:special svn:externals svn:needs-lock
+
+contrib
+dir
+
+Google_Client.php
+file
+
+
+
+
+2013-12-09T09:04:00.000000Z
+7b85279df4c0d845415c97a579df614e
+2013-12-10T10:18:51.121836Z
+29717
+cpt
+
+service
+dir
+
+auth
+dir
+
+external
+dir
+
+cache
+dir
+
+io
+dir
+
+config.php
+file
+
+
+
+
+2013-12-09T09:04:00.000000Z
+e817a5320f789ffafd64a85c481fdfa5
+2013-12-10T10:18:51.121836Z
+29717
+cpt
+has-props
+

@@ -1,0 +1,7 @@
+name = Ghost nodes
+description = Disables most node view capabilities in the administration area for content types that shouldn't be viewable by users.
+core = 7.x
+version = 7.x-1.0
+configure = admin/config/system/ghost_nodes
+files[] = ghost_nodes.module
+dependencies[] = admin_views

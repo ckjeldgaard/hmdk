@@ -1,0 +1,90 @@
+<?php
+
+/*
+ * Implements hook_menu().
+ */
+function rss_menu(){
+    $items['rss'] = array(
+        'title' => 'RSS feed',
+        'page callback' => 'rss_get_contents',
+        'access arguments' => array('access content'),
+	'type' => MENU_CALLBACK,
+    );
+    return $items;
+}
+
+/*
+ * Implements hook_theme().
+ */
+function rss_theme(){
+  return array(
+    'rss_template' => array(
+      // file name will be rss.tpl.php
+      'template' => 'rss',
+    ),
+  );
+}
+
+/**
+ * Retrieves the RSS contents.
+ */
+function rss_get_contents() {
+  header("content-type:application/rss+xml;charset=utf-8");
+  //header("content-type:text/plain;charset=utf-8");
+  
+  $types = array(
+    'review',
+    'concert_review',
+    'interview',
+    'news',
+    'reportage',
+    'contest',
+  );
+  
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid', 'title', 'type'));
+  $query->join('publication_date', 'd', 'n.nid = d.nid');
+  $query->condition('n.status', 1);
+  $query->condition('n.type', $types);
+  $query->orderBy('d.published_at', 'DESC');
+  $query->range(0, 15);
+  
+  $rs = $query->execute();
+  $nodes = array();
+  foreach($rs as $row) {
+    $node = node_load($row->nid);
+    
+    $node->rss_title = '';
+    $node->desc = '';
+    
+    if ($node->type == 'review' || $node->type == 'reportage') {
+	
+      if ($node->type == 'review') {
+        $node->rss_title = _get_type($node->type, FALSE) . ": " . $node->title . " [" . $node->field_rating[LANGUAGE_NONE][0]['value'] . "/10]";
+      } else {
+	$node->rss_title = _get_type($node->type, FALSE) . ": " . $node->title;
+      }
+      
+      if (isset($node->field_tagline[LANGUAGE_NONE][0])) {
+	$node->desc = $node->field_tagline[LANGUAGE_NONE][0]['value'];
+      } else if (isset($node->body[LANGUAGE_NONE][0]['summary']) && strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) {
+	$node->desc = $node->body[LANGUAGE_NONE][0]['summary'];
+      } else if (isset($node->body[LANGUAGE_NONE][0]['value'])) {
+	$node->desc = truncate_utf8(strip_tags($node->body[LANGUAGE_NONE][0]['value']), 160, TRUE, TRUE);
+      }
+    }
+    else {
+      $node->rss_title = _get_type($node->type, FALSE) . ": " . $node->title;
+      if (isset($node->body[LANGUAGE_NONE][0]['summary']) && strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) {
+	$node->desc = $node->body[LANGUAGE_NONE][0]['summary'];
+      } else if (isset($node->body[LANGUAGE_NONE][0]['value'])) {
+	$node->desc = truncate_utf8(strip_tags($node->body[LANGUAGE_NONE][0]['value']), 160, TRUE, TRUE);
+      }
+    }
+    
+    $nodes[] = $node;
+  }
+
+  print theme('rss_template', array('rss_items' => $nodes));
+  drupal_exit();
+}

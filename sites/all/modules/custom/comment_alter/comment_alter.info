@@ -1,0 +1,8 @@
+name = Comment alter
+description = Alters the comment form and module.
+core = 7.x
+version = 7.x-1.0
+
+dependencies[] = comment
+
+files[] = comment_alter.module

@@ -1,0 +1,146 @@
+<?php
+// $Id: contest.module Exp $
+
+require_once('contest.admin.inc');
+
+/**
+ * Implements hook_preprocess_node(). Preprocesses contest nodes.
+ */
+function contest_preprocess_node(&$variables) {
+  $node = $variables['node'];
+  if ($node->type == 'contest') { 
+    global $user;
+    
+    $warning = FALSE;
+    $disabled = FALSE;
+    if ($user->uid == 0) {
+      $create = l(t('Create new account'), 'user/register', array('query' => array('destination' => 'node/' . $node->nid)));
+      $login = l(t('login'), 'user/login', array('query' => array('destination' => 'node/' . $node->nid)));
+      $warning = t('Participation in contests requires that you have a user account and are logged in. !create or !login.', array('!create' => $create, '!login' => $login));
+      $disabled = TRUE;
+    }
+    if ($user->uid > 0) {
+      if (in_array('anmelder', $user->roles) || in_array('editor', $user->roles)) {
+	$warning = t('Editors may not participate in the contest.');
+	$disabled = TRUE;
+      }
+      if (_contest_user_participated($user->uid, $node->nid)) {
+	$warning = t('You have already participated in this contest.');
+	$disabled = TRUE;
+      }
+    }
+    
+    $node->warning = $warning;
+    
+    $form = drupal_get_form('contest_form', $node->field_questions, $disabled);
+    $node->contest_form = $form;
+  }
+}
+
+/**
+ * Checks if a user has already participated in a contest.
+ *
+ * @param int $uid User ID of the user.
+ * @param int $contest_nid Node ID of the contest.
+ * @return bool Returns TRUE if the user has already participated, FALSE otherwise.
+ */
+function _contest_user_participated($uid, $contest_nid) {
+  $query = db_select('contest_answers', 'a');
+  $query->fields('a', array('id'));
+  $query->condition('a.uid', $uid);
+  $query->condition('a.contest_nid', $contest_nid);
+  $query->range(0, 1);
+  $obj = $query->execute()->fetchObject();
+  return is_object($obj) ? TRUE : FALSE;
+}
+
+/**
+ * Defines the contest form with questions and answers in radio buttons.
+ */
+function contest_form($form, &$form_state, $questions, $disabled) {
+  $form = array();
+  
+  for ($i = 0; $i < count($questions[LANGUAGE_NONE]); $i++) {
+    $question = field_collection_item_load($questions[LANGUAGE_NONE][$i]['value']);
+
+    // Get answers to this question:
+    $answer_options = array();
+    for ($j = 0; $j < count($question->field_answers[LANGUAGE_NONE]); $j++) {
+      $answer = field_collection_item_load($question->field_answers[LANGUAGE_NONE][$j]['value']);
+      $answer_options[$answer->item_id] = $answer->field_answer[LANGUAGE_NONE][0]['value'];
+    }
+    
+    $active = array(0 => t('Closed'), 1 => t('Active'));
+    $form['question_' . $question->item_id] = array(
+      '#type' => 'radios',
+      '#title' => $question->field_question[LANGUAGE_NONE][0]['value'],
+      '#default_value' => NULL,
+      '#options' => $answer_options,
+      '#required' => TRUE,
+      '#disabled' => $disabled,
+    );
+  }
+  
+  $form['contest_nid'] = array('#type' => 'hidden', '#value' => arg(1));
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send answers'),
+    '#disabled' => $disabled,
+  );
+  return $form;
+}
+
+/**
+ * Validates the contest form.
+ */
+function contest_form_validate($form, &$form_state) {
+  // Check if contest has expired:
+  $node = node_load(arg(1));
+  if ($node->field_enddate[LANGUAGE_NONE][0]['value'] < time()) {
+    form_set_error('submit', t('This contest has expired.'));
+  }
+  
+  global $user;
+  if ($user->uid == 0) {
+    form_set_error('submit', t('Participation in contests requires that you have a user account and are logged in.'));
+  }
+  if ($user->uid > 0) {
+    if (in_array('anmelder', $user->roles) || in_array('editor', $user->roles)) {
+      form_set_error('submit', t('Editors may not participate in the contest.'));
+    }
+    if (_contest_user_participated($user->uid, $node->nid)) {
+      form_set_error('submit', t('You have already participated in this contest.'));
+    }
+  }
+}
+
+/**
+ * Validates the contest form.
+ */
+function contest_form_submit($form, &$form_state) {
+  global $user;
+  
+  // Find out if all questions were answered correctly:
+  $correct = 1;
+  foreach ($form_state['values'] as $k => $v) {
+    if (substr($k, 0, 9) == 'question_') {
+      $answer = field_collection_item_load($v);
+      if ($answer->field_correct[LANGUAGE_NONE][0]['value'] == 0) {
+	$correct = 0;
+      }
+    }
+  }
+  
+  // Insert user participation into database:
+  $nid = db_insert('contest_answers')
+    ->fields(array(
+      'contest_nid' => $form_state['values']['contest_nid'],
+      'uid' => $user->uid,
+      'correct' => $correct,
+      'created' => REQUEST_TIME,
+    ))
+    ->execute();
+
+  drupal_set_message(t('Thanks for your participation in the contest.'));
+}

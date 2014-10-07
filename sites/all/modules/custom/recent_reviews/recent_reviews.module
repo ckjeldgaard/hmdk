@@ -1,0 +1,71 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function recent_reviews_block_info() {
+  $blocks['block-recent-reviews'] = array(
+    'info' => t('Recent reviews'),
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function recent_reviews_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-recent-reviews':
+      $block['subject'] = t('Recent reviews');
+      $block['content'] = theme('block-recent-reviews', array('reviews' => recent_reviews_contents()));
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function recent_reviews_theme() {
+  $path_to_theme = drupal_get_path('theme', variable_get('theme_default'));
+  return array(
+    'block-recent-reviews' => array(
+      'template' => 'block--recent-reviews',
+      'variables' => array('form' => NULL),
+      'path' => $path_to_theme . '/templates',
+    ),
+  );
+}
+
+function recent_reviews_contents() {
+  $num_reviews = 4; // Maximum number of reviews to show in sidebar.
+  
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid'));
+  $query->condition('n.type', 'review');
+  $query->condition('n.status', 1);
+  $query->join('publication_date', 'd', 'n.nid = d.nid');
+  $query->orderBy('d.published_at', 'DESC')->orderBy('n.created', 'DESC');
+  $query->range(0, $num_reviews);
+  
+  $rs = $query->execute();
+  $nodes = array();
+  foreach ($rs as $row) {
+    $node = node_load($row->nid);
+
+    // Get release image:
+    $query_img = db_select('node', 'n');
+    $query_img->fields('i', array('field_image_fid'));
+    $query_img->condition('n.type', 'release');
+    $query_img->condition('n.nid', $node->field_release[LANGUAGE_NONE][0]['target_id']);
+    $query_img->join('field_data_field_image', 'i', 'n.nid = i.entity_id');
+    $query_img->range(0, 1);
+    $img_obj = $query_img->execute()->fetchObject();
+    $node->image = file_load($img_obj->field_image_fid);
+    
+    $nodes[] = $node;
+  }
+  
+  return $nodes;
+}

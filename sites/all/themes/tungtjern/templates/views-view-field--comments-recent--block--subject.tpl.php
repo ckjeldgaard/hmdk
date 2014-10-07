@@ -1,0 +1,1 @@
+<strong><?php print l($row->comment_subject, 'node/' . $row->comment_nid, array('fragment' => 'comment-' . $row->cid)); ?></strong>

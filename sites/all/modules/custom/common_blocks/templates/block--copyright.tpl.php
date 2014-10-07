@@ -1,0 +1,1 @@
+<p class="copyright"><?php print $copyright; ?></p>

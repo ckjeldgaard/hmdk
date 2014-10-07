@@ -1,0 +1,9 @@
+name = Address block
+description = Provides a block with the main address.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+configure = admin/config/system/address_block
+
+files[] = address_block.install
+files[] = address_block.module

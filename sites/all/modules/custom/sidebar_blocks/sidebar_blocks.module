@@ -1,0 +1,244 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function sidebar_blocks_menu() {
+  $items['admin/config/system/sidebar_blocks'] = array(
+    'title' => 'Sidebar blocks settings',
+    'description' => 'Manage sidebar blocks contents.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_sidebar_blocks_settings_form'),
+    'access arguments' => array('administer sidebar blocks settings'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function sidebar_blocks_permission() {
+  return array(
+    'administer sidebar blocks settings' => array(
+      'title' => t('Administer sidebar blocks settings'),
+    ),
+  );
+}
+
+/**
+ * Defines the Sidebar blocks settings form.
+ */
+function _sidebar_blocks_settings_form() {
+  $form = array();
+  
+  // Reviewer ad:
+  $form['reviewer'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Reviewer ad'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['reviewer']['sidebar_blocks_reviewer_headline'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Headline'),
+    '#default_value' => variable_get('sidebar_blocks_reviewer_headline'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#description' => t('The reviewer ad block headline'),
+  );
+  
+  $sidebar_blocks_reviewer_contents = variable_get('sidebar_blocks_reviewer_contents');
+  $form['reviewer']['sidebar_blocks_reviewer_contents'] = array(
+    '#type' => 'text_format',
+    '#title' => t('Contents'),
+    '#default_value' => $sidebar_blocks_reviewer_contents['value'],
+    '#required' => TRUE,
+    '#description' => t('The reviewer ad block contents'),
+    '#format' => $sidebar_blocks_reviewer_contents['format'],
+  );
+  $form['reviewer']['sidebar_blocks_reviewer_button_text'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Button text'),
+    '#default_value' => variable_get('sidebar_blocks_reviewer_button_text'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#description' => t('The reviewer ad block button text.'),
+  );
+  $form['reviewer']['sidebar_blocks_reviewer_button_destination'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Button link destination'),
+    '#default_value' => variable_get('sidebar_blocks_reviewer_button_destination'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#description' => t('The reviewer ad block button link destination. E.g. node/1'),
+  );
+  
+  // User signup ad:
+  $form['user_signup'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('User signup ad'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['user_signup']['sidebar_blocks_user_signup_headline'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Headline'),
+    '#default_value' => variable_get('sidebar_blocks_user_signup_headline'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#description' => t('The user signup ad block headline'),
+  );
+  
+  $sidebar_blocks_user_signup_contents = variable_get('sidebar_blocks_user_signup_contents');
+  $form['user_signup']['sidebar_blocks_user_signup_contents'] = array(
+    '#type' => 'text_format',
+    '#title' => t('Contents'),
+    '#default_value' => $sidebar_blocks_user_signup_contents['value'],
+    '#required' => TRUE,
+    '#description' => t('The user signup ad block contents'),
+    '#format' => $sidebar_blocks_user_signup_contents['format'],
+  );
+  $form['user_signup']['sidebar_blocks_user_signup_button_text'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Button text'),
+    '#default_value' => variable_get('sidebar_blocks_user_signup_button_text'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#description' => t('The user signup ad block button text.'),
+  );
+  $form['user_signup']['sidebar_blocks_user_signup_button_destination'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Button link destination'),
+    '#default_value' => variable_get('sidebar_blocks_user_signup_button_destination'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#description' => t('The user signup ad block button link destination. E.g. node/1'),
+  );
+  
+  return system_settings_form($form);
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function sidebar_blocks_block_info() {
+  $blocks['block-user-signup-ad'] = array(
+    'info' => t('User signup ad'),
+  );
+  $blocks['block-reviewer-ad'] = array(
+    'info' => t('Reviewer ad'),
+  );
+  $blocks['block-latest-concerts'] = array(
+    'info' => t('Latest concerts'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function sidebar_blocks_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-user-signup-ad':
+      $block['subject'] = t('User signup ad');
+      $block['content'] = theme('block-user-signup-ad', array('content' => _user_signup_ad_contents()));
+      break;
+    case 'block-reviewer-ad':
+      $block['subject'] = t('Reviewer ad');
+      $block['content'] = theme('block-reviewer-ad', array('content' => _reviewer_ad_contents()));
+      break;
+    case 'block-latest-concerts':
+      $block['subject'] = t('Latest concerts');
+      $block['content'] = theme('block-latest-concerts', array('concerts' => _latest_concerts_contents()));
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function sidebar_blocks_theme() {
+  return array(
+    'block-user-signup-ad' => array(
+      'template' => 'block--user-signup-ad',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'sidebar_blocks'),
+    ),
+    'block-reviewer-ad' => array(
+      'template' => 'block--reviewer-ad',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'sidebar_blocks'),
+    ),
+    'block-latest-concerts' => array(
+      'template' => 'block--latest-concerts',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'sidebar_blocks'),
+    ),
+  );
+}
+
+function _user_signup_ad_contents() {
+  global $user;
+  $display = TRUE;
+  if ($user->uid > 0) {
+    $display = FALSE;
+  }
+  
+  $sidebar_blocks_user_signup_contents = variable_get('sidebar_blocks_user_signup_contents');
+  $content = NULL;
+  if (is_array($sidebar_blocks_user_signup_contents)) {
+    $content = $sidebar_blocks_user_signup_contents['value'];
+  }
+  return array(
+    'content' => $content,
+    'display' => $display,
+  );
+}
+
+function _reviewer_ad_contents() {
+  $sidebar_blocks_reviewer_contents = variable_get('sidebar_blocks_reviewer_contents');
+  return (is_array($sidebar_blocks_reviewer_contents)) ? $sidebar_blocks_reviewer_contents['value'] : NULL;
+}
+
+function _latest_concerts_contents() {
+  $num_concerts = 5;
+  $band_limit = 3;
+  
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid'));
+  $query->join('field_data_field_event_date', 'd', 'd.entity_id = n.nid');
+  $query->condition('n.type', 'concert');
+  $query->condition('n.status', '1');
+  $query->condition('d.field_event_date_value', time(), '>');
+  $query->orderBy('d.field_event_date_value', 'ASC');
+  $query->range(0, $num_concerts);
+  
+  $rs = $query->execute();
+  $concerts = array();
+  foreach ($rs as $row) {
+    $node = node_load($row->nid);
+    
+    $artist_string = '';
+    if ($node->field_is_festival[LANGUAGE_NONE][0]['value'] == 1) {
+      $artist_string = "<strong>" . l($node->title, 'node/' . $node->nid) . "</strong>: ";
+    }
+    $artists = array();
+    for ($i = 0; $i < $band_limit; $i++) {
+      if (isset($node->field_artists[LANGUAGE_NONE][$i])) {
+        $artists[] = l(_get_artist_name($node->field_artists[LANGUAGE_NONE][$i]['target_id']), 'node/' . $node->field_artists[LANGUAGE_NONE][$i]['target_id']);
+      }
+    }
+    $artist_string.= implode(", ", $artists);
+    if (count($node->field_artists[LANGUAGE_NONE]) > $band_limit) {
+      $artist_string .= ", m.fl.";
+    }
+    
+    $node->artist_string = $artist_string;
+    $concerts[] = $node;
+  }
+
+  return $concerts;
+}

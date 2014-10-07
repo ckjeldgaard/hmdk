@@ -1,0 +1,131 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function ghost_nodes_menu() {
+  $items['admin/config/system/ghost_nodes'] = array(
+    'title' => 'Manage ghost nodes',
+    'description' => 'Set ghost node content types.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_ghost_nodes_settings_form'),
+    'access arguments' => array('administer ghost nodes settings'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function ghost_nodes_permission() {
+  return array(
+    'administer ghost nodes settings' => array(
+      'title' => t('Administer ghost nodes settings'),
+    ),
+  );
+}
+
+/**
+ * Defines the ghost node settings form.
+ */
+function _ghost_nodes_settings_form() {
+  $form = array();
+  
+  // Get available content types:
+  $query = db_select('node_type', 't');
+  $query->fields('t', array('type', 'name'));
+  $query->condition('t.disabled', 0);
+  $query->orderBy('name', 'ASC');
+  $rs = $query->execute();
+  $types = array();
+  foreach ($rs as $record) {
+    $types[$record->type] = $record->name;
+  }
+  
+  $default = variable_get('ghost_nodes_content_types');
+  if (strlen($default) > 0) {
+    $default_value = unserialize($default);
+  } else {
+    $default_value = NULL;
+  }
+  
+  $form['types'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Content types'),
+    '#default_value' => $default_value,
+    '#options' => $types,
+    '#description' => t('Select the content types that should act as ghost nodes.'),
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_form_submit(). Saves the ghost nodes settings form.
+ */
+function _ghost_nodes_settings_form_submit($form_id, &$form_state) {
+  $types = array();
+  foreach ($form_state['values']['types'] as $type) {
+    if ($type !== 0) {
+      $types[] = $type;
+    }
+  }
+  variable_set('ghost_nodes_content_types', serialize($types));
+  drupal_set_message(t('Settings saved.'));
+}
+
+/**
+ * Implements hook_preprocess_views_view_table(). Disables links in the content list for node types not having a 'real' page.
+ */
+function ghost_nodes_preprocess_views_view_table(&$vars) {
+  $var_types = variable_get('ghost_nodes_content_types');
+  if (strlen($var_types) > 0) {
+    $types = unserialize($var_types);
+  } else {
+    $types = array();
+  }
+  //echo "<pre>";
+  if ($vars['view']->name == 'admin_views_node') {
+    foreach ($vars['rows'] as $k => $row ) {
+      if (in_array($vars['view']->result[$k]->node_type, $types)) {
+        //print_r($vars['rows'][$k]);
+        $vars['rows'][$k]['title'] = $vars['view']->result[$k]->node_title;
+      }
+      //$vars['rows'][$k]['title'] .= ' <span class="marker">ikke anmeldt</span>';
+    }
+  }
+  //die;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function ghost_nodes_form_alter(&$form, &$form_state, $form_id) {
+  $var_types = variable_get('ghost_nodes_content_types');
+  if (strlen($var_types) > 0) {
+    $types = unserialize($var_types);
+  } else {
+    $types = array();
+  }
+  
+  $form_ids = array();
+  foreach ($types as $type) {
+    $form_ids[] = $type . "_node_form";
+  }
+  
+  if (in_array($form_id, $form_ids)) {
+    $form['actions']['submit']['#submit'][] = 'ghost_nodes_ls_submit';
+  }
+}
+
+/**
+ * Redirect to content list after saving node.
+ */
+function ghost_nodes_ls_submit($form, &$form_state) {
+  $form_state['redirect'] = 'admin/content';
+}

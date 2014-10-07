@@ -1,0 +1,10 @@
+name = Contest
+description = Simple multiple choise contest module with questions and answers.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+configure = admin/config/system/manage_contests
+
+files[] = contest.module
+files[] = contest.install

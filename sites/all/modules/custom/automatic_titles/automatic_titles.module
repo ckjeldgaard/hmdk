@@ -1,0 +1,120 @@
+<?php
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the node form.
+ */
+function automatic_titles_form_node_form_alter(&$form, &$form_state, $form_id) {
+  
+  $types = array(
+    'review',
+    'concert',
+    'concert_review',
+    'release',
+  );
+  
+  if (in_array($form['#node']->type, $types)) {
+    // We will autogenerate the title later, just hide the title field in the meanwhile.
+    $form['title']['#value'] = 'ant';
+    $form['title']['#type'] = 'value';
+    $form['title']['#required'] = FALSE;
+  }
+}
+
+/**
+ * Implements hook_node_submit().
+ * 
+ * Generate the node title as soon as the form has been submitted. That way
+ * the node preview is shown right too.
+ */
+function automatic_titles_node_submit($node, $form, &$form_state) {
+  if ($node->type == 'review') {
+    $release = node_load($node->field_release[LANGUAGE_NONE][0]['target_id']);
+    $artist = node_load($release->field_artist[LANGUAGE_NONE][0]['target_id']);
+    $node->title = $artist->title . " - " . $release->field_release_title[LANGUAGE_NONE][0]['value'];
+  }
+  
+  if ($node->type == 'concert') {
+    $node->title = _get_concert_title($node);
+  }
+  
+  if ($node->type == 'concert_review') {
+    $concert_node = node_load($node->field_concert[LANGUAGE_NONE][0]['target_id']);
+    if ($concert_node->type == 'concert') {
+      $node->title = _get_concert_title($concert_node);
+    }
+    else {
+      $node->title = $concert_node->title;
+    }
+  }
+  
+  if ($node->type == 'release') {
+    $release_title = $node->field_release_title[LANGUAGE_NONE][0]['value'];
+    $artist = node_load($node->field_artist[LANGUAGE_NONE][0]['target_id']);
+    $node->title = $artist->title . " - " . $release_title;
+  }
+  
+}
+
+function _get_concert_title($node) {
+  if (isset($node->field_is_festival[LANGUAGE_NONE]) && $node->field_is_festival[LANGUAGE_NONE][0]['value'] == 1) {
+    return (strlen($node->field_festival_name[LANGUAGE_NONE][0]['value']) > 0) ? $node->field_festival_name[LANGUAGE_NONE][0]['value'] : 'Festival';
+  }
+  else {
+    $title = '';
+    $venue = taxonomy_term_load($node->field_venue[LANGUAGE_NONE][0]['tid']);
+    if (isset($node->field_artists[LANGUAGE_NONE])) {
+      if ($artists = _generate_artists_string($node->field_artists[LANGUAGE_NONE])) {
+        $title .= $artists . ' - ';
+      }
+    }
+    return $title . $venue->name . ' - ' . format_date($node->field_event_date[LANGUAGE_NONE][0]['value'], 'displaydate');
+  }
+}
+
+/**
+ * Generates a text string of bands. Examples:
+ *
+ * - Band A
+ * - Band A og Band B
+ * - Band A, Band B og Band C
+ *
+ * @param array $artists_list An array of artists name references.
+ */
+function _generate_artists_string($artists_list) {
+  
+  $max = 5; // Maximum number of artist names in title before an 'etc.' text is added as suffix.
+  
+  $arr_artists = array();
+  foreach ($artists_list as $a) {
+    $artist = node_load($a['target_id']);
+    if (isset($artist->title)) {
+      $arr_artists[] = $artist->title;
+    }
+  }
+    
+  $artists = '';
+  $num_artists = count($arr_artists);
+  if ($num_artists == 1) {
+    $artists = $arr_artists[0];
+  }
+  else if ($num_artists == 2) {
+    $artists = $arr_artists[0] . " og " . $arr_artists[1];
+  } else if ($num_artists > 2) {
+    if ($num_artists < $max) {
+      $limit = $num_artists - 1;
+      for ($i = 0; $i < $limit; $i++) {
+       $artists .= $arr_artists[$i] . ", ";
+      }
+      $artists =  substr($artists, 0, -2);
+      $artists .= ' og ' . $arr_artists[$limit];
+    }
+    else {
+      for ($j = 0; $j < $max; $j++) {
+       $artists .= $arr_artists[$j] . ", ";
+      }
+      $artists =  substr($artists, 0, -2);
+      $artists .= ' m.fl.';
+    }
+  }
+  return $artists;
+}

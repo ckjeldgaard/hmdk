@@ -1,0 +1,7 @@
+name = Workflow
+description = Defining heavymetal.dk workflow specific blocks for the administration dashboard
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = workflow.module

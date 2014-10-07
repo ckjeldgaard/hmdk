@@ -1,0 +1,8 @@
+name = Newsletter signup
+description = Provides a newsletter signup form block for Mailchimp list signup.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+dependencies[] = mailchimp
+files[] = newsletter_signup.module

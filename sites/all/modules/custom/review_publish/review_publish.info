@@ -1,0 +1,7 @@
+name = Review publish
+description = Sends e-mails to labels and distributors when reviews are published.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = review_publish.module

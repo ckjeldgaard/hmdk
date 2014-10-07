@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function userrating_schema() {
+  $schema['user_rating'] = array(
+    'description' => 'User review ratings.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'User ID',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'nid' => array(
+        'description' => 'Review node ID.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'rating' => array(
+        'description' => 'Rating from 1 to 10.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('uid', 'nid'),
+    'indexes' => array(
+      'i_rating' => array('rating'),
+    ),
+  );
+  return $schema;
+}

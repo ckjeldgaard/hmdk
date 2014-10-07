@@ -1,0 +1,438 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function related_block_info() {
+  $blocks['block-related'] = array(
+    'info' => t('Related'),
+  );
+  $blocks['block-top-genre'] = array(
+    'info' => t('Top genre'),
+  );
+    $blocks['block-related-artist'] = array(
+    'info' => t('Related artist'),
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function related_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-related':
+      $block['subject'] = t('Related');
+      $block['content'] = theme('block-related', array('content' => related_contents()));
+      break;
+    case 'block-top-genre':
+      $block['subject'] = t('Top genre');
+      $block['content'] = theme('block-top-genre', array('content' => top_genre_contents()));
+      break;
+    case 'block-related-artist':
+      $block['subject'] = t('Related artist');
+      $block['content'] = theme('block-related-artist', array('content' => related_artist_contents()));
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function related_theme() {
+  $path_to_theme = drupal_get_path('theme', variable_get('theme_default'));
+  return array(
+    'block-related' => array(
+      'template' => 'block--related',
+      'variables' => array('form' => NULL),
+      'path' => $path_to_theme . '/templates',
+    ),
+    'block-top-genre' => array(
+      'template' => 'block--top-genre',
+      'variables' => array('form' => NULL),
+      'path' => $path_to_theme . '/templates',
+    ),
+    'block-related-artist' => array(
+      'template' => 'block--related-artist',
+      'variables' => array('form' => NULL),
+      'path' => $path_to_theme . '/templates',
+    ),
+  );
+}
+
+/**
+ * Get nodes related to the current band/artist being viewed.
+ */
+function related_contents() {
+  
+  // Node type pages to display related block on:
+  $types = array('news', 'review', 'concert_review', 'interview');
+  
+  if (arg(0) == 'node') {
+    // Get node type:
+    $query = db_select('node', 'n');
+    $query->fields('n', array('type'));
+    $query->condition('n.nid', arg(1));
+    $obj = $query->execute()->fetchObject();
+    
+    if (isset($obj->type) && in_array($obj->type, $types)) {
+      $content = array();
+      switch ($obj->type) {
+        case 'review':
+          // Get artist nid:
+          $query = db_select('field_data_field_artist', 'a');
+          $query->fields('a', array('field_artist_target_id'));
+          $query->join('field_data_field_release', 'r', 'a.entity_id = r.field_release_target_id');
+          $query->condition('r.entity_id', arg(1));
+          $obj = $query->execute()->fetchObject();
+          
+          $content[] = array(
+            'artist' => _get_artist_name($obj->field_artist_target_id),
+            'nodes' => _get_related_by_artist($obj->field_artist_target_id, array(arg(1)))
+          );
+          break;
+        case 'interview':
+          $query = db_select('field_data_field_artist', 'a');
+          $query->fields('a', array('field_artist_target_id'));
+          $query->condition('a.entity_id', arg(1));
+          $obj = $query->execute()->fetchObject();
+          
+          if (isset($obj->field_artist_target_id)) {
+            $content[] = array(
+              'artist' => _get_artist_name($obj->field_artist_target_id),
+              'nodes' => _get_related_by_artist($obj->field_artist_target_id, array(arg(1)))
+            );
+          }
+          break;
+        case 'news':
+          // Get related from first two artists in list:
+          $node = node_load(arg(1));
+          $content = null;
+          
+          $limit = (isset($node->field_artists[LANGUAGE_NONE][0]['target_id']) && isset($node->field_artists[LANGUAGE_NONE][1]['target_id'])) ? 3 : 4;
+          
+          if (isset($node->field_artists[LANGUAGE_NONE][0]['target_id'])) {
+            $content[] = array(
+              'artist' => _get_artist_name($node->field_artists[LANGUAGE_NONE][0]['target_id']),
+              'nodes' => _get_related_by_artist($node->field_artists[LANGUAGE_NONE][0]['target_id'], array(arg(1)), $limit)
+            );
+          }
+          if (isset($node->field_artists[LANGUAGE_NONE][1]['target_id'])) {
+            $content[] = array(
+              'artist' => _get_artist_name($node->field_artists[LANGUAGE_NONE][1]['target_id']),
+              'nodes' => _get_related_by_artist($node->field_artists[LANGUAGE_NONE][1]['target_id'], array(arg(1)), 3)
+            );
+          }
+          
+          break;
+        case 'concert_review':
+          $content = null;
+          // Get concert nid:
+          $query = db_select('field_data_field_concert', 'c');
+          $query->fields('c', array('field_concert_target_id'));
+          $query->condition('c.entity_id', arg(1));
+          $obj = $query->execute()->fetchObject();
+          
+          // Ret related from first two artists in list:
+          $node = node_load($obj->field_concert_target_id);
+          if (isset($node->field_artists[LANGUAGE_NONE][0]['target_id'])) {
+            $content[] = array(
+              'artist' => _get_artist_name($node->field_artists[LANGUAGE_NONE][0]['target_id']),
+              'nodes' => _get_related_by_artist($node->field_artists[LANGUAGE_NONE][0]['target_id'], array(arg(1)), 3)
+            );
+          }
+          if (isset($node->field_artists[LANGUAGE_NONE][1]['target_id'])) {
+            $content[] = array(
+              'artist' => _get_artist_name($node->field_artists[LANGUAGE_NONE][1]['target_id']),
+              'nodes' => _get_related_by_artist($node->field_artists[LANGUAGE_NONE][1]['target_id'], array(arg(1)), 3)
+            );
+          }
+          break;
+      }
+      return $content;
+    }
+  }
+  return null;
+}
+
+/**
+ * Get content related to a particular artist.
+ *
+ * @param int $artist_nid The nid of the artist node.
+ * @param aray $exclude List of node ID's to exclude.
+ */
+function _get_related_by_artist($artist_nid, $exclude = array(), $limit = 4) {
+  
+  $nids = array();
+  $nodes = array();
+  $bundles = array('news', 'release', 'review', 'concert_review', 'concert', 'interview', 'field_reportage_review');
+  
+  $query = db_select('field_data_field_artists', 'a');
+  $query->fields('a', array('bundle', 'entity_id'));
+  $query->condition('a.field_artists_target_id', $artist_nid);
+  $query->condition('a.bundle', $bundles);
+  $rs = $query->execute();
+  foreach ($rs as $row) {
+    if ($row->bundle == 'concert') {
+      // Find matching concert review (if any):
+      $query = db_select('field_data_field_concert', 'r');
+      $query->fields('r', array('bundle', 'entity_id'));
+      $query->condition('r.field_concert_target_id', $row->entity_id);
+      $query->condition('r.bundle', $bundles);
+      $obj = $query->execute()->fetchObject();
+      if (isset($obj->entity_id) && !in_array($obj->entity_id, $nids) && !in_array($obj->entity_id, $exclude)) {
+        $nids[] = $obj->entity_id;
+      }
+    }
+    else if (!in_array($row->entity_id, $nids) && !in_array($row->entity_id, $exclude)) {
+      $nids[] = $row->entity_id;
+    }
+  }
+  
+  $query = db_select('field_data_field_artist', 'a');
+  $query->fields('a', array('bundle', 'entity_id'));
+  $query->condition('a.field_artist_target_id', $artist_nid);
+  $query->condition('a.bundle', $bundles);
+  $rs = $query->execute();
+  foreach ($rs as $row) {
+  
+    if ($row->bundle == 'release') {
+      // Find matching review (if any):
+      $query = db_select('field_data_field_release', 'r');
+      $query->fields('r', array('bundle', 'entity_id'));
+      $query->condition('r.field_release_target_id', $row->entity_id);
+      $query->condition('r.bundle', $bundles);
+      $obj = $query->execute()->fetchObject();
+      if (isset($obj->entity_id) && !in_array($obj->entity_id, $nids) && !in_array($obj->entity_id, $exclude)) {
+        $nids[] = $obj->entity_id;
+      }
+    }
+    else if ($row->bundle == 'field_reportage_review') {
+      // Special case for reportage nodes. Get the real node ID:
+      $query = db_select('node', 'n');
+      $query->fields('n', array('nid'));
+      $query->join('field_data_field_tabs', 't', 't.entity_id = n.nid');
+      $query->join('field_data_field_reportage_review', 'r', 'r.entity_id = t.field_tabs_value');
+      $query->condition('n.status', 1);
+      $query->condition('n.type', 'reportage');
+      $query->condition('r.field_reportage_review_value', $row->entity_id);
+      $query->orderBy('n.created', 'DESC');
+      $query->groupBy('n.nid');
+      $query->range(0, 1);
+      $obj_reportage = $query->execute()->fetchObject();
+
+      $nids[] = $obj_reportage->nid;
+    }
+    else if (!in_array($row->entity_id, $nids) && !in_array($row->entity_id, $exclude)) {
+      $nids[] = $row->entity_id;
+    }
+  }
+  
+  // Order list of nids by date published:
+  if (count($nids) > 0) {
+    $query = db_select('node', 'n');
+    $query->fields('n', array('nid', 'type'));
+    $query->join('publication_date', 'd', 'n.nid = d.nid');
+    $query->condition('n.nid', $nids);
+    $query->condition('n.status', 1);
+    $query->orderby('d.published_at', 'DESC');
+    $rs = $query->execute();
+    $list = array();
+    foreach ($rs as $row) {
+      $list[] = $row;
+    }
+    
+    $list = _sort_typebased($list);
+    for ($i = 0; $i < $limit; $i++) {
+      if (array_key_exists($i, $list)) {
+        $node = node_load($list[$i]->nid);
+        if ($node->type == 'review') {
+          $node->release = node_load($node->field_release[LANGUAGE_NONE][0]['target_id']);
+        }
+        if ($node->type == 'reportage') {
+          $artist = _get_artist_name($artist_nid);
+          $artist_key = transliteration_get($artist, '-', 'en');
+          $artist_key = strtolower($artist_key);
+          $artist_key = str_replace(' ', '-', $artist_key);
+          $node->artist_key = $artist_key;
+        }
+        $nodes[] = $node;
+      }
+    }
+  }
+  
+  return $nodes;
+}
+
+/**
+ * Order list of nodes so that nodes of each type takes precedence for equal types.
+ *
+ * @return array Returns an array of sorted items.
+ */
+function _sort_typebased($list) {
+  $list_ordered = array();
+  $types_promoted = array();
+  $nids_added = array();
+  
+  // Promote one of each type to top of list:
+  for ($i = 0; $i < count($list); $i++) {
+    if (!in_array($list[$i]->type, $types_promoted)) {
+      $list_ordered[] = $list[$i];
+      $types_promoted[] = $list[$i]->type;
+      $nids_added[] = $list[$i]->nid;
+    }
+  }
+  // Add the remaining nodes:
+  for ($j = 0; $j < count($list); $j++) {
+    if (!in_array($list[$j]->nid, $nids_added)) {
+      $list_ordered[] = $list[$j];
+    }
+  }
+  
+  return $list_ordered;
+}
+
+/**
+ * Display top-rated reviews on a genre taxonomy term page.
+ *
+ * @return array Returns an array of genre name and review nodes.
+ */
+function top_genre_contents() {
+  if (arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))) {
+    
+    $limit = 3; // Maximum number of top genre reviews to display
+    $vid = 7; // Genre taxonomy vid
+    $term = taxonomy_term_load(arg(2));
+    
+    if (is_object($term) && $term->vid == $vid) {
+
+      // Get reviews with rating '10':
+      $nids = _get_top_review_nodes($term->tid, 10, $limit);
+      
+      // Not enough '10' reviews. Try to fill with '9's:
+      if (count($nids) < $limit) {
+        $l = $limit - count($nids);
+        $nine_nids = _get_top_review_nodes($term->tid, 9, $l);
+        $nids = array_merge($nids, $nine_nids);
+      }
+      
+      // Return reviews:
+      if (count($nids) > 0) {
+        $nodes = array();
+        foreach ($nids as $nid) {
+          $node = node_load($nid);
+          
+          // Get release image:
+          $query_img = db_select('node', 'n');
+          $query_img->fields('i', array('field_image_fid'));
+          $query_img->condition('n.type', 'release');
+          $query_img->condition('n.nid', $node->field_release[LANGUAGE_NONE][0]['target_id']);
+          $query_img->join('field_data_field_image', 'i', 'n.nid = i.entity_id');
+          $query_img->range(0, 1);
+          $img_obj = $query_img->execute()->fetchObject();
+          $node->image = file_load($img_obj->field_image_fid);
+          
+          // Get release year:
+          $query = db_select('field_data_field_release_date', 'd');
+          $query->fields('d', array('field_release_date_value'));
+          $query->condition('d.bundle', 'release');
+          $query->condition('d.entity_id', $node->field_release[LANGUAGE_NONE][0]['target_id']);
+          $query->range(0, 1);
+          $obj = $query->execute()->fetchObject();
+          $node->release_year = date('Y', $obj->field_release_date_value);
+          
+          $nodes[] = $node;
+        }
+        return array(
+          'reviews' => $nodes,
+          'genre' => $term->name,
+        );
+      }
+    }
+  }
+  return NULL;
+}
+
+/**
+ * Get top review nodes from a genre taxonomy term.
+ *
+ * @param int $tid The genre taxonomy term to look up.
+ * @param int $rating The rating. (I.e. 9 or 10).
+ * @param int $limit The maximum number of review node Id's to return. Defaults to 3.
+ * @return array Returns an array of review node ID's in random order.
+ */
+function _get_top_review_nodes($tid, $rating, $limit = 3) {
+  $query = db_select('taxonomy_index', 't');
+  $query->fields('t', array('nid'));
+  $query->join('node', 'n', 't.nid = n.nid');
+  $query->join('field_data_field_rating', 'r', 'r.entity_id = n.nid');
+  $query->condition('t.tid', $tid);
+  $query->condition('n.type', 'review');
+  $query->condition('r.bundle', 'review');
+  $query->condition('r.field_rating_value', $rating);
+  $query->range(0, $limit);
+  $query->orderRandom();
+  
+  $rs = $query->execute();
+  $nids = array();
+  foreach ($rs as $row) {
+    $nids[] = $row->nid;
+  }
+  return $nids;
+}
+
+/**
+ * Gets the block contents of the Related artist block.
+ * When on a review page, this function will look up any related artists to
+ * the review's artist, pick a random release and display it along with a
+ * "If you're interested in X, you might also like Y..." text.
+ *
+ * @return Returns an array with the following structure:
+ */
+function related_artist_contents() {
+
+  // Find artist:
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid', 'title'));
+  $query->join('field_data_field_artist', 'a', 'a.field_artist_target_id = n.nid');
+  $query->join('field_data_field_release', 'r', 'r.field_release_target_id = a.entity_id');
+  $query->condition('r.entity_id', arg(1));
+  $query->range(0, 1);
+  $obj_artist = $query->execute()->fetchObject();
+  
+  if (is_object($obj_artist)) {
+    // Find related band (if any):
+    $query = db_select('field_data_field_related_bands', 'r');
+    $query->fields('r', array('field_related_bands_target_id'));
+    $query->fields('n', array('title'));
+    $query->join('node', 'n', 'r.field_related_bands_target_id = n.nid');
+    $query->condition('r.entity_id', $obj_artist->nid);
+    $query->range(0, 1);
+    $query->orderRandom();
+    $rel = $query->execute()->fetchObject();
+  
+    if (is_object($rel)) {
+      // Get random review from related band:
+      $sql = "SELECT r.entity_id AS review_id ";
+      $sql.= "FROM `field_data_field_artist` a ";
+      $sql.= "INNER JOIN field_data_field_release r ON r.field_release_target_id = a.entity_id ";
+      $sql.= "WHERE a.`field_artist_target_id` = :artist_id ";
+      $sql.= "AND a.bundle = :bundle ";
+      $sql.= "ORDER BY RAND() LIMIT 1";
+      $rs = db_query($sql, array(':artist_id' => $rel->field_related_bands_target_id, ':bundle' => 'release'));
+  
+      foreach ($rs as $row) {
+        return array(
+          'artist' => $obj_artist->title,
+          'related_artist' => $rel->title,
+          'review_node' => node_load($row->review_id),
+        );
+        
+        break;
+      }
+    }
+  }
+  return NULL;
+}

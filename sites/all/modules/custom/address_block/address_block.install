@@ -1,0 +1,67 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function address_block_schema() {
+  $schema['address'] = array(
+    'description' => 'Table storing the main address for heavymetal.dk',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary identifier.',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'organization_name' => array(
+        'description' => 'Name of the organization. I.e. heavymetal.dk.',
+        'type' => 'varchar',
+        'length' => '127',
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The address name.',
+        'type' => 'varchar',
+        'length' => '127',
+        'not null' => TRUE,
+      ),
+      'street_address' => array(
+        'description' => 'The street address line.',
+        'type' => 'varchar',
+        'length' => '127',
+        'not null' => TRUE,
+      ),
+      'postal_code' => array(
+        'description' => 'The postal code.',
+        'type' => 'varchar',
+        'length' => '16',
+        'not null' => TRUE,
+      ),
+      'address_locality' => array(
+        'description' => 'The city name.',
+        'type' => 'varchar',
+        'length' => '127',
+        'not null' => TRUE,
+      ),
+      'country' => array(
+        'description' => 'The country.',
+        'type' => 'varchar',
+        'length' => '127',
+        'not null' => TRUE,
+      ),
+      'email_address' => array(
+        'description' => 'The email address.',
+        'type' => 'varchar',
+        'length' => '127',
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'description' => 'Address description text.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+  return $schema;
+}

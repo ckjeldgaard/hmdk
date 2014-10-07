@@ -1,0 +1,5 @@
+name = Custom View Modes
+description = Tiny module for defining custom view modes like topfront or focus.
+core = 7.x
+version = 7.x-1.0
+files[] = custom_view_modes.module

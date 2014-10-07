@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function instagram_feed_schema() {
+  $schema['instagram_feed'] = array(
+    'description' => 'Table storing recent Instagram images.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary identifier.',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'image_url' => array(
+        'description' => 'URL to the Instagram image file.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'link' => array(
+        'description' => 'URL to the Instagram image page.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'tag' => array(
+        'description' => 'The hashtag used for fetching the image.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'caption' => array(
+        'description' => 'The users caption text.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'created_time' => array(
+        'description' => 'Timestamp for when the image was created according the the Instagram API.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'fetched_time' => array(
+        'description' => 'Timestamp for when the image was retrieved using the instagram_feed Drupal module.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+  return $schema;
+}

@@ -1,0 +1,9 @@
+name=Google Search
+description=Provides integration with Google Site Search.
+core=7.x
+package=Search
+version=7.x-1.1
+configure = admin/config/search/google_site_search
+dependencies[] = imagecache_external
+
+files[] = google_search.module

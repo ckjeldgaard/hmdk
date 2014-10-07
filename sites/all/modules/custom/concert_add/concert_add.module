@@ -1,0 +1,382 @@
+<?php
+// $Id: concert_add.module Exp $
+
+require_once('concert_add.admin.inc');
+
+/**
+ * Implements hook_init(). Only load CSS and JS specific pages.
+ */
+function concert_add_init() {
+  $concert_add_path = 'tilfoej-koncert';
+  
+  if (current_path() == $concert_add_path) {
+    $path_to_theme = drupal_get_path('theme', variable_get('theme_default'));
+    drupal_add_js($path_to_theme . '/scripts/chosen/chosen.jquery.min.js', array('group' => JS_LIBRARY));
+    drupal_add_css($path_to_theme . '/scripts/chosen/chosen.min.css', array('group' => CSS_DEFAULT));
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function concert_add_permission() {
+  return array(
+    'bypass concert add restrictions' => array(
+      'title' => t('Bypass concert add restrictions'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_alter(). Makes the 'Missing bands' field on the concert form read-only.
+ */
+function concert_add_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'concert_node_form') {
+    $form['field_missing_bands'][LANGUAGE_NONE][0]['value']['#attributes']['disabled'] = TRUE;
+    $form['field_venue_text'][LANGUAGE_NONE][0]['value']['#attributes']['disabled'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function concert_add_block_info() {
+  $blocks['block-concert-add'] = array(
+    'info' => t('Concert add'),
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function concert_add_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-concert-add':
+      $block['subject'] = t('Concert add');
+      $block['content'] = theme('block-concert-add', array('content' => concert_add_contents()));
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function concert_add_theme() {
+  $path_to_theme = drupal_get_path('theme', variable_get('theme_default'));
+  return array(
+    'block-concert-add' => array(
+      'template' => 'block--concert-add',
+      'variables' => array('form' => NULL),
+      'path' => $path_to_theme . '/templates',
+    ),
+  );
+}
+ 
+/**
+ * 
+ */
+function concert_add_contents() {
+  global $user;
+  
+  if ($user->uid == 0) {
+    drupal_access_denied();
+  }
+  
+  $artists = _get_artists_options();
+  $venues = _get_venues_options();
+  
+  $contents = array(
+    'concert_add_form' => drupal_get_form('concert_add_form', $artists, $venues),
+  );
+  
+  return $contents;
+}
+
+/**
+ * Get a list of available artists in the system.
+ *
+ * @return array Returns an array of artists.
+ */
+function _get_artists_options() {
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid', 'title'));
+  $query->condition('n.type', 'artist');
+  $query->condition('n.status', 1);
+  $query->orderBy('n.title', 'ASC');
+  $result = $query->execute();
+  
+  $artists = array();
+  foreach ($result as $record) {
+    $artists[$record->nid] = $record->title;
+  }
+  return $artists;
+}
+
+function _get_venues_options() {
+  $tree = taxonomy_get_tree(3);
+  $venues = array();
+  foreach ($tree as $t) {
+    $term = taxonomy_term_load($t->tid);
+    $name = $term->name;
+    if (isset($term->field_address[LANGUAGE_NONE][0]['locality']) && strlen($term->field_address[LANGUAGE_NONE][0]['locality']) > 0) {
+      $name .= ', ' . $term->field_address[LANGUAGE_NONE][0]['locality'];
+    }
+    $venues[$t->tid] = $name;
+  }
+  return $venues;
+}
+
+/**
+ * Defines the concert add form.
+ */
+function concert_add_form($form, &$form_state, $artists, $venues) {
+
+  $form = array();
+  
+  $form['type'] = array(
+    '#type' => 'radios',
+    '#title' => t('Type'),
+    '#default_value' => 0,
+    '#options' => array(0 => t('Concert'), 1 => t('Festival')),
+    '#required' => TRUE,
+  );
+  
+  $form['festival_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Festival name'),
+    '#maxlength' => 256,
+    '#size' => 45,
+    '#required' => FALSE,
+    '#description' => t("Type the name and year of the festival."),
+    '#prefix' => '<div class="festival-name">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['artists'] = array(
+    '#type' => 'select',
+    '#title' => t('Artists'),
+    '#options' => $artists,
+    '#multiple' => TRUE,
+    '#required' => FALSE,
+    '#attributes' => array(
+      'class' => array('chosen-select'),
+      'data-placeholder' => t('Select some artists'),
+    ),
+    '#description' => t('Select the bands performing at the concert.'),
+  );
+  
+  $form['new_artists'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Add missing artists'),
+    '#maxlength' => 256,
+    '#size' => 45,
+    '#required' => FALSE,
+    '#description' => t("Add missing artists in this field separated by comma if they doesn't exist in the list above."),
+    '#attributes' => array('placeholder' => t('Band A, Band B')),
+    '#prefix' => '<p class="add-missing"><a href="#" class="add-missing-toggler"><i class="fa fa-plus-circle"></i> ' . t('Add missing artists') . '</a></p><div class="new-artists">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['venue'] = array(
+    '#type' => 'select',
+    '#title' => t('Venue'),
+    '#required' => TRUE,
+    '#options' => $venues,
+  );
+
+  $form['start_date'] = array(
+    '#type' => 'date_popup',
+    '#title' => t('Date'),
+    '#date_format' => 'd-m-Y',
+    '#date_year_range' => '0:+2',
+    '#required' => TRUE,
+    '#default_value' => date('Y-m-d', time()+86400),
+    '#datepicker_options' => array('minDate' => 1),
+    '#date_label_position' => '',
+    '#attributes' => array('autocomplete' =>'off', 'readonly' => 'readonly'),
+    '#prefix' => '<div class="start-date">',
+    '#suffix' => '</div>',
+  );
+  $form['end_date'] = array(
+    '#type' => 'date_popup',
+    '#title' => t('End date'),
+    '#date_format' => 'd-m-Y',
+    '#date_year_range' => '0:+2',
+    '#required' => FALSE,
+    '#default_value' => date('Y-m-d', time()+86400),
+    '#datepicker_options' => array('minDate' => 1),
+    '#date_label_position' => '',
+    '#attributes' => array('autocomplete' =>'off', 'readonly' => 'readonly'),
+    '#prefix' => '<div class="end-date">',
+    '#suffix' => '</div>',
+  );
+  
+  $form['save'] = array(
+    '#type' => 'submit',
+    '#value' => t('Create concert'),
+  );
+  
+  return $form;
+}
+
+/**
+ * Validated the concert add form.
+ */
+function concert_add_form_validate($form, &$form_state) {
+  global $user;
+  if ($user->uid == 0) {
+    form_set_error();
+    drupal_set_message(t('This page requires that you have a registered account and are logged in.'), 'warning');
+  }
+  
+  if (count($form_state['values']['artists']) == 0 && strlen($form_state['values']['new_artists']) == 0) {
+    form_set_error('artists', t("Please select one or more artists. If the artists doesn't exist in the list, expand the 'Missing artists' tab and type them there."));
+  }
+  
+  if ($form_state['values']['type'] == 1) {
+    // Festival:
+    
+    if (strlen($form_state['values']['festival_name']) == 0) {
+      form_set_error('festival_name', t('The field %field is required.', array('%field' => $form['festival_name']['#title'])));
+    }
+    
+    $start_y = substr($form_state['values']['start_date'], 0, 4);
+    $start_m = substr($form_state['values']['start_date'], 5, 2);
+    $start_d = substr($form_state['values']['start_date'], 8, 2);
+    $start_time = mktime(0, 0, 0, $start_m, $start_d, $start_y);
+    $end_y = substr($form_state['values']['end_date'], 0, 4);
+    $end_m = substr($form_state['values']['end_date'], 5, 2);
+    $end_d = substr($form_state['values']['end_date'], 8, 2);
+    $end_time = mktime(0, 0, 0, $end_m, $end_d, $end_y);
+    if ($end_time < $start_time) {
+      form_set_error('end_date', t('Please select an end date that is later than or equal to the start date.'));
+    }
+  }
+}
+
+/**
+ * Submits the concert add form.
+ */
+function concert_add_form_submit($form, &$form_state) {
+  global $user;
+  
+  $start_y = substr($form_state['values']['start_date'], 0, 4);
+  $start_m = substr($form_state['values']['start_date'], 5, 2);
+  $start_d = substr($form_state['values']['start_date'], 8, 2);
+  $start_time = mktime(0, 0, 0, $start_m, $start_d, $start_y);
+  
+  if ($form_state['values']['type'] == 0) {
+    // Concert:
+    $node = new stdClass();
+    $node->type = "concert";
+    if (user_access('bypass concert add restrictions', $user)) {
+      $node->status = 1;
+      $msg = t('Thank you very much for your concert submission.');
+    } else {
+      $node->status = 0;
+      $msg = t('Thank you very much for your concert submission. Your entry will be validated by the editors before it is visible in the concert calendar.');
+    }
+    $node->language = "da";
+    $node->uid = $user->uid;
+    
+    $node->field_cancelled[LANGUAGE_NONE][0]['value'] = 0;
+    $node->field_venue[LANGUAGE_NONE][0]['tid'] = $form_state['values']['venue'];
+    $node->field_event_date[LANGUAGE_NONE][0]['value'] = $start_time;
+    $node->field_event_date[LANGUAGE_NONE][0]['value2'] = $start_time;
+    $node->field_event_date[LANGUAGE_NONE][0]['date_type'] = "datestamp";
+    $node->field_missing_bands[LANGUAGE_NONE][0]['value'] = check_plain(strip_tags($form_state['values']['new_artists']));
+    
+    $node->field_is_festival[LANGUAGE_NONE][0]['value'] = 0;
+    
+    if (count($form_state['values']['artists']) > 0) {
+      $i = 0;
+      foreach ($form_state['values']['artists'] as $artist) {
+        $node->field_artists[LANGUAGE_NONE][$i]['target_id'] = $artist;
+        $i++;
+      }
+      $node->title = _get_concert_title($node);
+    }
+    else {
+      $node->title = check_plain(strip_tags($form_state['values']['new_artists'])) . ' - ' . _get_concert_title($node);
+    }
+
+    node_save($node);
+    if (!user_access('bypass concert add restrictions', $user)) {
+      // Send e-mail notification to editors about the new concert:
+      _concert_add_send_notification($node);
+    }
+    drupal_set_message($msg);
+    drupal_goto('koncertkalender');
+  }
+  
+  if ($form_state['values']['type'] == 1) {
+
+    // Festival:
+    $node = new stdClass();
+    $node->type = "concert";
+    $node->title = $form_state['values']['festival_name'];
+    if (user_access('bypass concert add restrictions', $user)) {
+      $node->status = 1;
+      $msg = t('Thank you very much for your festival submission.');
+    } else {
+      $node->status = 0;
+      $msg = t('Thank you very much for your festival submission. Your entry will be validated by the editors before it is visible in the concert calendar.');
+    }
+    $node->language = "da";
+    $node->uid = $user->uid;
+    
+    $end_y = substr($form_state['values']['end_date'], 0, 4);
+    $end_m = substr($form_state['values']['end_date'], 5, 2);
+    $end_d = substr($form_state['values']['end_date'], 8, 2);
+    $end_time = mktime(0, 0, 0, $end_m, $end_d, $end_y);
+    
+    $node->field_cancelled[LANGUAGE_NONE][0]['value'] = 0;
+    $node->field_venue[LANGUAGE_NONE][0]['tid'] = $form_state['values']['venue'];
+    $node->field_event_date[LANGUAGE_NONE][0]['value'] = $start_time;
+    $node->field_event_date[LANGUAGE_NONE][0]['value2'] = $end_time;
+    $node->field_event_date[LANGUAGE_NONE][0]['date_type'] = "datestamp";
+    $node->field_missing_bands[LANGUAGE_NONE][0]['value'] = check_plain(strip_tags($form_state['values']['new_artists']));
+    
+    $node->field_is_festival[LANGUAGE_NONE][0]['value'] = 1;
+    $node->field_festival_name[LANGUAGE_NONE][0]['value'] = $form_state['values']['festival_name'];
+    
+    if (count($form_state['values']['artists']) > 0) {
+      $i = 0;
+      foreach ($form_state['values']['artists'] as $artist) {
+        $node->field_artists[LANGUAGE_NONE][$i]['target_id'] = $artist;
+        $i++;
+      }
+    }
+    
+    node_save($node);
+    if (!user_access('bypass concert add restrictions', $user)) {
+      // Send e-mail notification to editors about the new festival:
+      _concert_add_send_notification($node);
+    }
+    drupal_set_message($msg);
+    drupal_goto('koncertkalender');
+  }
+
+}
+
+/**
+ * implements hook_element_info_alter() 
+ * 
+ */
+function concert_add_element_info_alter(&$type) {
+  if (isset($type['date_popup'])) {
+    $type['date_popup']['#process'][] = 'concert_add_date_popup_process_alter';
+  }
+}
+
+/**
+ * function to remove the description from date_popup
+ * 
+ */
+ function concert_add_date_popup_process_alter(&$element, &$form_state, $context) {
+  unset($element['date']['#description']);
+  return $element;
+}

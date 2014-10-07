@@ -1,0 +1,74 @@
+<?php
+/**
+ * Provides different small common blocks used on the heavymetal.dk site (Main header, copyright text, etc.)
+ */
+
+/**
+ * Implements hook_block_info().
+ */
+function common_blocks_block_info() {
+  $blocks['block-site-title'] = array(
+    'info' => t('Site title'),
+  );
+  $blocks['block-copyright'] = array(
+    'info' => t('Copyright'),
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function common_blocks_block_view($delta) {
+  
+  $block = array();
+  switch ($delta) {
+    case 'block-site-title':
+      $block['subject'] = t('Site title');
+      $block['content'] = theme('block-site-title', _site_title_block_contents());
+      break;
+    case 'block-copyright':
+      $block['subject'] = t('Copyright');
+      $block['content'] = theme('block-copyright', _copyright_block_contents());
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function common_blocks_theme() {
+  $path = drupal_get_path('module', 'common_blocks') . '/templates';
+  return array(
+    'block-site-title' => array(
+      'template' => 'block--site-title',
+      'variables' => array('form' => NULL),
+      'path' => $path,
+    ),
+    'block-copyright' => array(
+      'template' => 'block--copyright',
+      'variables' => array('form' => NULL),
+      'path' => $path,
+    ),
+  );
+}
+
+/**
+ * Fetches site title block contents.
+ */
+function _site_title_block_contents() {
+  return array(
+    'site_frontpage' => variable_get('site_frontpage'),
+    'site_name' => variable_get('site_name'),
+  );
+}
+
+/**
+ * Returns the copyright block text.
+ */
+function _copyright_block_contents() {
+  return array(
+    'copyright' => t('Copyright 2000-!year © heavymetal.dk', array('!year' => date('Y'))),
+  );
+}

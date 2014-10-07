@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function newsletter_signup_block_info() {
+  $blocks['block-newsletter-signup'] = array(
+    'info' => t('Newsletter signup'),
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function newsletter_signup_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-newsletter-signup':
+      $block['subject'] = t('Newsletter signup');
+      $block['content'] = theme('block-newsletter-signup', newsletter_signup_contents());
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function newsletter_signup_theme() {
+  return array(
+    'block-newsletter-signup' => array(
+      'template' => 'block--newsletter-signup',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'newsletter_signup'),
+    ),
+  );
+}
+
+/**
+ * Get the newsletter signup block contents
+ */
+function newsletter_signup_contents() {
+  return array(
+    'form' => drupal_get_form('newsletter_signup_form'),
+  );
+}
+
+/**
+ * Defines the newsletter signup form.
+ */
+function newsletter_signup_form($form, &$form_state) {
+  $form = array();
+  
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email'),
+    '#maxlength' => 255,
+    '#required' => TRUE,
+    '#attributes' => array('placeholder' => t('E-mail')),
+    '#size' => null,
+    '#title_display' => 'invisible',
+    '#prefix' => null,
+    '#suffix' => null,
+  );
+  $form['subscribe_button'] = array(
+    '#type' => 'submit',
+    '#value' => t('Subscribe to newsletter'),
+    '#name' => 'subscribe-btn'
+  );
+  
+  return $form;
+}
+
+/**
+ * Validates the email address.
+ */
+function newsletter_signup_form_validate($form, &$form_state) {
+  if (!valid_email_address($form_state['values']['email'])) {
+    form_set_error('email', t('The e-mail address %mail is not valid.', array('%mail' => $form_state['values']['email'])));
+  }
+}
+
+/**
+ * Subscribes the email address to Mailchimp.
+ */
+function newsletter_signup_form_submit($form, &$form_state) {
+  $email = $form_state['values']['email'];
+  $list_details = mailchimp_get_lists();
+  reset($list_details);
+  $list_id = key($list_details);
+  $list_name = $list_details[$list_id]['name'];
+  $mergevars = array(
+    'EMAIL' => $email,
+  );
+  
+  $result = mailchimp_subscribe($list_id, $email, $mergevars, 0, 0);
+  if (empty($result)) {
+    drupal_set_message(t('There was a problem with your newsletter signup to %list.', array('%list' => $list_name)), 'warning');
+  }
+  else {
+    drupal_set_message(t('You are now successfully subscribed to our newsletter.'));
+  }
+}

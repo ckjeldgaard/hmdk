@@ -1,0 +1,17 @@
+<tr>
+  <td headers="event-date" scope="row" data-label="Dato">
+    <?php if (isset($node->field_event_date[LANGUAGE_NONE])): ?>
+      <time datetime="<?php print date('Y-m-d', $node->field_event_date[LANGUAGE_NONE][0]['value']); ?>"><?php print date('d-m-Y', $node->field_event_date[LANGUAGE_NONE][0]['value']); ?></time>
+      <?php if($node->field_event_date[LANGUAGE_NONE][0]['value'] != $node->field_event_date[LANGUAGE_NONE][0]['value2']) : ?>
+      - <time datetime="<?php print date('Y-m-d', $node->field_event_date[LANGUAGE_NONE][0]['value2']); ?>"><?php print date('d-m-Y', $node->field_event_date[LANGUAGE_NONE][0]['value2']); ?></time>
+      <?php endif; ?>
+    <?php endif; ?>
+  </td>
+  <td headers="event-name" class="artists" data-label="Koncert">
+    <?php if (isset($node->field_is_festival[LANGUAGE_NONE]) && $node->field_is_festival[LANGUAGE_NONE][0]['value'] == 1) : ?>
+      <strong><?php print $node->field_festival_name[LANGUAGE_NONE][0]['value']; ?>:</strong>
+    <?php endif; ?>
+    <?php print (strlen($node->artists) > 0) ? $node->artists : $node->title; ?>
+  </td>
+  <td headers="event-review" data-label="Anmeldelse"><div class="<?php print get_edit_classes($node); ?>"></div><?php if ($node->review): print l(t('Read review'), 'node/' . $node->review); endif; ?></td>
+</tr>

@@ -1,0 +1,6 @@
+name = Summary alter
+description = Small module to alter the summary body fields.
+core = 7.x
+version = 7.x-1.0
+
+files[] = summary_alter.module

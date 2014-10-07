@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * Implements theme_preprocess_html().
+ */
+function metatag_fix_preprocess_html(&$variables) {
+  // Add og:image to review pages as the image is part of the release node and therefore not reachable for the Metatag module:
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+    $node = node_load(arg(1));
+    if (isset($node->type) && $node->type == 'review' && function_exists('image_cache')) {
+      $element = array(
+        '#tag' => 'meta',
+        '#attributes' => array(
+          'property' => 'og:image',
+          'content' => image_cache('review', $node->field_release[LANGUAGE_NONE][0]['entity']->field_image[LANGUAGE_NONE][0]),
+        ),
+      );
+      drupal_add_html_head($element, 'review_og_image');
+    }
+  }
+}
