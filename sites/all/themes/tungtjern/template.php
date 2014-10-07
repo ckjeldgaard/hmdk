@@ -1,7 +1,5 @@
 <?php
 
-echo "test";
-
 // Load helper functions
 require dirname(__FILE__) . "/helper.php";
 
