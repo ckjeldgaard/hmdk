@@ -9,7 +9,7 @@
         <li><a href="https://www.facebook.com/heavymetal.dk" title="Facebook" target="_blank"><i class="fa fa-facebook"></i></a></li>
         <li><a href="https://twitter.com/HEAVYMETALDK/" title="Twitter" target="_blank"><i class="fa fa-twitter"></i></a></li>
         <li><a href="http://instagram.com/heavymetaldk" title="Instagram" target="_blank"><i class="fa fa-instagram"></i></a></li>
-        <li><a href="#" title="YouTube" target="_blank"><i class="fa fa-youtube"></i></a></li>
+        <li><a href="https://www.youtube.com/channel/UCh9VkIMFsFaLlAElSu4CCig" title="YouTube" target="_blank"><i class="fa fa-youtube"></i></a></li>
         <li><a href="/rss" title="RSS feed"><i class="fa fa-rss"></i></a></li>
         </ul>
       </div>
