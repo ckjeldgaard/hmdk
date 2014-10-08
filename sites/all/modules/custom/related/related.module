@@ -403,34 +403,36 @@ function related_artist_contents() {
   $obj_artist = $query->execute()->fetchObject();
   
   if (is_object($obj_artist)) {
-    // Find related band (if any):
+    // Find related bands (if any):
     $query = db_select('field_data_field_related_bands', 'r');
     $query->fields('r', array('field_related_bands_target_id'));
     $query->fields('n', array('title'));
     $query->join('node', 'n', 'r.field_related_bands_target_id = n.nid');
     $query->condition('r.entity_id', $obj_artist->nid);
-    $query->range(0, 1);
     $query->orderRandom();
-    $rel = $query->execute()->fetchObject();
+    $rs = $query->execute();
   
-    if (is_object($rel)) {
-      // Get random review from related band:
-      $sql = "SELECT r.entity_id AS review_id ";
-      $sql.= "FROM `field_data_field_artist` a ";
-      $sql.= "INNER JOIN field_data_field_release r ON r.field_release_target_id = a.entity_id ";
-      $sql.= "WHERE a.`field_artist_target_id` = :artist_id ";
-      $sql.= "AND a.bundle = :bundle ";
-      $sql.= "ORDER BY RAND() LIMIT 1";
-      $rs = db_query($sql, array(':artist_id' => $rel->field_related_bands_target_id, ':bundle' => 'release'));
-  
-      foreach ($rs as $row) {
-        return array(
-          'artist' => $obj_artist->title,
-          'related_artist' => $rel->title,
-          'review_node' => node_load($row->review_id),
-        );
+    foreach ($rs as $rel) {
+      if (is_object($rel)) {
         
-        break;
+        // Get random review from related band:
+        $sql = "SELECT r.entity_id AS review_id ";
+        $sql.= "FROM `field_data_field_artist` a ";
+        $sql.= "INNER JOIN field_data_field_release r ON r.field_release_target_id = a.entity_id ";
+        $sql.= "WHERE a.`field_artist_target_id` = :artist_id ";
+        $sql.= "AND a.bundle = :bundle ";
+        $sql.= "ORDER BY RAND() LIMIT 1";
+        $rs = db_query($sql, array(':artist_id' => $rel->field_related_bands_target_id, ':bundle' => 'release'));
+    
+        foreach ($rs as $row) {
+          return array(
+            'artist' => $obj_artist->title,
+            'related_artist' => $rel->title,
+            'review_node' => node_load($row->review_id),
+          );
+          
+          break;
+        }
       }
     }
   }
