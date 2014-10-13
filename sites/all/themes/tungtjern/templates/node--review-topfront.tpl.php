@@ -1,4 +1,4 @@
-<section class="pure-g review row top">
+<section class="pure-g review row top<?php print get_edit_classes($node); ?>">
     <div class="pure-u-1 pure-u-md-5-12">
       <a href="<?php print url('node/' . $node->nid); ?>">
         <img src="<?php print image_cache('review', $node->release->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->release->title); ?>" class="pure-img" />
