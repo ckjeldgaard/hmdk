@@ -1747,3 +1747,35 @@ ul.pager {
   margin: 0;
   padding-top: 0;
 }
+
+/* maintenance-page */
+
+.maintenance-page {
+  background-image:none;
+  font-family: Helvetica, sans-serif;
+  margin: 0 25px;
+}
+
+.maintenance-page #page {
+  background-color:#fff;
+  margin: 25px auto;
+  padding: 20px;
+  max-width: 550px;
+}
+
+.maintenance-page #site-slogan {
+  display:none;
+}
+
+.maintenance-page #logo img {
+  width:100%;
+}
+
+.maintenance-page #site-name a:link,
+.maintenance-page #site-name a:visited {
+  text-decoration:none;
+}
+
+.maintenance-page #site-name a:hover {
+  text-decoration:underline;
+}
