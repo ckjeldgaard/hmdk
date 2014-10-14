@@ -145,6 +145,6 @@
 <?php if (count($node->interviews) > 0) : ?>
 <h2>Interviews</h2>
 <?php foreach ($node->interviews as $node) : ?>
-  <?php print render(node_view($node, 'teaser')); ?>
+  <?php $node_view = node_view($node, 'teaser'); print render($node_view); ?>
 <?php endforeach; ?>
 <?php endif; ?>
