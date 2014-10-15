@@ -96,13 +96,55 @@ function _block_unreviewed_releases() {
   # add the pager
   $output .= theme('pager');
   
+  $form = drupal_get_form('_delete_unreviewed_form');
+  
   global $pager_total_items;
 
   return array(
+    'form' => $form,
     'table' => $output,
     'count' => $pager_total_items[0],
   );
 
+}
+
+/**
+ * Defines a button form to delete all unreviewed releases.
+ */
+function _delete_unreviewed_form() {
+  $form = array();
+  
+  $onclick = "return confirm('" . t('This button deletes all unreviewed releases. This action cannot be undone. Are you sure you want to proceed?') . "');";
+  $form['delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete all unreviewed releases'),
+    '#attributes' => array(
+      'onclick' => $onclick,
+    ),
+  );
+    
+  return $form;
+}
+
+/**
+ * Defines a button form to delete all unreviewed releases.
+ */
+function _delete_unreviewed_form_submit($form, &$form_state) {
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid'));
+  $query->leftJoin('field_data_field_release', 'r', 'r.field_release_target_id = n.nid');
+  $query->condition('n.status', 1);
+  $query->condition('n.type', 'release');
+  $query->condition('r.entity_id', NULL);
+  
+  $results = $query->execute();
+  $num_deleted = 0;
+  foreach ($results as $row) {
+    node_delete($row->nid);
+    $num_deleted++;
+  }
+
+  drupal_set_message(t('@num releases were deleted.', array('@num' => $num_deleted)));
 }
 
 /**
