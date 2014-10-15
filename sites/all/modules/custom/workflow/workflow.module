@@ -107,9 +107,9 @@ function _block_unreviewed_releases() {
   # add the pager
   $output .= theme('pager');
   
-  $form = drupal_get_form('_delete_unreviewed_form');
-  
   global $pager_total_items;
+  
+  $form = drupal_get_form('_delete_unreviewed_form', $pager_total_items[0]);
 
   return array(
     'form' => $form,
@@ -122,10 +122,10 @@ function _block_unreviewed_releases() {
 /**
  * Defines a button form to delete all unreviewed releases.
  */
-function _delete_unreviewed_form() {
+function _delete_unreviewed_form($form, &$form_state, $num) {
   $form = array();
   
-  $onclick = "return confirm('" . t('This button deletes all unreviewed releases. This action cannot be undone. Are you sure you want to proceed?') . "');";
+  $onclick = "return confirm('" . t('This button deletes all @num unreviewed releases. This action cannot be undone. Are you sure you want to proceed?', array('@num' => $num)) . "');";
   $form['delete'] = array(
     '#type' => 'submit',
     '#value' => t('Delete all unreviewed releases'),
