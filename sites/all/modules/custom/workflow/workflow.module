@@ -51,6 +51,17 @@ function workflow_theme() {
 }
 
 /**
+ * Implements hook_permission().
+ */
+function workflow_permission() {
+  return array(
+    'delete unreviewed releases' => array(
+      'title' => t('Delete unreviewed releases'),
+    )
+  );
+}
+
+/**
  * Creates a sortable table displaying releases with no reviews attached.
  */
 function _block_unreviewed_releases() {
@@ -130,21 +141,23 @@ function _delete_unreviewed_form() {
  * Defines a button form to delete all unreviewed releases.
  */
 function _delete_unreviewed_form_submit($form, &$form_state) {
-  $query = db_select('node', 'n');
-  $query->fields('n', array('nid'));
-  $query->leftJoin('field_data_field_release', 'r', 'r.field_release_target_id = n.nid');
-  $query->condition('n.status', 1);
-  $query->condition('n.type', 'release');
-  $query->condition('r.entity_id', NULL);
+  if (user_access('delete unreviewed releases')) {
+    $query = db_select('node', 'n');
+    $query->fields('n', array('nid'));
+    $query->leftJoin('field_data_field_release', 'r', 'r.field_release_target_id = n.nid');
+    $query->condition('n.status', 1);
+    $query->condition('n.type', 'release');
+    $query->condition('r.entity_id', NULL);
+    
+    $results = $query->execute();
+    $num_deleted = 0;
+    foreach ($results as $row) {
+      node_delete($row->nid);
+      $num_deleted++;
+    }
   
-  $results = $query->execute();
-  $num_deleted = 0;
-  foreach ($results as $row) {
-    node_delete($row->nid);
-    $num_deleted++;
+    drupal_set_message(t('@num releases were deleted.', array('@num' => $num_deleted)));
   }
-
-  drupal_set_message(t('@num releases were deleted.', array('@num' => $num_deleted)));
 }
 
 /**
