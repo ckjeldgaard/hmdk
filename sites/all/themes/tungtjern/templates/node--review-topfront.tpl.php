@@ -1,10 +1,10 @@
 <section class="pure-g review row top<?php print get_edit_classes($node); ?>">
-    <div class="pure-u-1 pure-u-md-5-12">
+    <div class="pure-u-1 pure-u-sm-1-3 pure-u-md-5-12">
       <a href="<?php print url('node/' . $node->nid); ?>">
         <img src="<?php print image_cache('review', $node->release->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->release->title); ?>" class="pure-img" />
       </a>
     </div>
-    <div class="pure-u-1 pure-u-md-7-12 meta">
+    <div class="pure-u-1 pure-u-sm-2-3 pure-u-md-7-12 meta">
       <p class="post-meta">
         <?php print _get_type($node->type); ?><br />
         <i class="fa fa-user"></i> Anmeldt af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
