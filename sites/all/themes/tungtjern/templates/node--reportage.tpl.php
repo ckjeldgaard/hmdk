@@ -26,18 +26,6 @@
 </p>
 <?php endif; ?>
 
-<?php if (isset($node->body[LANGUAGE_NONE][0])) : ?>
-  <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
-    <p class="summary"><?php print $node->body[LANGUAGE_NONE][0]['summary']; ?></p>
-  <?php endif; ?>
-  <?php print $node->body[LANGUAGE_NONE][0]['safe_value']; ?>
-<?php endif; ?>
-
-<div itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
-  <meta itemprop="ratingValue" content="<?php print $node->rating_value; ?>">
-  <meta itemprop="reviewCount" content="<?php print $node->rating_count; ?>">
-</div>
-
 <?php if ($node->number_reviews > 5) : ?>
 <h2>Indhold</h2>
 <ol class="toc">
@@ -55,6 +43,18 @@
   <?php endif; ?>
 </ol>
 <?php endif; ?>
+
+<?php if (isset($node->body[LANGUAGE_NONE][0])) : ?>
+  <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
+    <p class="summary"><?php print $node->body[LANGUAGE_NONE][0]['summary']; ?></p>
+  <?php endif; ?>
+  <?php print $node->body[LANGUAGE_NONE][0]['safe_value']; ?>
+<?php endif; ?>
+
+<div itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
+  <meta itemprop="ratingValue" content="<?php print $node->rating_value; ?>">
+  <meta itemprop="reviewCount" content="<?php print $node->rating_count; ?>">
+</div>
 
 <?php if (count($node->tab_names) > 0) : ?>
   <?php foreach ($node->tabs as $tab): ?>
