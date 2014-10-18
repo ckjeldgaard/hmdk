@@ -120,8 +120,8 @@ function _review_publish_send_mails(&$review_node) {
   if (isset($release->field_label[LANGUAGE_NONE][0]['tid'])) {
     $label_term = taxonomy_term_load($release->field_label[LANGUAGE_NONE][0]['tid']);
     if (isset($label_term->field_contact_email[LANGUAGE_NONE][0]['email'])) {
-      //$email = $label_term->field_contact_email[LANGUAGE_NONE][0]['email'];
-      $email = 'christoffer@sappy.dk';
+      $email = $label_term->field_contact_email[LANGUAGE_NONE][0]['email'];
+      //$email = 'christoffer@sappy.dk';
       if (isset($label_term->field_contact_name[LANGUAGE_NONE][0]['value'])) {
 	$params['contact_name'] = $label_term->field_contact_name[LANGUAGE_NONE][0]['value'];
       }
@@ -133,8 +133,8 @@ function _review_publish_send_mails(&$review_node) {
   if (isset($release->field_distributor[LANGUAGE_NONE][0]['tid'])) {
     $distro_term = taxonomy_term_load($release->field_distributor[LANGUAGE_NONE][0]['tid']);
     if (isset($distro_term->field_contact_email[LANGUAGE_NONE][0]['email'])) {
-      //$email = $distro_term->field_contact_email[LANGUAGE_NONE][0]['email'];
-      $email = 'christoffer@sappy.dk';
+      $email = $distro_term->field_contact_email[LANGUAGE_NONE][0]['email'];
+      //$email = 'christoffer@sappy.dk';
       if (isset($distro_term->field_contact_name[LANGUAGE_NONE][0]['value'])) {
 	$params['contact_name'] = $distro_term->field_contact_name[LANGUAGE_NONE][0]['value'];
       }
