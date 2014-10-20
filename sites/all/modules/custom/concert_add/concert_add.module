@@ -88,6 +88,9 @@ function concert_add_contents() {
   $artists = _get_artists_options();
   $venues = _get_venues_options();
   
+  if (user_access('bypass concert add restrictions', $user)) {
+    drupal_set_message(t('As a member of the editorial board, you should add concerts through the !url.', array('!url' => l(t('form in the backend'), 'node/add/concert'))), 'warning');
+  }
   $contents = array(
     'concert_add_form' => drupal_get_form('concert_add_form', $artists, $venues),
   );
@@ -133,8 +136,13 @@ function _get_venues_options() {
  * Defines the concert add form.
  */
 function concert_add_form($form, &$form_state, $artists, $venues) {
-
+  global $user;
   $form = array();
+  
+  $disabled = FALSE;
+  if (user_access('bypass concert add restrictions', $user)) {
+    $disabled = TRUE;
+  }
   
   $form['type'] = array(
     '#type' => 'radios',
@@ -142,6 +150,7 @@ function concert_add_form($form, &$form_state, $artists, $venues) {
     '#default_value' => 0,
     '#options' => array(0 => t('Concert'), 1 => t('Festival')),
     '#required' => TRUE,
+    '#disabled' => $disabled,
   );
   
   $form['festival_name'] = array(
@@ -153,6 +162,7 @@ function concert_add_form($form, &$form_state, $artists, $venues) {
     '#description' => t("Type the name and year of the festival."),
     '#prefix' => '<div class="festival-name">',
     '#suffix' => '</div>',
+    '#disabled' => $disabled,
   );
   
   $form['artists'] = array(
@@ -166,6 +176,7 @@ function concert_add_form($form, &$form_state, $artists, $venues) {
       'data-placeholder' => t('Select some artists'),
     ),
     '#description' => t('Select the bands performing at the concert.'),
+    '#disabled' => $disabled,
   );
   
   $form['new_artists'] = array(
@@ -178,6 +189,7 @@ function concert_add_form($form, &$form_state, $artists, $venues) {
     '#attributes' => array('placeholder' => t('Band A, Band B')),
     '#prefix' => '<p class="add-missing"><a href="#" class="add-missing-toggler"><i class="fa fa-plus-circle"></i> ' . t('Add missing artists') . '</a></p><div class="new-artists">',
     '#suffix' => '</div>',
+    '#disabled' => $disabled,
   );
   
   $form['venue'] = array(
@@ -185,6 +197,7 @@ function concert_add_form($form, &$form_state, $artists, $venues) {
     '#title' => t('Venue'),
     '#required' => TRUE,
     '#options' => $venues,
+    '#disabled' => $disabled,
   );
 
   $form['start_date'] = array(
@@ -199,6 +212,7 @@ function concert_add_form($form, &$form_state, $artists, $venues) {
     '#attributes' => array('autocomplete' =>'off', 'readonly' => 'readonly'),
     '#prefix' => '<div class="start-date">',
     '#suffix' => '</div>',
+    '#disabled' => $disabled,
   );
   $form['end_date'] = array(
     '#type' => 'date_popup',
@@ -212,11 +226,13 @@ function concert_add_form($form, &$form_state, $artists, $venues) {
     '#attributes' => array('autocomplete' =>'off', 'readonly' => 'readonly'),
     '#prefix' => '<div class="end-date">',
     '#suffix' => '</div>',
+    '#disabled' => $disabled,
   );
   
   $form['save'] = array(
     '#type' => 'submit',
     '#value' => t('Create concert'),
+    '#disabled' => $disabled,
   );
   
   return $form;
