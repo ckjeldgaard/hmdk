@@ -83,6 +83,14 @@
 <?php endif; ?>
 </div>
 
+</article>
+
+<?php if (isset($node->field_embed_code[LANGUAGE_NONE])) : ?>
+<div class="video-container">
+  <iframe width="640" height="360" src="//www.youtube.com/embed/<?php print $node->field_embed_code[LANGUAGE_NONE][0]['value']; ?>?rel=0" frameborder="0" allowfullscreen></iframe>
+</div>
+<?php endif; ?>
+
 <?php if (count($node->tracklist) > 0) : ?>
 <h3 id="tracklist"><?php print t('Tracklist'); ?></h3>
 <ol>
@@ -90,14 +98,6 @@
     <li><?php print $track; ?></li>
   <?php endforeach; ?>
 </ol>
-<?php endif; ?>
-
-</article>
-
-<?php if (isset($node->field_embed_code[LANGUAGE_NONE])) : ?>
-<div class="video-container">
-  <iframe width="640" height="360" src="//www.youtube.com/embed/<?php print $node->field_embed_code[LANGUAGE_NONE][0]['value']; ?>?rel=0" frameborder="0" allowfullscreen></iframe>
-</div>
 <?php endif; ?>
 
 <?php

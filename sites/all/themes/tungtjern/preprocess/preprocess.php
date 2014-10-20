@@ -119,7 +119,19 @@ function _preprocess_review(&$node) {
  
   // Load tracklist as array (for unordered list):
   $tracks = array();
-  if (isset($node->release->field_tracklist[LANGUAGE_NONE])) {
+  if (isset($node->field_tracklist[LANGUAGE_NONE])) {
+    $separator = "\r\n";
+    $line = strtok($node->field_tracklist[LANGUAGE_NONE][0]['value'], $separator);
+    $tracks[] = $line;
+    while ($line !== false) {
+      $line = strtok($separator);
+      if (strlen($line) > 0) {
+        $tracks[] = $line;
+      }
+    }
+  }
+  else if (isset($node->release->field_tracklist[LANGUAGE_NONE])) {
+    // Get tracklist from release node instead. TODO: This should be deleted.
     $separator = "\r\n";
     $line = strtok($node->release->field_tracklist[LANGUAGE_NONE][0]['value'], $separator);
     $tracks[] = $line;
