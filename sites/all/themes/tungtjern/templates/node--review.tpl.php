@@ -87,7 +87,7 @@
 
 <?php if (isset($node->field_embed_code[LANGUAGE_NONE])) : ?>
 <div class="video-container">
-  <iframe width="640" height="360" src="//www.youtube.com/embed/<?php print $node->field_embed_code[LANGUAGE_NONE][0]['value']; ?>?rel=0" frameborder="0" allowfullscreen></iframe>
+  <iframe width="640" height="360" src="//www.youtube.com/embed/<?php print check_plain($node->field_embed_code[LANGUAGE_NONE][0]['value']); ?>?rel=0" frameborder="0" allowfullscreen></iframe>
 </div>
 <?php endif; ?>
 
