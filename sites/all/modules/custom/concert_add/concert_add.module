@@ -367,8 +367,9 @@ function concert_add_form_submit($form, &$form_state) {
       }
     }
     
-    node_save($node);
+    
     if (!user_access('bypass concert add restrictions', $user)) {
+      node_save($node);
       // Send e-mail notification to editors about the new festival:
       _concert_add_send_notification($node);
     }
