@@ -62,6 +62,23 @@ function workflow_permission() {
 }
 
 /**
+ * Get deadline.
+ *
+ * @return Returns an HTML human-readable date string in either green or red.
+ */
+function _deadline($ts) {
+  $deadline = $ts - 259200; // 3 days
+  $now = time();
+  if ($deadline > $now) {
+    $interval = $deadline - $now;
+    return '<span style="color:green">' . format_interval($interval) . " " . t('left') . '</span>';
+  } else {
+    $interval = $now - $deadline;
+    return '<span style="color:red">' . t('Exceeded by') . " " . format_interval($interval) . '</span>';
+  }
+}
+
+/**
  * Creates a sortable table displaying releases with no reviews attached.
  */
 function _block_unreviewed_releases() {
@@ -69,6 +86,7 @@ function _block_unreviewed_releases() {
   $header = array(
     array('data' => t('Name'), 'field' => 'title'),
     array('data' => t('Release date'), 'field' => 'field_release_date_value'),
+    t('Deadline'),
     array('data' => t('Updated'), 'field' => 'changed', 'sort' => 'desc'),
     array('data' => t('Actions')),
     array('data' => t('Create review')),
@@ -77,7 +95,7 @@ function _block_unreviewed_releases() {
   # set the database table
   $query = db_select('node', 'n')
     ->extend('PagerDefault')
-    ->limit(10)
+    ->limit(20)
     ->extend('TableSort')
     ->orderByHeader($header);
   $query->fields('n', array('nid', 'title', 'changed'));
@@ -96,6 +114,7 @@ function _block_unreviewed_releases() {
     $rows[] = array(
       $row->title,
       format_date($row->field_release_date_value, 'displaydate_short'),
+      _deadline($row->field_release_date_value),
       format_date($row->changed, 'short'),
       l(t('edit'), 'node/' . $row->nid . '/edit') . '&emsp;' . l(t('delete'), 'node/' . $row->nid . '/delete'),
       l(t('Create review'), 'node/add/review', array('query' => array('release_nid' => $row->nid))),
