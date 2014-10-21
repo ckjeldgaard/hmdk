@@ -425,11 +425,14 @@ function related_artist_contents() {
         $rs = db_query($sql, array(':artist_id' => $rel->field_related_bands_target_id, ':bundle' => 'release'));
     
         foreach ($rs as $row) {
-          return array(
-            'artist' => $obj_artist->title,
-            'related_artist' => $rel->title,
-            'review_node' => node_load($row->review_id),
-          );
+          $node = node_load($row->review_id);
+          if ($node->status == 1) {
+            return array(
+              'artist' => $obj_artist->title,
+              'related_artist' => $rel->title,
+              'review_node' => $node,
+            );
+          }
           
           break;
         }
