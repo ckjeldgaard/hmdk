@@ -223,7 +223,9 @@ function _get_related_by_artist($artist_nid, $exclude = array(), $limit = 4) {
       $query->range(0, 1);
       $obj_reportage = $query->execute()->fetchObject();
 
-      $nids[] = $obj_reportage->nid;
+      if (is_object($obj_reportage)) {
+        $nids[] = $obj_reportage->nid;
+      }
     }
     else if (!in_array($row->entity_id, $nids) && !in_array($row->entity_id, $exclude)) {
       $nids[] = $row->entity_id;
