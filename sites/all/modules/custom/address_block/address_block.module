@@ -52,7 +52,7 @@ function _address_block_settings_form() {
     '#title' => t('Name'),
     '#default_value' => ($address) ? $address->name : null,
     '#maxlength' => 127,
-    '#required' => TRUE,
+    '#required' => FALSE,
     '#description' => t('Address name'),
   );
   $form['address']['street_address'] = array(
