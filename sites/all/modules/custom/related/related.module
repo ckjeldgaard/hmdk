@@ -262,10 +262,8 @@ function _get_related_by_artist($artist_nid, $exclude = array(), $limit = 4) {
           // If reportage review has an image og the artist, use that one instead of the default reportage image:
           foreach ($nids as $n) {
             if (is_array($n) && $n['reportage_nid'] == $node->nid) {
-              echo $n['entity_id'];
               $reportage_review = field_collection_item_load($n['entity_id']);
               if (isset($reportage_review->field_image[LANGUAGE_NONE])) {
-                print_r($reportage_review->field_image[LANGUAGE_NONE]);
                 $node->field_image = $reportage_review->field_image;
               }
             }
