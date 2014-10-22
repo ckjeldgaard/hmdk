@@ -238,10 +238,20 @@ function _get_related_by_artist($artist_nid, $exclude = array(), $limit = 4) {
   
   // Order list of nids by date published:
   if (count($nids) > 0) {
+    
+    $nids_list = array();
+    foreach ($nids as $n) {
+      if (is_array($n) && isset($n['reportage_nid'])) {
+        $nids_list[] = $n['reportage_nid'];
+      } else {
+        $nids_list[] = $n;
+      }
+    }
+    
     $query = db_select('node', 'n');
     $query->fields('n', array('nid', 'type'));
     $query->join('publication_date', 'd', 'n.nid = d.nid');
-    $query->condition('n.nid', $nids);
+    $query->condition('n.nid', $nids_list);
     $query->condition('n.status', 1);
     $query->orderby('d.published_at', 'DESC');
     $rs = $query->execute();
