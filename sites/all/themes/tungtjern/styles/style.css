@@ -364,7 +364,7 @@ a.pure-button-selected {
 
 footer {
   background-color: #333333;
-  border-top: 5px solid #444A54;
+  border-top: 5px solid #d13c38;
   height: 70px;
   color: #ffffff;
 }
@@ -529,6 +529,14 @@ form .description {
   font-size:1.4em;
 }
 
+.secondary .social a:link, .secondary .social a:visited {
+  color: #d13c38;
+}
+
+.secondary .social a:hover {
+  color: #444A54;
+}
+
 .secondary .menu {
   padding: 10px 5px 0 0;
   margin: 0;
@@ -624,7 +632,7 @@ article ul.tabs {
   font-weight:normal;
   padding-bottom: 5px;
   margin-bottom:10px;
-  border-bottom: 3px solid #444A54;
+  border-bottom: 3px solid #d13c38;
 }
   
   .submenu h2 {
@@ -842,6 +850,11 @@ pre {
 
 .review-meta h1 a {
   text-decoration:none;
+  color:#d13c38;
+}
+
+.review-meta h1 a:hover {
+  color:#444A54;
 }
 
 .review-meta .title, .livereview .title {
@@ -882,10 +895,11 @@ pre {
 .type {
   text-transform:uppercase;
   font-weight:bold;
+  color:#000;
 }
 
 .post-meta .type {
-  color: #000000;
+  /*color: #000000;*/
   font-size: 1.2em;
 }
 
@@ -1038,7 +1052,11 @@ pre {
 }
 
 .frontpage-mosaic .type {
-  color: #000000;
+  /*color: #000000;*/
+}
+
+.frontpage-mosaic img {
+  border-bottom: 5px solid #d13c38;
 }
 
 .frontpage-mosaic h1 {
