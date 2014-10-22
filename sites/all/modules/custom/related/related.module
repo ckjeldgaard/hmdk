@@ -210,6 +210,7 @@ function _get_related_by_artist($artist_nid, $exclude = array(), $limit = 4) {
       }
     }
     else if ($row->bundle == 'field_reportage_review') {
+
       // Special case for reportage nodes. Get the real node ID:
       $query = db_select('node', 'n');
       $query->fields('n', array('nid'));
@@ -224,7 +225,10 @@ function _get_related_by_artist($artist_nid, $exclude = array(), $limit = 4) {
       $obj_reportage = $query->execute()->fetchObject();
 
       if (is_object($obj_reportage)) {
-        $nids[] = $obj_reportage->nid;
+        $nids[] = array(
+          'reportage_nid' => $obj_reportage->nid,
+          'entity_id' => $row->entity_id,
+        );
       }
     }
     else if (!in_array($row->entity_id, $nids) && !in_array($row->entity_id, $exclude)) {
@@ -254,6 +258,19 @@ function _get_related_by_artist($artist_nid, $exclude = array(), $limit = 4) {
           $node->release = node_load($node->field_release[LANGUAGE_NONE][0]['target_id']);
         }
         if ($node->type == 'reportage') {
+          
+          // If reportage review has an image og the artist, use that one instead of the default reportage image:
+          foreach ($nids as $n) {
+            if (is_array($n) && $n['reportage_nid'] == $node->nid) {
+              echo $n['entity_id'];
+              $reportage_review = field_collection_item_load($n['entity_id']);
+              if (isset($reportage_review->field_image[LANGUAGE_NONE])) {
+                print_r($reportage_review->field_image[LANGUAGE_NONE]);
+                $node->field_image = $reportage_review->field_image;
+              }
+            }
+          }
+          
           $artist = _get_artist_name($artist_nid);
           $artist_key = transliteration_get($artist, '-', 'en');
           $artist_key = strtolower($artist_key);
