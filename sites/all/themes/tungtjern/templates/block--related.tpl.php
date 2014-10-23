@@ -59,7 +59,7 @@
           <h3><a href="<?php if ($node->type == 'reportage') : ?><?php print url('node/' . $node->nid, array('fragment' => $node->artist_key)); ?><?php else: ?><?php print url('node/' . $node->nid); ?><?php endif; ?>">
           <?php print $node->title; ?>
           </a></h3>
-          <?php if ($node->type == 'concert_review' && isset($node->field_rating[LANGUAGE_NONE][0])) : ?>
+          <?php if (($node->type == 'concert_review' || $node->type == 'reportage') && isset($node->field_rating[LANGUAGE_NONE][0])) : ?>
           <p class="rating-small grade<?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>"><?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>/10</p>
           <?php endif; ?>
         </div>

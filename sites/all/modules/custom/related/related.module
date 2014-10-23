@@ -269,6 +269,8 @@ function _get_related_by_artist($artist_nid, $exclude = array(), $limit = 4) {
         }
         if ($node->type == 'reportage') {
           
+          $artist = _get_artist_name($artist_nid);
+          
           // If reportage review has an image og the artist, use that one instead of the default reportage image:
           foreach ($nids as $n) {
             if (is_array($n) && $n['reportage_nid'] == $node->nid) {
@@ -276,10 +278,17 @@ function _get_related_by_artist($artist_nid, $exclude = array(), $limit = 4) {
               if (isset($reportage_review->field_image[LANGUAGE_NONE])) {
                 $node->field_image = $reportage_review->field_image;
               }
+              
+              // Display reportage review rating as well, if set:
+              if (isset($reportage_review->field_rating[LANGUAGE_NONE])) {
+                $node->field_rating = $reportage_review->field_rating;
+              }
+              
+              // Add artist name to reportage title:
+              $node->title = $artist . ", " . $node->title;
             }
           }
           
-          $artist = _get_artist_name($artist_nid);
           $artist_key = transliteration_get($artist, '-', 'en');
           $artist_key = strtolower($artist_key);
           $artist_key = str_replace(' ', '-', $artist_key);
