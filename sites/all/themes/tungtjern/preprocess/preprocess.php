@@ -147,13 +147,13 @@ function _preprocess_review(&$node) {
   // Load genres (if any):
   $genres = FALSE;
   $genre_label = 'Genre';
-  if (isset($node->field_entity_genre[LANGUAGE_NONE])) {
+  if (isset($node->field_genre[LANGUAGE_NONE])) {
     $g = array();
-    foreach ($node->field_entity_genre[LANGUAGE_NONE] as $genre) {
-      if (isset($genre['taxonomy_term'])) {
-        $g[] = l($genre['taxonomy_term']->name, 'taxonomy/term/' . $genre['taxonomy_term']->tid, array('attributes' => array('itemprop' => 'genre')));
+    foreach ($node->field_genre[LANGUAGE_NONE] as $genre) {
+      if (isset($genre['entity'])) {
+        $g[] = l($genre['entity']->name, 'taxonomy/term/' . $genre['entity']->tid, array('attributes' => array('itemprop' => 'genre')));
       } else {
-        $term = taxonomy_term_load($genre['tid']);
+        $term = taxonomy_term_load($genre['target_id']);
         $g[] = l($term->name, 'taxonomy/term/' . $term->tid, array('attributes' => array('itemprop' => 'genre')));
       }
     }
