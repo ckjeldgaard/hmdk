@@ -166,10 +166,10 @@ function _preprocess_review(&$node) {
   $node->genre = $genres;
   
   // Load first genre for teaser and topfront view:
-  if (isset($node->field_entity_genre[LANGUAGE_NONE][0]['taxonomy_term'])) {
-    $node->first_genre = $node->field_entity_genre[LANGUAGE_NONE][0]['taxonomy_term'];
-  } else if (isset($node->field_entity_genre[LANGUAGE_NONE][0]['tid'])) {
-    $node->first_genre = taxonomy_term_load($node->field_entity_genre[LANGUAGE_NONE][0]['tid']);
+  if (isset($node->field_genre[LANGUAGE_NONE][0]['entity'])) {
+    $node->first_genre = $node->field_genre[LANGUAGE_NONE][0]['entity'];
+  } else if (isset($node->field_genre[LANGUAGE_NONE][0]['target_id'])) {
+    $node->first_genre = taxonomy_term_load($node->field_genre[LANGUAGE_NONE][0]['target_id']);
   }
   
   if ($node->status == 0) {
