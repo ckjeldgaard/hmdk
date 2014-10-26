@@ -79,15 +79,36 @@ function _deadline($ts) {
 }
 
 /**
+ * Get the first artist genre by release.
+ *
+ * @param $release_nid Node ID of the release's artist to lookup.
+ * @return string|bool Returns a genre name if found. FALSE otherwise.
+ */
+function _get_artist_genre_by_release($release_nid) {
+  $query = db_select('taxonomy_term_data', 't');
+  $query->fields('t', array('name'));
+  $query->join('field_data_field_artist_genres', 'g', 'g.field_artist_genres_tid = t.tid');
+  $query->join('field_data_field_artist', 'a', 'a.field_artist_target_id = g.entity_id');
+  $query->condition('a.entity_id', $release_nid);
+  $query->range(0, 1);
+  $obj = $query->execute()->fetchObject();
+  
+  if (is_object($obj)) {
+    return $obj->name;
+  }
+  return FALSE;
+}
+
+/**
  * Creates a sortable table displaying releases with no reviews attached.
  */
 function _block_unreviewed_releases() {
 
   $header = array(
     array('data' => t('Name'), 'field' => 'title'),
-    array('data' => t('Release date'), 'field' => 'field_release_date_value'),
+    array('data' => t('Release date'), 'field' => 'field_release_date_value', 'sort' => 'desc'),
     t('Deadline'),
-    array('data' => t('Updated'), 'field' => 'changed', 'sort' => 'desc'),
+    array('data' => t('Artist genre')),
     array('data' => t('Actions')),
     array('data' => t('Create review')),
   );
@@ -98,7 +119,7 @@ function _block_unreviewed_releases() {
     ->limit(20)
     ->extend('TableSort')
     ->orderByHeader($header);
-  $query->fields('n', array('nid', 'title', 'changed'));
+  $query->fields('n', array('nid', 'title'));
   $query->fields('d', array('field_release_date_value'));
   $query->join('field_data_field_release_date', 'd', 'd.entity_id = n.nid');
   $query->leftJoin('field_data_field_release', 'r', 'r.field_release_target_id = n.nid');
@@ -115,7 +136,7 @@ function _block_unreviewed_releases() {
       $row->title,
       format_date($row->field_release_date_value, 'displaydate_short'),
       _deadline($row->field_release_date_value),
-      format_date($row->changed, 'short'),
+      _get_artist_genre_by_release($row->nid),
       l(t('edit'), 'node/' . $row->nid . '/edit') . '&emsp;' . l(t('delete'), 'node/' . $row->nid . '/delete'),
       l(t('Create review'), 'node/add/review', array('query' => array('release_nid' => $row->nid))),
     );
