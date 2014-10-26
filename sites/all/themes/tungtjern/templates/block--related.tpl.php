@@ -7,7 +7,7 @@
       <?php if ($node->type == 'review') : ?>
       <div class="pure-g item <?php print get_edit_classes($node); ?>">
         <div class="pure-u-1-3 pure-u-md-1 pure-u-lg-1-3">
-          <a href="<?php print url('node/' . $node->nid); ?>">
+          <a href="<?php print url('node/' . $node->nid); ?>" onclick="ga('send', 'event', { eventCategory: 'related', eventAction: 'review', eventLabel: '<?php print check_plain($node->title); ?>'});">
           <img src="<?php print (function_exists('image_cache')) ? image_cache('review_sidebar', $node->release->field_image[LANGUAGE_NONE][0]) : ''; ?>" alt="<?php print check_plain($node->title); ?>" />
           </a>
         </div>
@@ -21,7 +21,7 @@
               </a>
             <?php endif; ?>
           </p>
-          <h3><a href="<?php print url('node/' . $node->nid); ?>"><?php print $node->title; ?>
+          <h3><a href="<?php print url('node/' . $node->nid); ?>" onclick="ga('send', 'event', { eventCategory: 'related', eventAction: 'review', eventLabel: '<?php print check_plain($node->title); ?>'});"><?php print $node->title; ?>
           <?php if ($node->release->field_release_type[LANGUAGE_NONE][0]['value'] != 'Album') : ?>
             (<?php print $node->release->field_release_type[LANGUAGE_NONE][0]['value']; ?>)
           <?php endif; ?></a></h3>
@@ -37,7 +37,7 @@
       <div class="pure-g item <?php print get_edit_classes($node); ?>">
         <div class="pure-u-1-3 pure-u-md-1 pure-u-lg-1-3">
           <?php if (isset($node->field_image[LANGUAGE_NONE][0])) : ?>
-          <a href="<?php if ($node->type == 'reportage') : ?><?php print url('node/' . $node->nid, array('fragment' => $node->artist_key)); ?><?php else: ?><?php print url('node/' . $node->nid); ?><?php endif; ?>">
+          <a href="<?php if ($node->type == 'reportage') : ?><?php print url('node/' . $node->nid, array('fragment' => $node->artist_key)); ?><?php else: ?><?php print url('node/' . $node->nid); ?><?php endif; ?>" onclick="ga('send', 'event', { eventCategory: 'related', eventAction: '<?php print $node->type; ?>', eventLabel: '<?php print check_plain($node->title); ?>'});">
           <img src="<?php print (function_exists('image_cache')) ? image_cache('review_sidebar', $node->field_image[LANGUAGE_NONE][0]) : ''; ?>" alt="<?php print check_plain($node->title); ?>" />
           </a>
           <?php elseif($node->type == 'concert_review' && !isset($node->field_image[LANGUAGE_NONE][0])) : ?>
@@ -56,7 +56,7 @@
               </a>
             <?php endif; ?>
           </p>
-          <h3><a href="<?php if ($node->type == 'reportage') : ?><?php print url('node/' . $node->nid, array('fragment' => $node->artist_key)); ?><?php else: ?><?php print url('node/' . $node->nid); ?><?php endif; ?>">
+          <h3><a href="<?php if ($node->type == 'reportage') : ?><?php print url('node/' . $node->nid, array('fragment' => $node->artist_key)); ?><?php else: ?><?php print url('node/' . $node->nid); ?><?php endif; ?>" onclick="ga('send', 'event', { eventCategory: 'related', eventAction: '<?php print $node->type; ?>', eventLabel: '<?php print check_plain($node->title); ?>'});">
           <?php print $node->title; ?>
           </a></h3>
           <?php if (($node->type == 'concert_review' || $node->type == 'reportage') && isset($node->field_rating[LANGUAGE_NONE][0])) : ?>

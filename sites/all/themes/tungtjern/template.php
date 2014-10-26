@@ -53,6 +53,14 @@ function tungtjern_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'user_profile_form') {
     unset($form['contact']);
   }
+  
+  // Google Analytics event tracking when new user registers:
+  if ($form_id == 'user_register_form') {
+    $ga_event = "ga('send', 'event', { eventCategory: 'registration', eventAction: 'user'});";
+    $form['actions']['submit']['#attributes'] = array(
+      'onclick' => $ga_event,
+    );
+  }
 }
 
 /**

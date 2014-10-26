@@ -1,6 +1,22 @@
 <?php
 
 /**
+ * Implements hook_menu().
+ */
+function newsletter_signup_menu() {
+  $items['admin/config/system/newsletter_signup'] = array(
+    'title' => 'Newsletter signup settings',
+    'description' => 'Manage and configure newsletter signup module settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_newsletter_signup_settings_form'),
+    'access arguments' => array('administer newsletter signup module'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'newsletter_signup.admin.inc',
+  );
+  return $items;
+}
+
+/**
  * Implements hook_block_info().
  */
 function newsletter_signup_block_info() {
@@ -85,6 +101,9 @@ function newsletter_signup_form_validate($form, &$form_state) {
  * Subscribes the email address to Mailchimp.
  */
 function newsletter_signup_form_submit($form, &$form_state) {
+
+  $destination = variable_get('newsletter_signup_destination_nid');
+  
   $email = $form_state['values']['email'];
   $list_details = mailchimp_get_lists();
   reset($list_details);
@@ -100,5 +119,8 @@ function newsletter_signup_form_submit($form, &$form_state) {
   }
   else {
     drupal_set_message(t('You are now successfully subscribed to our newsletter.'));
+  }
+  if (is_numeric($destination)) {
+    drupal_goto('node/' . $destination);
   }
 }
