@@ -130,7 +130,7 @@ function _block_unreviewed_releases() {
   # set the database table
   $query = db_select('node', 'n')
     ->extend('PagerDefault')->element($element)
-    ->limit(3)
+    ->limit(20)
     ->extend('TableSort')
     ->orderByHeader($header);
   $query->fields('n', array('nid', 'title'));
