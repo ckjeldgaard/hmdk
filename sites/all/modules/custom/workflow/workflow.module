@@ -10,6 +10,9 @@ function workflow_block_info() {
   $blocks['block-my-reviews'] = array(
     'info' => t('My reviews'),
   );
+  $blocks['block-reviews-in-progress'] = array(
+    'info' => t('Reviews in progress'),
+  );
   return $blocks;
 }
 
@@ -26,6 +29,10 @@ function workflow_block_view($delta) {
     case 'block-my-reviews':
       $block['subject'] = t('My reviews');
       $block['content'] = theme('block-my-reviews', array('content' => _block_my_reviews()));
+      break;
+    case 'block-reviews-in-progress':
+      $block['subject'] = t('Reviews in progress');
+      $block['content'] = theme('block-reviews-in-progress', array('content' => _block_reviews_in_progress()));
       break;
   }
   return $block;
@@ -44,6 +51,11 @@ function workflow_theme() {
     ),
     'block-my-reviews' => array(
       'template' => 'block--block-my-reviews',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-reviews-in-progress' => array(
+      'template' => 'block--block-reviews-in-progress',
       'variables' => array('form' => NULL),
       'path' => drupal_get_path('module', 'workflow'),
     ),
@@ -104,6 +116,8 @@ function _get_artist_genre_by_release($release_nid) {
  */
 function _block_unreviewed_releases() {
 
+  $element = 0; // Integer to distinguish between multiple pagers on same page.
+
   $header = array(
     array('data' => t('Name'), 'field' => 'title'),
     array('data' => t('Release date'), 'field' => 'field_release_date_value', 'sort' => 'desc'),
@@ -115,8 +129,8 @@ function _block_unreviewed_releases() {
   
   # set the database table
   $query = db_select('node', 'n')
-    ->extend('PagerDefault')
-    ->limit(20)
+    ->extend('PagerDefault')->element($element)
+    ->limit(3)
     ->extend('TableSort')
     ->orderByHeader($header);
   $query->fields('n', array('nid', 'title'));
@@ -145,7 +159,8 @@ function _block_unreviewed_releases() {
   $output = theme('table', array('header' => $header, 'rows' => $rows ));
 
   # add the pager
-  $output .= theme('pager');
+  $pager = array('#theme' => 'pager', '#element' => $element);
+  $output .= render($pager);
   
   global $pager_total_items;
   
@@ -156,7 +171,64 @@ function _block_unreviewed_releases() {
     'table' => $output,
     'count' => $pager_total_items[0],
   );
+}
 
+/**
+ * Creates a sortable table displaying reviews currently in progress.
+ */
+function _block_reviews_in_progress() {
+  
+  $element = 1; // Integer to distinguish between multiple pagers on same page.
+  $num_per_page = 25;
+
+  $header = array(
+    array('data' => t('Name'), 'field' => 'title'),
+    array('data' => t('Release date'), 'field' => 'field_release_date_value'),
+    t('Deadline'),
+    array('data' => t('Author'), 'field' => 'name', 'sort' => 'asc'),
+    array('data' => t('Actions')),
+  );
+  
+  # set the database table
+  $query = db_select('node', 'n')
+    ->extend('PagerDefault')->element($element)
+    ->limit($num_per_page)
+    ->extend('TableSort')
+    ->orderByHeader($header);
+  $query->fields('n', array('nid', 'title', 'uid'));
+  $query->fields('d', array('field_release_date_value'));
+  $query->fields('u', array('name'));
+  $query->join('field_data_field_release', 'r', 'r.entity_id = n.nid');
+  $query->join('field_data_field_release_date', 'd', 'd.entity_id = r.field_release_target_id');
+  $query->join('users', 'u', 'n.uid = u.uid');
+  $query->condition('n.status', 0);
+  $query->condition('n.type', 'review');
+  
+  $results = $query->execute();
+  
+  # build the table fields
+  $rows = array();
+  foreach ($results as $row) {
+    $rows[] = array(
+      l($row->title, 'node/' . $row->nid),
+      format_date($row->field_release_date_value, 'displaydate_short'),
+      _deadline($row->field_release_date_value),
+      $row->name,
+      l(t('edit'), 'node/' . $row->nid . '/edit') . '&emsp;' . l(t('delete'), 'node/' . $row->nid . '/delete'),
+    );
+  }
+  $output = theme('table', array('header' => $header, 'rows' => $rows));
+
+  # add the pager
+  $pager = array('#theme' => 'pager', '#element' => $element);
+  $output .= render($pager);
+  
+  global $pager_total_items;
+  
+  return array(
+    'table' => $output,
+    'count' => $pager_total_items[1],
+  );
 }
 
 /**
