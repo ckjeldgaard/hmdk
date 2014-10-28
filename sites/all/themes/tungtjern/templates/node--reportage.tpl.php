@@ -97,6 +97,8 @@
     </div>
     <?php endforeach; ?>
   <?php endforeach; ?>
+<?php endif; ?>
+
   <?php if ($node->has_gallery) : ?>
   <div class="reportage-gallery">
     <h2 class="hdr" id="galleri">Billedegalleri</h2>
@@ -105,8 +107,6 @@
     <?php endforeach; ?>
   </div>
   <?php endif; ?>
-<?php endif; ?>
-
 
 <?php print render($content['comments']); ?>
 </article>
