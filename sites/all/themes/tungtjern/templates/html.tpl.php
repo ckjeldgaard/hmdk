@@ -4,6 +4,7 @@
   <title><?php print $head_title; ?></title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=PT+Sans">
   <?php print $styles; ?>
   <?php print $head; ?>
 </head>
