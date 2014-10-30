@@ -14,7 +14,7 @@
       <p class="post-meta">
         <?php print _get_type($node->type); ?>
         <span class="author">
-          <i class="fa fa-user"></i> Publiseret <?php if($node->field_display_author[LANGUAGE_NONE][0]['value'] == 1): ?>,<?php endif; ?>
+          <i class="fa fa-user"></i> Publiseret den <?php print formatted_date($node->published_at); ?> <?php if($node->field_display_author[LANGUAGE_NONE][0]['value'] == 1): ?>af <?php print l($node->name, 'user/' . $node->uid); ?><?php endif; ?>
           <time datetime="<?php print format_date($node->published_at, 'date'); ?>"><?php print format_date($node->published_at, 'displaydate'); ?></time>
         </span>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
