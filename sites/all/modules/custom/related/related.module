@@ -10,8 +10,11 @@ function related_block_info() {
   $blocks['block-top-genre'] = array(
     'info' => t('Top genre'),
   );
-    $blocks['block-related-artist'] = array(
+  $blocks['block-related-artist'] = array(
     'info' => t('Related artist'),
+  );
+  $blocks['block-related-reportage'] = array(
+    'info' => t('Related reportage'),
   );
   return $blocks;
 }
@@ -33,6 +36,10 @@ function related_block_view($delta) {
     case 'block-related-artist':
       $block['subject'] = t('Related artist');
       $block['content'] = theme('block-related-artist', array('content' => related_artist_contents()));
+      break;
+    case 'block-related-reportage':
+      $block['subject'] = t('Related reportage');
+      $block['content'] = theme('block-related-reportage', array('content' => related_reportage_contents()));
       break;
   }
   return $block;
@@ -56,6 +63,11 @@ function related_theme() {
     ),
     'block-related-artist' => array(
       'template' => 'block--related-artist',
+      'variables' => array('form' => NULL),
+      'path' => $path_to_theme . '/templates',
+    ),
+    'block-related-reportage' => array(
+      'template' => 'block--related-reportage',
       'variables' => array('form' => NULL),
       'path' => $path_to_theme . '/templates',
     ),
@@ -476,4 +488,39 @@ function related_artist_contents() {
     }
   }
   return NULL;
+}
+
+function related_reportage_contents() {
+  if (arg(0) == 'node') {
+    // Get node type:
+    $query = db_select('node', 'n');
+    $query->fields('n', array('type'));
+    $query->fields('f', array('field_festival_target_id'));
+    $query->join('field_data_field_festival', 'f', 'f.entity_id = n.nid');
+    $query->condition('n.nid', arg(1));
+    $obj = $query->execute()->fetchObject();
+    
+    if (is_object($obj) && $obj->type == 'reportage' && is_numeric($obj->field_festival_target_id)) {
+
+      // Get related:
+      $query = db_select('field_data_field_festival', 'f');
+      $query->fields('f', array('entity_id'));
+      $query->join('node', 'n', 'f.entity_id = n.nid');
+      $query->join('publication_date', 'p', 'f.entity_id = p.nid');
+      $query->condition('f.field_festival_target_id', $obj->field_festival_target_id);
+      $query->condition('f.entity_id', arg(1), '!=');
+      $query->condition('n.type', 'reportage');
+      $query->condition('n.status', 1);
+      $query->orderBy('p.published_at', 'DESC');
+      $query->range(0, 4);
+      
+      $rs = $query->execute();
+      $nodes = array();
+      foreach ($rs as $row) {
+        $nodes[] = node_load($row->entity_id);
+      }
+      return $nodes;
+    }
+  }
+  return FALSE;
 }

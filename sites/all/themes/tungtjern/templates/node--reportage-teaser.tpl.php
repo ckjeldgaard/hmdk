@@ -23,9 +23,9 @@
     <h1><a href="<?php print url('node/' . $node->nid); ?>"><?php print $node->title; ?></a></h1> 
     <?php if (isset($node->field_tagline[LANGUAGE_NONE][0])) : ?>
       <p><?php print $node->field_tagline[LANGUAGE_NONE][0]['value']; ?></p>
-    <?php elseif (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
+    <?php elseif (isset($node->body[LANGUAGE_NONE][0]['summary']) && strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
       <p><?php print truncate_utf8($node->body[LANGUAGE_NONE][0]['summary'], 140, TRUE); ?></p>
-    <?php else: ?>
+    <?php elseif (isset($node->body[LANGUAGE_NONE][0]['safe_value']) && strlen($node->body[LANGUAGE_NONE][0]['safe_value']) > 0): ?>
       <p><?php print truncate_utf8(strip_tags($node->body[LANGUAGE_NONE][0]['safe_value']), 140, TRUE, TRUE); ?></p>
     <?php endif; ?>
     </div>
