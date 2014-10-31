@@ -1,4 +1,4 @@
-<?php if (count($content) > 0) : ?>
+<?php if ($content != FALSE && count($content) > 0) : ?>
 <div class="related">
   <h2>Læs også</h2>
   <?php foreach ($content as $node) : ?>
