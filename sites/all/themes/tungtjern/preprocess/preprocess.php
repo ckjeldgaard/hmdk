@@ -228,7 +228,7 @@ function _preprocess_concert_review(&$node) {
     }
   }
   
-  $node->num_headliners = count($concert_node->field_artists[LANGUAGE_NONE]);
+  $node->num_headliners = (isset($node->published_at)) ? count($concert_node->field_artists[LANGUAGE_NONE]) : 0;
   $node->headliners = implode(", ", $headliners);
   $node->support = implode(", ", $support);
   $node->full_lineup = $full_lineup;

@@ -6,9 +6,9 @@
     <?php endif; ?>
   </div>
   <a href="<?php print url('node/' . $node->nid); ?>">
-    <?php if ($node->type == 'review') : ?>
+    <?php if ($node->type == 'review' && isset($node->release->field_image[LANGUAGE_NONE])) : ?>
     <img src="<?php print image_cache('review', $node->release->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->release->title); ?>" class="pure-img" />
-    <?php else: ?>
+    <?php elseif (isset($node->field_image[LANGUAGE_NONE])): ?>
     <img src="<?php print image_cache('review', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->title); ?>" class="pure-img" />
     <?php endif; ?>
   </a>

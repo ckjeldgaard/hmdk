@@ -85,10 +85,12 @@ function _generate_artists_string($artists_list) {
   $max = 5; // Maximum number of artist names in title before an 'etc.' text is added as suffix.
   
   $arr_artists = array();
-  foreach ($artists_list as $a) {
-    $artist = node_load($a['target_id']);
-    if (isset($artist->title)) {
-      $arr_artists[] = $artist->title;
+  if (count($artists_list) > 0) {
+    foreach ($artists_list as $a) {
+      $artist = node_load($a['target_id']);
+      if (isset($artist->title)) {
+        $arr_artists[] = $artist->title;
+      }
     }
   }
     
