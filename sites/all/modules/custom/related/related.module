@@ -413,6 +413,7 @@ function top_genre_contents() {
  */
 function _get_top_review_nodes($tid, $rating, $limit = 3) {
   $query = db_select('taxonomy_index', 't');
+  $query->distinct();
   $query->fields('t', array('nid'));
   $query->join('node', 'n', 't.nid = n.nid');
   $query->join('field_data_field_rating', 'r', 'r.entity_id = n.nid');
