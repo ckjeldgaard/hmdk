@@ -1797,3 +1797,7 @@ ul.pager {
 .maintenance-page #site-name a:hover {
   text-decoration:underline;
 }
+
+.formatted {
+  font-family:monospace;
+}
