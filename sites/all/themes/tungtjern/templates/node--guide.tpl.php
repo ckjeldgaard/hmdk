@@ -6,7 +6,7 @@
 <script type="text/javascript" charset="utf-8">
   $(document).ready(function(){ 
     $("#toc").tableOfContents(
-      $("#toccontainer"),
+      $("#guidewrapper"),
       {
         startLevel: 2,
         depth: 3
@@ -17,7 +17,7 @@
 
 <h2>Indhold</h2>
 <ol id="toc" class="toc"></ol>
-<div id="toccontainer">
+<div id="guidewrapper">
 <?php if (isset($node->body[LANGUAGE_NONE][0])) : ?>
   <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
     <p class="summary"><?php print $node->body[LANGUAGE_NONE][0]['summary']; ?></p>

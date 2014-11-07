@@ -1801,3 +1801,10 @@ ul.pager {
 .formatted {
   font-family:monospace;
 }
+
+#guidewrapper a:link, #guidewrapper a:visited {
+  color:#0078e7;
+}
+#guidewrapper a:hover {
+  color:#ca3c3c;
+}
