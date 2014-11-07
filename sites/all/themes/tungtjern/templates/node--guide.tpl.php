@@ -16,7 +16,7 @@
 </script>
 
 <h2>Indhold</h2>
-<ol id="toc"></ol>
+<ol id="toc" class="toc"></ol>
 <div id="toccontainer">
 <?php if (isset($node->body[LANGUAGE_NONE][0])) : ?>
   <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
