@@ -13,6 +13,9 @@ function workflow_block_info() {
   $blocks['block-reviews-in-progress'] = array(
     'info' => t('Reviews in progress'),
   );
+  $blocks['block-latest-activity'] = array(
+    'info' => t('Latest activity'),
+  );
   return $blocks;
 }
 
@@ -33,6 +36,10 @@ function workflow_block_view($delta) {
     case 'block-reviews-in-progress':
       $block['subject'] = t('Reviews in progress');
       $block['content'] = theme('block-reviews-in-progress', array('content' => _block_reviews_in_progress()));
+      break;
+    case 'block-latest-activity':
+      $block['subject'] = t('Latest activity');
+      $block['content'] = theme('block-latest-activity', array('content' => _block_latest_activity()));
       break;
   }
   return $block;
@@ -56,6 +63,11 @@ function workflow_theme() {
     ),
     'block-reviews-in-progress' => array(
       'template' => 'block--block-reviews-in-progress',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-latest-activity' => array(
+      'template' => 'block--block-latest-activity',
       'variables' => array('form' => NULL),
       'path' => drupal_get_path('module', 'workflow'),
     ),
@@ -322,4 +334,62 @@ function _block_my_reviews() {
   }
   
   return $output;
+}
+
+/**
+ * Creates a table displaying when each board member has published a review.
+ */
+function _block_latest_activity() {
+  $header = array(t('User'), t('Latest publish'));
+  $rows = array();
+  $roles = array(4, 5); // reviewer and editor
+  
+  // Get all reviewers:
+  $query = db_select('users', 'u');
+  $query->fields('u', array('uid', 'name'));
+  $query->join('users_roles', 'r', 'r.uid = u.uid');
+  $query->condition('r.rid', $roles);
+  $query->orderBy('u.name');
+  $results = $query->execute();
+  
+  // Get the date of their latest review publish:
+  foreach ($results as $row) {
+    $query = db_select('publication_date', 'd');
+    $query->fields('d', array('published_at'));
+    $query->join('node', 'n', 'n.nid = d.nid');
+    $query->condition('n.uid', $row->uid);
+    $query->condition('n.status', 1);
+    $query->condition('n.type', 'review');
+    $query->orderBy('d.published_at', 'DESC');
+    $query->range(0, 1);
+    $pub = $query->execute()->fetchObject();
+    
+    $rows[] = array(
+      'user' => l($row->name, 'user/' . $row->uid),
+      'date' => (is_object($pub)) ? $pub->published_at : NULL,
+    );
+  }
+  
+  // Sort rows by date:
+  usort($rows, "sort_latest_activity");
+  
+  // Make date column human-readable:
+  $now = time();
+  for ($i = 0; $i < count($rows); $i++) {
+    if ($rows[$i]['date'] > 0) {
+      $interval = $now - $rows[$i]['date'];
+      $rows[$i]['date'] = format_interval($interval) . ' ' . t('ago');
+    } else {
+      $rows[$i]['date'] = t('Never');
+    }
+  }
+  
+  return theme('table', array('header' => $header, 'rows' => $rows ));;
+}
+
+function sort_latest_activity($a, $b) {
+  if ($a['date'] == $b['date']) {
+    return 0;
+  }
+  return ($a['date'] < $b['date']) ? 1 : -1;
 }
