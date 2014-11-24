@@ -10,7 +10,7 @@
       <span itemprop="streetAddress"><?php print $content->street_address; ?></span><br />
       <span itemprop="postalCode"><?php print $content->postal_code; ?></span> <span itemprop="addressLocality"><?php print $content->address_locality; ?></span><br />
       <span itemprop="addressCountry"><?php print $content->country; ?></span><br />
-      <span class="address-email"><?php print t('Email'); ?>: <a href="mailto:<?php print $content->email_address; ?>" itemprop="email"><?php print $content->email_address; ?></a></span>
+      <span class="address-email"><?php print t('Email'); ?>: <?php print hide_email($content->email_address); ?></span>
     </div>
   </address>
 </div>
