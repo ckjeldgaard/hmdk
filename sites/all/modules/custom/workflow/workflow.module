@@ -1,6 +1,32 @@
 <?php
 
 /**
+ * Unpromote nodes from frontpage that are no longer in the top on every cron run.
+ */
+function workflow_cron() {
+  // Build array of current frontpage item node ID's:
+  $front = views_get_view_result('frontpage_mosaic');
+  $current_frontpage_nids = array();
+  foreach ($front as $obj) {
+    $current_frontpage_nids[] = $obj->nid;
+  }
+  
+  // Unpromote every node not in current frontpage
+  $num_updated = db_update('node')
+    ->fields(array(
+      'promote' => 0,
+    ))
+    ->condition('status', 1)
+    ->condition('promote', 1)
+    ->condition('nid', $current_frontpage_nids, 'NOT IN')
+    ->execute();
+  
+  if ($num_updated > 0) {
+    watchdog('workflow', 'Unpromoted %num nodes from frontpage on cron run.', array('%num' => $num_updated), WATCHDOG_INFO, NULL);
+  }
+}
+
+/**
  * Implements hook_block_info().
  */
 function workflow_block_info() {
