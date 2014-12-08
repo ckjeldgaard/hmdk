@@ -103,6 +103,8 @@ function review_publish_node_form_submit($form, &$form_state) {
  */
 function _review_publish_send_mails(&$review_node) {
 
+  global $user;
+
   $site_email = variable_get('site_mail', '');
   $languages = language_list();
   $language = $languages['en'];
@@ -133,7 +135,8 @@ function _review_publish_send_mails(&$review_node) {
 	->fields(array(
 	  'email' => $email,
 	  'nid' => $review_node->nid,
-	  'timestamp' => time()
+	  'timestamp' => time(),
+	  'uid' => $user->uid
 	))
 	->execute();
     }
@@ -157,7 +160,8 @@ function _review_publish_send_mails(&$review_node) {
 	->fields(array(
 	  'email' => $email,
 	  'nid' => $review_node->nid,
-	  'timestamp' => time()
+	  'timestamp' => time(),
+	  'uid' => $user->uid
 	))
 	->execute();
     }

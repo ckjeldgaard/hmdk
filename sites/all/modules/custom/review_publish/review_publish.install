@@ -23,6 +23,11 @@ function review_publish_schema() {
 	'type' => 'int',
 	'not null' => TRUE,
       ),
+      'uid' => array(
+	'description' => 'User ID of the user pressing the Send email button.',
+	'type' => 'int',
+	'not null' => TRUE,
+      ),
     ),
     'primary key' => array('email', 'nid'),
   );
