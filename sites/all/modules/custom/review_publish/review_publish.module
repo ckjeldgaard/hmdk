@@ -126,19 +126,40 @@ function _review_publish_send_mails(&$review_node) {
 	$params['contact_name'] = $label_term->field_contact_name[LANGUAGE_NONE][0]['value'];
       }
       drupal_mail('review_publish', 'notice', $email, $language, $params, $site_email);
+      
+      // Log email being sent in DB:
+      db_merge('review_email_log')
+	->key(array('email' => $email, 'nid' => $review_node->nid))
+	->fields(array(
+	  'email' => $email,
+	  'nid' => $review_node->nid,
+	  'timestamp' => time()
+	))
+	->execute();
     }
   }
   
   // If distributor contact is set:
   if (isset($release->field_distributor[LANGUAGE_NONE][0]['tid'])) {
     $distro_term = taxonomy_term_load($release->field_distributor[LANGUAGE_NONE][0]['tid']);
-    if (isset($distro_term->field_contact_email[LANGUAGE_NONE][0]['email'])) {
+    // If mail is set and different from label content email address:
+    if (isset($distro_term->field_contact_email[LANGUAGE_NONE][0]['email']) && $distro_term->field_contact_email[LANGUAGE_NONE][0]['email'] != $email) {
       $email = $distro_term->field_contact_email[LANGUAGE_NONE][0]['email'];
       //$email = 'christoffer@sappy.dk';
       if (isset($distro_term->field_contact_name[LANGUAGE_NONE][0]['value'])) {
 	$params['contact_name'] = $distro_term->field_contact_name[LANGUAGE_NONE][0]['value'];
       }
       drupal_mail('review_publish', 'notice', $email, $language, $params, $site_email);
+      
+      // Log email being sent in DB:
+      db_merge('review_email_log')
+	->key(array('email' => $email, 'nid' => $review_node->nid))
+	->fields(array(
+	  'email' => $email,
+	  'nid' => $review_node->nid,
+	  'timestamp' => time()
+	))
+	->execute();
     }
   }
 }

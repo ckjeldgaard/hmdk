@@ -16,7 +16,6 @@ function workflow_cron() {
     ->fields(array(
       'promote' => 0,
     ))
-    ->condition('status', 1)
     ->condition('promote', 1)
     ->condition('nid', $current_frontpage_nids, 'NOT IN')
     ->execute();

@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function review_publish_schema() {
+  $schema['review_email_log'] = array(
+    'description' => 'Logs review publish emails to labels and distributors.',
+    'fields' => array(
+      'email' => array(
+	'description' => 'The receiver email address.',
+	'type' => 'varchar',
+	'length' => '255',
+	'not null' => TRUE,
+      ),
+      'nid' => array(
+	'description' => 'Node ID of the review node being published.',
+	'type' => 'int',
+	'not null' => TRUE,
+      ),
+      'timestamp' => array(
+	'description' => 'When the email was sent.',
+	'type' => 'int',
+	'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('email', 'nid'),
+  );
+  return $schema;
+}
