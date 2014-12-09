@@ -627,6 +627,9 @@ function _get_type($node_type, $css = TRUE) {
     case 'contest':
       $type = t('Contest');
       break;
+    case 'poll':
+      $type = t('Poll');
+      break;
     default:
       $type = FALSE;
       break;

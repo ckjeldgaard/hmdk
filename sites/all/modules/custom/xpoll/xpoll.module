@@ -1,0 +1,114 @@
+<?php
+
+/**
+ * Implements hook_preprocess_node(). Preprocesses poll nodes.
+ */
+function xpoll_preprocess_node(&$variables) {
+  $node = $variables['node'];
+  if ($node->type == 'poll') { 
+
+    $form = drupal_get_form('xpoll_form', $node->field_poll_questions);
+    $node->poll_form = $form;
+  }
+}
+
+/**
+ * Defines the contest form with questions and answers in radio buttons.
+ */
+function xpoll_form($form, &$form_state, $questions) {
+  $form = array();
+  $form['#attributes'] = array('id' => array('poll-form'));
+  
+  for ($i = 0; $i < count($questions[LANGUAGE_NONE]); $i++) {
+    $question = field_collection_item_load($questions[LANGUAGE_NONE][$i]['value']);
+    
+    $answer_options = array();
+    foreach ($question->field_poll_option[LANGUAGE_NONE] as $option) {
+      $answer_options[$option['safe_value']] = $option['safe_value'];
+    }
+  
+    $form['poll_question_' . $question->item_id] = array(
+      '#type' => 'radios',
+      '#title' => $question->field_question[LANGUAGE_NONE][0]['value'],
+      '#options' => $answer_options,
+    );
+  }
+  
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+  );
+
+  $form['poll_nid'] = array('#type' => 'hidden', '#value' => arg(1));
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send'),
+  );
+  
+  return $form;
+}
+
+function xpoll_form_validate($form, &$form_state) {
+  if (!valid_email_address($form_state['values']['email'])) {
+    form_set_error('email', t('Please enter a valid email address.'));
+  }
+  
+  // Check if user has already voted:
+  $sql = "SELECT COUNT(email) from xpoll_answers WHERE email = :email";
+  $num = db_query($sql, array(':email' => $form_state['values']['email']))->fetchField();
+  if ($num > 0) {
+    form_set_error('email', t('You have already voted in this poll.'));
+  }
+}
+
+function xpoll_form_submit($form, &$form_state) {
+
+  // Build answer array:
+  $answers = array();
+  foreach ($form_state['values'] as $k => $v) {
+    if (substr($k, 0, 14) == 'poll_question_') {
+      $parts = explode('_', $k);
+      if (strlen($v) > 0) {
+        $answers[$parts[2]] = $v;
+      }
+    }
+  }
+
+  // No reason to save completely empty answers:
+  if (count($answers) > 0) {
+    db_insert('xpoll_answers')
+      ->fields(array(
+	'poll_nid' => check_plain($form_state['values']['poll_nid']),
+	'answers' => serialize($answers),
+	'email' => check_plain($form_state['values']['email']),
+	'ip' => $_SERVER['REMOTE_ADDR'],
+	'timestamp' => time()
+      ))
+      ->execute();
+  }
+  
+  drupal_set_message(t('Thanks. Your vote has been saved.'));
+}
+
+/**
+* Implements hook_mollom_form_list().
+*/
+function xpoll_mollom_form_list() {
+  $forms['poll-form'] = array(
+    'title' => t('Poll form'),
+  );
+  return $forms;
+}
+
+/**
+* Implements hook_mollom_form_info().
+*/
+function xpoll_mollom_form_info() {
+  $form_info = array(
+    'mode' => MOLLOM_MODE_CAPTCHA,
+  );
+  return $form_info;
+}

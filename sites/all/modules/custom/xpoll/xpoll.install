@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function xpoll_schema() {
+  $schema['xpoll_answers'] = array(
+    'description' => 'Table holding answers from xpoll module.',
+    'fields' => array(
+      'id' => array(
+	'description' => 'Primary identifier',
+	'type' => 'serial',
+	'not null' => TRUE,
+      ),
+      'poll_nid' => array(
+	'description' => 'Node id of the poll',
+	'type' => 'int',
+	'not null' => TRUE,
+      ),
+      'answers' => array(
+	'description' => 'Serialized answer data',
+	'type' => 'text',
+	'not null' => TRUE,
+      ),
+      'email' => array(
+	'description' => 'User email address',
+	'type' => 'varchar',
+	'length' => '255',
+	'not null' => TRUE,
+      ),
+      'ip' => array(
+	'description' => 'User IP address',
+	'type' => 'varchar',
+	'length' => '64',
+	'not null' => TRUE,
+      ),
+      'timestamp' => array(
+	'description' => 'When the user answered.',
+	'type' => 'int',
+	'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+  return $schema;
+}
