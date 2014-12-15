@@ -3,7 +3,7 @@
 
 <?php if (isset($node->field_image[LANGUAGE_NONE][0])) : ?>
 <p>
-  <img src="<?php print image_cache('top_image', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print $node->field_image[LANGUAGE_NONE][0]['alt']; ?>" />
+  <img src="<?php print image_cache('top_image', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print $node->field_image[LANGUAGE_NONE][0]['alt']; ?>" class="pure-img" />
   <?php if (strlen($node->field_image[LANGUAGE_NONE][0]['title']) > 0) : ?>
     <span class="imgdesc"><?php print $node->field_image[LANGUAGE_NONE][0]['title']; ?></span>
   <?php endif; ?>
