@@ -21,6 +21,8 @@
 <?php if (isset($node->warning) && strlen($node->warning) > 0) : ?>
   <div class="pure-alert pure-alert-warning"><?php print $node->warning; ?></div>
 <?php endif; ?>
+<div class="poll-form">
 <?php print render($node->poll_form); ?>
+</div>
 
 </article>

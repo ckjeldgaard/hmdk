@@ -1808,3 +1808,11 @@ ul.pager {
 #guidewrapper a:hover {
   color:#ca3c3c;
 }
+
+.poll-form label {
+  font-weight:bold;
+}
+
+.poll-form .pure-radio {
+  font-weight:normal;
+}
