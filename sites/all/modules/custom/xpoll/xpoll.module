@@ -28,12 +28,12 @@ function xpoll_form($form, &$form_state, $questions, $closed) {
     
     $answer_options = array();
     foreach ($question->field_poll_option[LANGUAGE_NONE] as $option) {
-      $answer_options[$option['safe_value']] = $option['safe_value'];
+      $answer_options[$option['safe_value']] = check_plain($option['safe_value']);
     }
   
     $form['poll_question_' . $question->item_id] = array(
       '#type' => 'radios',
-      '#title' => $question->field_question[LANGUAGE_NONE][0]['value'],
+      '#title' => check_plain($question->field_question[LANGUAGE_NONE][0]['value']),
       '#options' => $answer_options,
       '#disabled' => $closed,
     );
