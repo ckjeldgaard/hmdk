@@ -18,7 +18,7 @@
 <?php endif; ?>
 
 <h2 id="afstemning"><?php print t('Poll'); ?></h2>
-<?php if ($node->warning) : ?>
+<?php if (isset($node->warning)) : ?>
   <div class="pure-alert pure-alert-warning"><?php print $node->warning; ?></div>
 <?php endif; ?>
 <?php print render($node->poll_form); ?>
