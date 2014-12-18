@@ -69,6 +69,25 @@ function xpoll_form_validate($form, &$form_state) {
   if ($num > 0) {
     form_set_error('email', t('You have already voted in this poll.'));
   }
+  
+  // Check for no answers at all:
+  $answers = array();
+  $answer_field = NULL;
+  foreach ($form_state['values'] as $k => $v) {
+    if (substr($k, 0, 14) == 'poll_question_') {
+      if ($answer_field == NULL) {
+	$answer_field = $k;
+      }
+      $parts = explode('_', $k);
+      if (strlen($v) > 0) {
+        $answers[$parts[2]] = $v;
+      }
+    }
+  }  
+  if (count($answers) == 0) {
+    form_set_error($answer_field, t('You must answer at least one question.'));
+  }
+
 }
 
 function xpoll_form_submit($form, &$form_state) {
