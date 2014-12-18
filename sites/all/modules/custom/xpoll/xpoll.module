@@ -46,6 +46,10 @@ function xpoll_form($form, &$form_state, $questions, $closed) {
     '#required' => TRUE,
     '#disabled' => $closed,
   );
+  $form['newsletter'] = array(
+    '#type' => 'checkbox',
+    '#title' => "Ja tak, tilmeld mig Heavymetal.dk's nyhedsbrev",
+  );
 
   $form['poll_nid'] = array('#type' => 'hidden', '#value' => arg(1));
   
@@ -93,6 +97,22 @@ function xpoll_form_validate($form, &$form_state) {
 function xpoll_form_submit($form, &$form_state) {
 
   $poll_node = node_load($form_state['values']['poll_nid']);
+  
+  if ($form_state['values']['newsletter'] == 1) {
+    $list_details = mailchimp_get_lists();
+    reset($list_details);
+    $list_id = key($list_details);
+    $list_name = $list_details[$list_id]['name'];
+    $mergevars = array(
+      'EMAIL' => $form_state['values']['email'],
+    );
+    $result = mailchimp_subscribe($list_id, $form_state['values']['email'], $mergevars, 0, 0);
+    if (empty($result)) {
+      watchdog('xpoll', 'There was a problem signing %email up to newsletter list %list.', array('%email' => $form_state['values']['email'], '%list' => $list_name), WATCHDOG_ERROR);
+    } else {
+      watchdog('xpoll', 'Successfully signing %email up to newsletter list %list.', array('%email' => $form_state['values']['email'], '%list' => $list_name), WATCHDOG_INFO);
+    }
+  }
   
   // Check poll is not closed:
   if ($poll_node->field_closed[LANGUAGE_NONE][0]['value'] == 0) {
