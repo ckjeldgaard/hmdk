@@ -362,7 +362,7 @@ function top_genre_contents() {
       // Not enough '10' reviews. Try to fill with '9's:
       if (count($nids) < $limit) {
         $l = $limit - count($nids);
-        $nine_nids = _get_top_review_nodes($term->tid, 9, $l);
+        $nine_nids = _get_top_review_nodes($term->tid, 9, $l, $nids);
         $nids = array_merge($nids, $nine_nids);
       }
       
@@ -409,9 +409,10 @@ function top_genre_contents() {
  * @param int $tid The genre taxonomy term to look up.
  * @param int $rating The rating. (I.e. 9 or 10).
  * @param int $limit The maximum number of review node Id's to return. Defaults to 3.
+ * @param array $exclude Array of node ID's to exclude.
  * @return array Returns an array of review node ID's in random order.
  */
-function _get_top_review_nodes($tid, $rating, $limit = 3) {
+function _get_top_review_nodes($tid, $rating, $limit = 3, $exclude = array()) {
   $query = db_select('taxonomy_index', 't');
   $query->distinct();
   $query->fields('t', array('nid'));
@@ -421,6 +422,9 @@ function _get_top_review_nodes($tid, $rating, $limit = 3) {
   $query->condition('n.type', 'review');
   $query->condition('r.bundle', 'review');
   $query->condition('r.field_rating_value', $rating);
+  if (count($exclude) > 0) {
+    $query->condition('n.nid', $exclude, 'NOT IN');
+  }
   $query->range(0, $limit);
   $query->orderRandom();
   
