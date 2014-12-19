@@ -1,4 +1,7 @@
 <?php
+// $Id: xpoll.module Exp $
+
+require_once('xpoll.admin.inc');
 
 /**
  * Implements hook_preprocess_node(). Preprocesses poll nodes.
