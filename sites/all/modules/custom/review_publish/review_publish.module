@@ -26,6 +26,9 @@ function review_publish_permission() {
     'reorder frontpage' => array(
       'title' => t('Reorder frontpage'),
     ),
+    'publish and send email' => array(
+      'title' => t('Publish review and send email'),
+    ),
   );
 }
 
@@ -64,7 +67,7 @@ function _review_publish_settings_form() {
  * Implement hook_form_alter().
  */
 function review_publish_form_alter(&$form, $form_state, $form_id) {
-  if ($form_id == 'review_node_form' && $node = _review_publish_get_node_from_form_state($form_state)) {
+  if ($form_id == 'review_node_form' && $node = _review_publish_get_node_from_form_state($form_state) && user_access('publish and send email')) {
     if ($node->status == 0) {
       
       $onclick = "return confirm('" . t('This button publishes the review and sends e-mail notifications to the selected label and/or distributor about it. Are you sure you want to continue?') . "');";
