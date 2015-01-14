@@ -175,6 +175,21 @@ function _preprocess_review(&$node) {
   if ($node->status == 0) {
     drupal_set_message(t('The review %review is not published.', array('%review' => $node->title)), 'warning');
   }
+  
+  // Check if email to label and distributor has never been sent (after October 18th 2014):
+  if ($node->status == 1 && arg(0) == 'node' && arg(1) == $node->nid && $node->published_at > 1413634059) {
+    global $user;
+    if (in_array('administrator', $user->roles) || in_array('editor', $user->roles) || in_array('reviewer', $user->roles)) {
+      $query = db_select('review_email_log', 'l');
+      $query->fields('l', array('nid', 'timestamp'));
+      $query->condition('l.nid', $node->nid);
+        
+      $log = $query->execute()->fetchObject();
+      if ($log == null) {
+        drupal_set_message(t('Label and distributor has never received an email about the %review review.', array('%review' => $node->title)), 'error');
+      }
+    }
+  }
 }
 
 /**
