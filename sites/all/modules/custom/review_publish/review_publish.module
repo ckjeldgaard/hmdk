@@ -169,7 +169,6 @@ function _review_ready_send_mails(&$review_node) {
   foreach ($rs as $row) {
     $params['receiver'] = $row->name;
     $email = $row->mail;
-    $email = 'christoffer@sappy.dk';
     drupal_mail('review_publish', 'ready', $email, $language, $params, $user->mail);
   }
 
