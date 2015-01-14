@@ -59,6 +59,13 @@ function _review_publish_settings_form() {
     '#required' => TRUE,
     '#description' => t('Body of the review publish notification e-mail sent to labels and distributors.<br />Possible placeholders:<br><ul><li>!name = Name of receiver.</li><li>!release_title = release title (incl. artist name).</li><li>!rating = The review rating.</li><li>!link = Link to the review on heavymetal.dk.</li></ul>'),
   );
+  $form['email']['review_ready_email_body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('E-mail ready body'),
+    '#default_value' => variable_get('review_ready_email_body'),
+    '#required' => TRUE,
+    '#description' => t('Body of the notification email sent to editors when the review is ready to be published.<br />Possible placeholders:<br><ul><li>!receiver = Name of the user receiving the notification.</li><li>!user = Name of the user sending the notification.</li><li>!release_title = release title (incl. artist name).</li><li>!link = Link to the review on heavymetal.dk.</li></ul>'),
+  );
   
   return system_settings_form($form);
 }
@@ -82,6 +89,26 @@ function review_publish_form_alter(&$form, $form_state, $form_id) {
       );
     }
   }
+  
+  // Disable publishing reviews option for reviewers.
+  if ($form_id == 'review_node_form' && $node = _review_publish_get_node_from_form_state($form_state) && !user_access('publish and send email')) {
+    $form['options']['status']['#access'] = FALSE;
+    
+    // Notify editors when review is ready:
+    if ($node->status == 0) {
+      
+      $onclick = "return confirm('" . t('This button sends an e-mail notification to the editors saying the review is ready to be published. Are you sure you want to continue?') . "');";
+      $form['actions']['ready'] = array(
+	'#type' => 'submit',
+	'#value' => t('Ready to publish'),
+	'#weight' => 40,
+	'#submit' => array('node_form_submit', 'review_ready_node_form_submit'),
+	'#attributes' => array(
+	  'onclick' => $onclick
+	),
+      );
+    }
+  }
 }
 
 /**
@@ -97,6 +124,55 @@ function review_publish_node_form_submit($form, &$form_state) {
     // Send e-mails:
     _review_publish_send_mails($node);
   }
+}
+
+/**
+ * Submit handler for the 'Ready to publish' button.
+ */
+function review_ready_node_form_submit($form, &$form_state) {
+  if ($node = _review_publish_get_node_from_form_state($form_state)) {
+
+    // Save the node:
+    node_save($node);
+  
+    // Send e-mails to editors:
+    _review_ready_send_mails($node);
+    
+    drupal_set_message(t('An email notifications has been sent to the site editors.'));
+  }
+}
+
+/**
+ * Sends e-mail to editor when review is 'Ready'
+ *
+ * @param int $release_nid Node id of the release being published.
+ */
+function _review_ready_send_mails(&$review_node) {
+  global $user;
+  
+  $languages = language_list();
+  $language = $languages['en'];
+  
+  // Set up common placeholder values:
+  $params = array(
+    'user' => $user->name,
+    'release_title' => $review_node->title,
+    'link' => url('node/' . $review_node->nid, array('absolute' => TRUE)),
+  );
+  
+  // Get editor email addresses:
+  $editor_rid = 5; // Role ID of editors
+  $query = db_select('users', 'u');
+  $query->fields('u', array('name', 'mail'));
+  $query->join('users_roles', 'r', 'u.uid = r.uid AND r.rid = :rid', array(':rid' => $editor_rid));
+  $rs = $query->execute();
+  foreach ($rs as $row) {
+    $params['receiver'] = $row->name;
+    $email = $row->mail;
+    $email = 'christoffer@sappy.dk';
+    drupal_mail('review_publish', 'ready', $email, $language, $params, $user->mail);
+  }
+
 }
 
 /**
@@ -172,22 +248,32 @@ function _review_publish_send_mails(&$review_node) {
 }
 
 /**
- * Implement hook_mail(). Sends the notification e-mail to label and/or distributor.
+ * Implement hook_mail(). Sends the notification email to label and/or distributor and 'Ready' email to editors
  */
 function review_publish_mail($key, &$message, $params) {
   switch($key) {
     case 'notice':
-
-    $langcode = $message['language']->language;
-    $message['subject'] = t(variable_get('review_publish_email_subject'), array('!release_title' => $params['release_title']));
-    $body_args = array(
-      '!name' => $params['contact_name'],
-      '!release_title' => $params['release_title'],
-      '!rating' => $params['rating'],
-      '!link' => $params['link'],
-    );
-    $message['body'][] = t(variable_get('review_publish_email_body'), $body_args);
-    break;
+      $langcode = $message['language']->language;
+      $message['subject'] = t(variable_get('review_publish_email_subject'), array('!release_title' => $params['release_title']));
+      $body_args = array(
+	'!name' => $params['contact_name'],
+	'!release_title' => $params['release_title'],
+	'!rating' => $params['rating'],
+	'!link' => $params['link'],
+      );
+      $message['body'][] = t(variable_get('review_publish_email_body'), $body_args);
+      break;
+    case 'ready':
+      $langcode = $message['language']->language;
+      $message['subject'] = t('Review ready to be published: !release_title', array('!release_title' => $params['release_title']));
+      $body_args = array(
+	'!receiver' => $params['receiver'],
+	'!user' => $params['user'],
+	'!release_title' => $params['release_title'],
+	'!link' => $params['link'],
+      );
+      $message['body'][] = t(variable_get('review_ready_email_body'), $body_args);
+      break;
   }
 }
 
