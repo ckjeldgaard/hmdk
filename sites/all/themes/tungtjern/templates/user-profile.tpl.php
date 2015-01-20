@@ -1,4 +1,9 @@
+<div class="user-profile-header">
 <h1><?php print $elements['#account']->name; ?></h1>
+<?php if ($role = _user_role($elements['#account']->uid)) : ?>
+  <p class="role"><?php print $role; ?></p>
+<?php endif; ?>
+</div>
 <div class="pure-g">
   <div class="pure-u-1 pure-u-md-4-5">
     <table class="user-data pure-table pure-table-horizontal">

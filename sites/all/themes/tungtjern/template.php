@@ -683,3 +683,32 @@ function _genitive($noun) {
   }
   return (in_array($last_char, array('s', 'z', 'x'))) ? $noun . "'" : $noun . "s";
 }
+
+/**
+ * Get user human-readable role name.
+ *
+ * @param int $uid The User ID.
+ * @return string|bool Return the user's role name if any, FALSE otherwise.
+ */
+function _user_role($uid) {
+  $roles = array(
+    4 => 'Anmelder',
+    5 => 'Redaktør',
+  );
+  $query = db_select('users_roles', 'u');
+  $query->fields('u', array('rid'));
+  $query->condition('u.uid', $uid);
+  $query->range(0, 1);
+  $obj = $query->execute()->fetchObject();
+  
+  if (isset($obj->rid)) {
+    return $roles[$obj->rid];
+  }
+  return FALSE;
+}
+
+function _get_node_title($nid) {
+  $rs = db_query('SELECT title FROM node WHERE nid = :nid', array(':nid' => $nid));
+  $record = $rs->fetchObject();  
+  return $record->title;
+}

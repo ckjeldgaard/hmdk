@@ -761,6 +761,24 @@ pre {
   color:#000000;
 }
 
+.comment .role {
+  color:#d13c38;
+  font-weight:bold;
+  font-size:.8em;
+  margin-bottom:10px;
+}
+
+.comment .comment-userrating {
+  color: #666666;
+  font-size:.8em;
+}
+
+.comment .comment-userrating span {
+  color: #000000;
+  font-style:italic;
+  font-weight:bold;
+}
+
 #comments {
   border-top: 3px solid #eeeeee;
   margin-top:2em;
@@ -1815,4 +1833,18 @@ ul.pager {
 
 .poll-form .pure-radio {
   font-weight:normal;
+}
+
+.user-profile-header {
+  padding-bottom: 25px;
+}
+
+.user-profile-header h1 {
+  margin-bottom: 0;
+}
+
+.user-profile-header .role {
+  color:#d13c38;
+  font-weight:bold;
+  margin: 0;
 }
