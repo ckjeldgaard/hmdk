@@ -36,6 +36,7 @@ function tungtjern_preprocess_user_profile(&$variables) {
   // Only administrators can view addresses:
   if (in_array('administrator', $user->roles)) {
     $address = '';
+    
     if (strlen($variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['thoroughfare']) > 0) {
       $address .= $variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['thoroughfare'] . "<br />\n";
     }
@@ -51,15 +52,17 @@ function tungtjern_preprocess_user_profile(&$variables) {
       }
       $address .= "<br />\n";
     }
-    if (strlen($variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['country']) > 0) {
+    /*if (strlen($variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['country']) > 0) {
       $country_names = _country_get_predefined_list();
       $address .= $country_names[$variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['country']];
-    }
+    }*/
     $variables['address'] = $address;
   }
   
   // Protect personal info (like email addresses etc.)
   $variables['display'] = (in_array('administrator', $user->roles)) ? TRUE : FALSE;
+  
+  
 }
 
 /**
