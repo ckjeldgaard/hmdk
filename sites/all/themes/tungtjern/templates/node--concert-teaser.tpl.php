@@ -9,9 +9,11 @@
   </td>
   <td headers="event-name" class="artists" data-label="Koncert">
     <?php if (isset($node->field_is_festival[LANGUAGE_NONE]) && $node->field_is_festival[LANGUAGE_NONE][0]['value'] == 1) : ?>
-      <strong><?php print $node->field_festival_name[LANGUAGE_NONE][0]['value']; ?>:</strong>
+      <strong><?php print l($node->field_festival_name[LANGUAGE_NONE][0]['value'], 'node/' . $node->nid); ?>:</strong>
     <?php endif; ?>
     <?php print (strlen($node->artists) > 0) ? $node->artists : $node->title; ?>
   </td>
+  <?php if ($node->review): ?>
   <td headers="event-review" data-label="Anmeldelse"><div class="<?php print get_edit_classes($node); ?>"></div><?php if ($node->review): print l(t('Read review'), 'node/' . $node->review); endif; ?></td>
+  <?php endif; ?>
 </tr>

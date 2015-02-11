@@ -17,7 +17,67 @@ $country = (isset($term->field_address[LANGUAGE_NONE][0]['country'])) ? country_
   </div>
 </div>
 
-<h2>Arrangementer</h2>
+<?php $events = _venue_get_events($term->tid); ?>
+
+<?php if (count($events[0]) > 0) : ?>
+<h2>Kommende arrangementer</h2>
+<div><table class="pure-table pure-table-horizontal pure-table-striped">
+  <caption class="info_text"></caption>
+  <thead>
+    <tr>
+      <th id="event-date">Dato</th>
+      <th id="event-name">Koncert</th>
+    </tr>
+  </thead>
+  <tbody class="content">
+<?php foreach ($events[0] as $n) : ?>
+  <?php $view = node_view($n, 'teaser'); ?>
+  <?php print drupal_render($view); ?>
+<?php endforeach; ?>
+  </tbody>
+</table></div>
+<?php endif; ?>
+
+<?php if (count($events[2]) > 0) : ?>
+<h2>Anmeldte arrangementer</h2>
+<div><table class="pure-table pure-table-horizontal pure-table-striped">
+  <caption class="info_text"></caption>
+  <thead>
+    <tr>
+      <th id="event-date">Dato</th>
+      <th id="event-name">Koncert</th>
+      <th id="event-review">Anmeldelse</th>
+    </tr>
+  </thead>
+  <tbody class="content">
+<?php foreach ($events[2] as $n) : ?>
+  <?php $view = node_view($n, 'teaser'); ?>
+  <?php print drupal_render($view); ?>
+<?php endforeach; ?>
+  </tbody>
+</table></div>
+<?php endif; ?>
+
+<?php if (count($events[1]) > 0) : ?>
+<h2>Tidligere arrangementer</h2>
+<div><table class="pure-table pure-table-horizontal pure-table-striped">
+  <caption class="info_text"></caption>
+  <thead>
+    <tr>
+      <th id="event-date">Dato</th>
+      <th id="event-name">Koncert</th>
+    </tr>
+  </thead>
+  <tbody class="content">
+<?php foreach ($events[1] as $n) : ?>
+  <?php $view = node_view($n, 'teaser'); ?>
+  <?php print drupal_render($view); ?>
+<?php endforeach; ?>
+  </tbody>
+</table></div>
+<?php endif; ?>
+
+<!-- <h2>Arrangementer</h2>
 <?php if ($rows): ?>
 <div><table class="pure-table pure-table-horizontal pure-table-striped">
   <caption class="info_text"></caption>
@@ -38,5 +98,5 @@ $country = (isset($term->field_address[LANGUAGE_NONE][0]['country'])) ? country_
 <?php endif; ?>
 <?php if ($pager): ?>
   <?php print $pager; ?>
-<?php endif; ?>
+<?php endif; ?> -->
 </article>

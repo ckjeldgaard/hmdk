@@ -304,3 +304,36 @@ function _get_artist_concerts($artist_nid) {
   }
   return $concerts;
 }
+
+function _venue_get_events($tid) {
+
+  $now = time();
+
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid'));
+  $query->fields('d', array('field_event_date_value'));
+  $query->fields('c', array('field_concert_target_id'));
+  $query->join('field_data_field_venue', 'v', 'v.entity_id = n.nid');
+  $query->join('field_data_field_event_date', 'd', 'd.entity_id = v.entity_id');
+  $query->leftJoin('field_data_field_concert', 'c', 'c.field_concert_target_id = n.nid');
+  $query->condition('v.field_venue_tid', $tid);
+  $query->orderBy('d.field_event_date_value', 'DESC');
+  $rs = $query->execute();
+  
+  $nids = array();
+  foreach ($rs as $obj) {
+    // Upcoming events:
+    if ($obj->field_event_date_value >= $now && $obj->field_concert_target_id == NULL) {
+      $nids[0][] = node_load($obj->nid);
+    }
+    // Former events:
+    if ($obj->field_event_date_value < $now && $obj->field_concert_target_id == NULL) {
+      $nids[1][] = node_load($obj->nid);
+    }
+    // Reviewed events:
+    if (is_numeric($obj->field_concert_target_id)) {
+      $nids[2][] = node_load($obj->nid);
+    }
+  }
+  return $nids;
+}
