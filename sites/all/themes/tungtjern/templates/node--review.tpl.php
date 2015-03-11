@@ -1,4 +1,11 @@
 <article itemprop="review" itemscope itemtype="http://schema.org/Review">
+  
+<?php if ($node->upcoming_concert) : ?>
+<div class="pure-alert pure-alert-info">
+  <?php print $node->upcoming_concert; ?>
+</div>
+<?php endif; ?>
+  
 <div class="pure-g byline">
   <div class="pure-u-2-3 pure-u-md-4-5">
     <p class="post-meta">

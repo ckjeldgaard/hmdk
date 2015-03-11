@@ -99,6 +99,36 @@ function _get_interviews_by_author($uid) {
 }
 
 /**
+ * Get the next upcoming concert for a particular artist.
+ *
+ * @param int $artist_nid Artist node ID.
+ * @return Returns a concert node if an upcoming concert exists, FALSE otherwise.
+ */
+function _get_next_artist_concert($artist_nid) {
+  $query = db_select('node', 'n');
+  $query->distinct();
+  $query->fields('n', array('nid', 'title'));
+  $query->leftJoin('field_data_field_artists', 'a', 'a.entity_id = n.nid');
+  $query->leftJoin('field_data_field_support_artists', 's', 's.entity_id = n.nid');
+  $query->join('field_data_field_event_date', 'd', 'd.entity_id = n.nid'); 
+  $query->condition('n.type', 'concert');
+  $query->condition('n.status', 1);
+  $or = db_or()
+    ->condition('a.field_artists_target_id', $artist_nid)
+    ->condition('s.field_support_artists_target_id', $artist_nid);
+  $query->condition($or);
+  $query->condition('d.field_event_date_value', time(), '>');
+  $query->orderBy('d.field_event_date_value', 'ASC');
+  $query->range(0, 1);
+  
+  $obj = $query->execute()->fetchObject();
+  if (is_object($obj)) {
+    return node_load($obj->nid);
+  }
+  return FALSE;
+}
+
+/**
  * Get concert review nodes and reportage nodes written by an author.
  * Gets any reportage node where the author has written at least one review.
  *

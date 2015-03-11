@@ -108,6 +108,37 @@ function _preprocess_review(&$node) {
   $node->release = $release;
   $node->artist = node_load($release->field_artist[LANGUAGE_NONE][0]['target_id']);
   
+  // Upcoming concert:
+  $node->upcoming_concert = FALSE;
+  $concert = _get_next_artist_concert($node->artist->nid);
+  if ($concert && $concert->field_cancelled[LANGUAGE_NONE][0]['value'] == 0) {
+
+    $venue = taxonomy_term_load($concert->field_venue[LANGUAGE_NONE][0]['tid']);
+    $venue_name = $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'];
+    
+    if ($concert->field_is_festival[LANGUAGE_NONE][0]['value']) {
+      $link = l($concert->field_festival_name[LANGUAGE_NONE][0]['value'], 'node/' . $concert->nid);
+      
+      if ($concert->field_event_date[LANGUAGE_NONE][0]['value'] == $concert->field_event_date[LANGUAGE_NONE][0]['value2']) {
+        // One day festival
+        $date = format_date($concert->field_event_date[LANGUAGE_NONE][0]['value'], 'eventdate');
+        $datetime = format_date($concert->field_event_date[LANGUAGE_NONE][0]['value'], 'date');
+        $display_date = format_string('<time datetime="!datetime">!display_date</time>', array('!datetime' => $datetime, '!display_date' => strtolower($date)));
+        $node->upcoming_concert = t('!artist plays a concert at !festival on !date.', array('!artist' => $node->artist->title, '!festival' => $link, '!date' => $display_date));
+      } else {
+        // Multiple day festival
+        $node->upcoming_concert = t('!artist plays a concert at !festival.', array('!artist' => $node->artist->title, '!festival' => $link));
+      }
+
+    } else {
+      $link = l($venue_name, 'taxonomy/term/' . $venue->tid);
+      $date = format_date($concert->field_event_date[LANGUAGE_NONE][0]['value'], 'eventdate');
+      $datetime = format_date($concert->field_event_date[LANGUAGE_NONE][0]['value'], 'date');
+      $display_date = format_string('<time datetime="!datetime">!display_date</time>', array('!datetime' => $datetime, '!display_date' => strtolower($date)));
+      $node->upcoming_concert = t('!artist plays a concert in !venue on !date.', array('!artist' => $node->artist->title, '!venue' => $link, '!date' => $display_date));
+    }
+  }
+  
   if (isset($release->field_label[LANGUAGE_NONE][0]['tid'])) {
     $label_term = taxonomy_term_load($release->field_label[LANGUAGE_NONE][0]['tid']);
     $node->label = $label_term;

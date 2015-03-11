@@ -469,6 +469,14 @@ form .description {
   left:1em;
 }
 
+.pure-alert-info:before{
+  content:"\f129";
+  font-family: FontAwesome;
+  position:absolute;
+  top:1.2em;
+  left:1em;
+}
+
 .pure-alert-error a:link,
 .pure-alert-error a:hover,
 .pure-alert-error a:visited,
@@ -492,6 +500,17 @@ form .description {
 .pure-alert-status {
     background-color: rgb(83, 180, 79);
     color: #fff;
+}
+
+.pure-alert-info {
+  background-color:#42b8dd;
+  color:#fff;
+}
+
+.pure-alert-info a:link,
+.pure-alert-info a:hover,
+.pure-alert-info a:visited{
+  color:#ffffff;
 }
 
 .secondary li {
