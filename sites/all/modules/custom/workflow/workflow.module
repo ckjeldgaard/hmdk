@@ -1,6 +1,22 @@
 <?php
 
 /**
+ * Implements hook_menu().
+ */
+function workflow_menu() {
+  $items['admin/config/system/editor_messages'] = array(
+    'title' => 'Edit editor messages',
+    'description' => 'Edit the message note for reviewers displayed on the dashboard.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_editor_messages_settings_form'),
+    'access arguments' => array('edit editor messages'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'workflow.admin.inc',
+  );
+  return $items;
+}
+
+/**
  * Unpromote nodes from frontpage that are no longer in the top on every cron run.
  */
 function workflow_cron() {
@@ -41,6 +57,9 @@ function workflow_block_info() {
   $blocks['block-latest-activity'] = array(
     'info' => t('Latest activity'),
   );
+  $blocks['block-editor-messages'] = array(
+    'info' => t('Editor messages'),
+  );
   return $blocks;
 }
 
@@ -65,6 +84,10 @@ function workflow_block_view($delta) {
     case 'block-latest-activity':
       $block['subject'] = t('Latest activity');
       $block['content'] = theme('block-latest-activity', array('content' => _block_latest_activity()));
+      break;
+    case 'block-editor-messages':
+      $block['subject'] = t('Editor messages');
+      $block['content'] = theme('block-editor-messages', array('content' => _block_editor_messages()));
       break;
   }
   return $block;
@@ -96,6 +119,11 @@ function workflow_theme() {
       'variables' => array('form' => NULL),
       'path' => drupal_get_path('module', 'workflow'),
     ),
+    'block-editor-messages' => array(
+      'template' => 'block--block-editor-messages',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
   );
 }
 
@@ -106,6 +134,9 @@ function workflow_permission() {
   return array(
     'delete unreviewed releases' => array(
       'title' => t('Delete unreviewed releases'),
+    ),
+    'edit editor messages' => array(
+      'title' => t('Edit editor messages'),
     )
   );
 }
@@ -417,4 +448,31 @@ function sort_latest_activity($a, $b) {
     return 0;
   }
   return ($a['date'] < $b['date']) ? 1 : -1;
+}
+
+function _block_editor_messages() {
+  $message = variable_get('workflow_editor_messages');
+  $form = drupal_get_form('_edit_messages_form');
+  
+  return array(
+    'message' => $message['value'],
+    'can_edit' => (user_access('edit editor messages')) ? TRUE : FALSE,
+    'form' => $form,
+  );
+}
+
+/**
+ * Defines a button form to go to the edit editor messages page.
+ */
+function _edit_messages_form($form, &$form_state) {
+  $form = array();
+  $form['delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('Edit editor messages'),
+  );
+  return $form;
+}
+
+function _edit_messages_form_submit($form, &$form_state) {
+  drupal_goto('admin/config/system/editor_messages');
 }
