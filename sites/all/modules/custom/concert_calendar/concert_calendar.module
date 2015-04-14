@@ -222,7 +222,7 @@ function _month_name($ts) {
 
 function _day($ts, $itemprop = 'startDate') {
   $date = '<meta itemprop="' . $itemprop . '" content="' . date ('Y-m-d', $ts) . '">';
-  $date .= date('j', $ts) . ". ";
+  $date .= date('j/n', $ts) . " ";
   switch (date('N', $ts)) {
     case 1: $date .= '(man)'; break;
     case 2: $date .= '(tir)'; break;
