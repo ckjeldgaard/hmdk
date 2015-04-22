@@ -1,0 +1,82 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function statistics_block_info() {
+  $blocks['block-stats'] = array(
+    'info' => 'Statistics',
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function statistics_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-stats':
+      $block['subject'] = 'Statistics';
+      $block['content'] = theme('block-stats', statistics_contents());
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function statistics_theme() {
+  return array(
+    'block-stats' => array(
+      'template' => 'block--stats',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'statistics'),
+    ),
+  );
+}
+
+function statistics_contents() {
+  return array(
+    'world_map' => _world_map(),
+  );
+}
+
+function _world_map() {
+  $countries = array();
+  $limit = 15;
+  
+  $sql = "SELECT l.name AS country, COUNT(*) AS quantity ";
+  $sql.= "FROM node n ";
+  $sql.= "INNER JOIN field_data_field_release r ON r.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_artist a ON a.entity_id = r.field_release_target_id ";
+  $sql.= "INNER JOIN field_data_field_country c ON c.entity_id = a.field_artist_target_id ";
+  $sql.= "INNER JOIN countries_country l ON c.field_country_iso2 = l.iso2 ";
+  $sql.= "WHERE n.type = :type ";
+  $sql.= "GROUP BY country ";
+  $sql.= "ORDER BY quantity DESC ";
+  
+  $rs = db_query($sql, array(':type' => 'review'));
+  $c = 0;
+  foreach ($rs as $row) {
+    if ($c < $limit) {
+      $countries[] = array(
+        'country' => $row->country,
+        'quantity' => $row->quantity,
+      );
+    } else {
+      $count_others = $countries[$limit]['quantity'] += $row->quantity;
+      $countries[$limit] = array(
+        'country' => 'Andre lande',
+        'quantity' => $count_others,
+      );
+    }
+    $c++;
+  }
+  /*echo "<pre>";
+  print_r($countries);
+  echo "</pre>";*/
+  
+  return $countries;
+}

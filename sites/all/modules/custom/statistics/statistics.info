@@ -1,0 +1,7 @@
+name = Statistics
+description = Provides a block displaying statistics about data on the site.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = statistics.module
