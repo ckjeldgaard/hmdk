@@ -38,16 +38,22 @@ function statistics_theme() {
 }
 
 function statistics_contents() {
+  $countries = _artist_countries();
+  $ratings = _rating_distribution();
+  $ratings_year = _rating_distribution(mktime(0, 0, 0, 1, 1, date('Y')));
   return array(
-    'world_map' => _world_map(),
+    'artist_countries' => $countries,
+    'ratings_overall' => $ratings,
+    'ratings_year' => $ratings_year,
   );
 }
 
-function _world_map() {
+function _artist_countries() {
   $countries = array();
+  $exotic_countries = array();
   $limit = 15;
   
-  $sql = "SELECT l.name AS country, COUNT(*) AS quantity ";
+  $sql = "SELECT l.name AS country, COUNT(*) AS quantity, r.entity_id AS release_id, n.title ";
   $sql.= "FROM node n ";
   $sql.= "INNER JOIN field_data_field_release r ON r.entity_id = n.nid ";
   $sql.= "INNER JOIN field_data_field_artist a ON a.entity_id = r.field_release_target_id ";
@@ -71,12 +77,55 @@ function _world_map() {
         'country' => 'Andre lande',
         'quantity' => $count_others,
       );
+      
+      if ($row->quantity == 1) {
+        $exotic_countries[] = array(
+          'nid' => $row->release_id,
+          'country' => $row->country,
+          'title' => $row->title,
+        );
+      }
     }
     $c++;
   }
-  /*echo "<pre>";
-  print_r($countries);
-  echo "</pre>";*/
   
-  return $countries;
+  $return = array(
+    'countries' => $countries,
+    'exotic_countries' => $exotic_countries
+  );
+  return $return;
+}
+
+function _rating_distribution($start_time = NULL) {
+  $ratings = array(
+    1 => 0,
+    2 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0,
+    6 => 0,
+    7 => 0,
+    8 => 0,
+    9 => 0,
+    10 => 0
+  );
+  $params = array(':type' => 'review');
+  
+  $sql = "SELECT r.field_rating_value, COUNT(*) AS quantity ";
+  $sql.= "FROM field_data_field_rating r ";
+  if (is_numeric($start_time)) {
+    $sql.= "INNER JOIN publication_date p ON r.entity_id = p.nid ";
+    $sql.= "WHERE r.bundle = :type AND p.published_at > :start_time ";
+    $params[':start_time'] = $start_time;
+  } else {
+    $sql.= "WHERE r.bundle = :type ";
+  }
+  $sql.= "GROUP BY r.field_rating_value ";
+  
+  $rs = db_query($sql, $params);
+  foreach ($rs as $row) {
+    $ratings[$row->field_rating_value] = $row->quantity;
+  }
+  
+  return $ratings;
 }
