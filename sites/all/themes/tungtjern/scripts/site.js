@@ -130,6 +130,7 @@
       $('#province-form').submit();
   });
     
+  if ($.isFunction($.fn.dataTable)) {
   $('#bands').dataTable( {
     "language": {
       "sProcessing":   "Henter...",
@@ -158,6 +159,7 @@
     "serverSide": true,
     "ajax": "/bands_overview"
   });
+  }
   
   }};
 })(jQuery, Drupal);
