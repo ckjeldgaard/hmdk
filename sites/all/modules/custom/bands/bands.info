@@ -1,0 +1,7 @@
+name = Bands
+description = Band overview block
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = bands.module

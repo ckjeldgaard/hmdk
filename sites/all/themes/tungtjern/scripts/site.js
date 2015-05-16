@@ -129,6 +129,35 @@
     function(){
       $('#province-form').submit();
   });
-
+    
+  $('#bands').dataTable( {
+    "language": {
+      "sProcessing":   "Henter...",
+      "sLengthMenu":   "Vis _MENU_ bands",
+      "sZeroRecords":  "Ingen bands matcher s&oslash;gningen",
+      "sInfo":         "Viser _START_ til _END_ af _TOTAL_ bands",
+      "sInfoEmpty":    "Viser 0 til 0 af 0 bands",
+      "sInfoFiltered": "(filtreret fra _MAX_ bands)",
+      "sInfoPostFix":  "",
+      "sSearch":       "S&oslash;g:",
+      "sUrl":          "",
+      "oPaginate": {
+          "sFirst":    "F&oslash;rste",
+          "sPrevious": "Forrige",
+          "sNext":     "N&aelig;ste",
+          "sLast":     "Sidste"
+      }
+    },
+    "lengthMenu": [[25, 50, 100, 250], [25, 50, 100, 250]],
+    "columns": [
+      { "name": "band" },
+      { "name": "country", "sClass": "img-cell" },
+      { "name": "genre" },
+    ],
+    "processing": true,
+    "serverSide": true,
+    "ajax": "/bands_overview"
+  });
+  
   }};
 })(jQuery, Drupal);

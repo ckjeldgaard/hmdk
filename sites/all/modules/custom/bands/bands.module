@@ -1,0 +1,139 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function bands_block_info() {
+  $blocks['block-bands'] = array(
+    'info' => 'Bands',
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function bands_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-bands':
+      $block['subject'] = 'Bands';
+      $block['content'] = theme('block-bands', array());
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function bands_theme() {
+  return array(
+    'block-bands' => array(
+      'template' => 'block--bands',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'bands'),
+    ),
+  );
+}
+
+function bands_preprocess_html(&$variables) {
+  if (arg(0) == "bands") {
+    drupal_add_css('http://cdn.datatables.net/1.10.7/css/jquery.dataTables.css', array('type' => 'external'));
+    drupal_add_js('//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js', array('type' => 'external'));
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function bands_menu() {
+  $items['bands_overview'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => '_bands_contents',
+    'access arguments' => array('access content'),
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+function _bands_contents() {
+  $bands = array();
+  
+  $draw = 0;
+  if (isset($_GET['draw']) && is_numeric($_GET['draw'])) {
+    $draw = $_GET['draw'];
+  }
+  
+  $start = (isset($_GET['start']) && is_numeric($_GET['start'])) ? $_GET['start'] : 0;
+  $length = (isset($_GET['length']) && is_numeric($_GET['length'])) ? $_GET['length'] : 0;
+ 
+  $order = $_GET['order'][0]['column'];
+  $order_col = $_GET['columns'][$order]['name'];
+  $order_dir = $_GET['order'][0]['dir'];
+  
+  $search = (isset($_GET['search']['value']) && strlen($_GET['search']['value']) > 0) ? $_GET['search']['value'] : FALSE;
+  
+ /* echo "<pre>";
+  print_r($_GET);
+  echo "</pre>";*/
+  
+  $params = array(':delta' => 0, ':type' => 'artist', ':status' => 1);
+  
+  $sql[] = "SELECT n.nid, n.title AS band, cc.iso2 AS iso, cc.name AS country, t.name AS genre";
+  $sql[] = "FROM node n";
+  $sql[] = "LEFT JOIN field_data_field_country c ON c.entity_id = n.nid AND c.bundle = :type";
+  $sql[] = "LEFT JOIN countries_country cc ON cc.iso2 = c.field_country_iso2";
+  $sql[] = "LEFT JOIN field_data_field_artist_genres g ON g.entity_id = n.nid AND g.delta = :delta";
+  $sql[] = "LEFT JOIN taxonomy_term_data t ON t.tid = g.field_artist_genres_tid";
+  $sql[] = "WHERE n.type = :type AND n.status = :status";
+  if ($search) {
+    $sql[] = "AND (n.title LIKE :term OR cc.name LIKE :term OR t.name LIKE :term)";
+    $params[':term'] = '%' . db_like($search) . '%';
+  }
+  //$sql[] = "GROUP BY n.nid";
+  $sql[] = "ORDER BY " . $order_col . " " . $order_dir;
+  $sql[] = "LIMIT " . $start . ", " . $length;
+  
+  $sql_data = implode(" ", $sql);
+  
+  // Create count SQL for records filtered:
+  $sql[0] = "SELECT COUNT(*) AS cnt ";
+  // Remove ORDER and LIMIT:
+  array_pop($sql);
+  array_pop($sql);
+  $sql_filter = implode(" ", $sql);
+  $count_filter = db_query($sql_filter, $params)->fetchObject();
+  
+  // Perform records SQL:
+  $rs = db_query($sql_data, $params);
+  foreach ($rs as $row) {
+    $country = '';
+    if ($row->iso != null) {
+      $country.= '<img src="/sites/all/themes/tungtjern/img/flags/thumbs/' . $row->iso .  '.png" width="18" height="18" alt="' . $row->country . '" /> ';
+    }
+    $country.= $row->country;
+    
+    $bands[] = array(
+      l($row->band, 'node/' . $row->nid),
+      $country,
+      $row->genre,
+    );
+  }
+  
+  // Get total number of rows (i.e. count all artists)
+  $sql_count = "SELECT COUNT(*) AS cnt FROM node n WHERE type = :type AND status = :status";
+  $count = db_query($sql_count, array(':type' => 'artist', ':status' => 1))->fetchObject();
+
+  $return = array(
+    'draw' => $draw,
+    'recordsTotal' => $count->cnt,
+    'recordsFiltered' => $count_filter->cnt,
+    'data' => $bands,
+  );
+  
+  /*echo "<pre>";
+  print_r($return);
+  echo "</pre>";*/
+  print drupal_json_output($return);
+}

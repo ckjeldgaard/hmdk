@@ -1869,3 +1869,7 @@ ul.pager {
   font-weight:bold;
   margin: 0;
 }
+
+.img-cell img {
+  vertical-align: middle;
+}
