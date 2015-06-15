@@ -5,6 +5,11 @@
  * Advanced CSS/JS aggregation js compression module.
  */
 
+if (defined('PHP_VERSION_ID') && constant('PHP_VERSION_ID') >= 50300) {
+  // Include functions that use namespaces.
+  module_load_include('inc', 'advagg_js_compress', 'advagg_js_compress.php53');
+}
+
 /**
  * Implements hook_advagg_get_info_on_files_alter().
  *
@@ -212,21 +217,9 @@ function advagg_js_compress_advagg_save_aggregate_alter(&$files_to_save, $aggreg
  */
 function advagg_js_compress_get_enabled_compressors(array $aggregate_settings = array(), $compressor = 0) {
   // Create array.
-  $compressors = array(
-    1 => 'jsminplus',
-    2 => 'packer',
-  );
-  if (function_exists('jsmin')) {
-    $compressors[3] = 'jsmin';
-  }
+  list(, , $compressors) = advagg_js_compress_configuration();
   if ($compressor == -1) {
     return $compressors;
-  }
-  if (defined('PHP_VERSION_ID') & PHP_VERSION_ID >= 50300) {
-    $compressors += array(
-      4 => 'jshrink',
-      5 => 'jsqueeze',
-    );
   }
 
   $return_compressors = array();
@@ -248,8 +241,8 @@ function advagg_js_compress_get_enabled_compressors(array $aggregate_settings = 
       $packer = variable_get('advagg_js_compress_packer', ADVAGG_JS_COMPRESS_PACKER);
     }
 
-    if ($file == 1) {
-      $return_compressors[1] = $compressors[1];
+    if (isset($compressors[$file])) {
+      $return_compressors[$file] = $compressors[$file];
     }
     if ($packer) {
       $return_compressors[2] = $compressors[2];
@@ -267,12 +260,6 @@ function advagg_js_compress_get_enabled_compressors(array $aggregate_settings = 
       else {
         $return_compressors[1] = $compressors[1];
       }
-    }
-    if ($file == 4) {
-      $return_compressors[4] = $compressors[4];
-    }
-    if ($file == 5) {
-      $return_compressors[5] = $compressors[5];
     }
   }
 
@@ -307,6 +294,18 @@ function advagg_js_compress_prep(&$contents, $filename, array $aggregate_setting
   if (variable_get('advagg_cache_level', ADVAGG_CACHE_LEVEL) < 0) {
     return;
   }
+  // Do nothing if the file is already minified.
+  $semicolon_count = substr_count($contents, ';');
+  if ( $compressor != 2
+    && $semicolon_count > 10
+    && $semicolon_count > (substr_count($contents, "\n", strpos($contents, ';')) * 5)
+  ) {
+    if ($add_licensing && variable_get('advagg_js_compress_add_license', ADVAGG_JS_COMPRESS_ADD_LICENSE)) {
+      $url = url($filename, array('absolute' => TRUE));
+      $contents = "/* Source and licensing information for the line(s) below can be found at $url. */\n" . $contents . ";\n/* Source and licensing information for the above line(s) can be found at $url. */\n";
+    }
+    return;
+  }
 
   // Get the JS string length before the compression operation.
   $contents_before = $contents;
@@ -314,7 +313,7 @@ function advagg_js_compress_prep(&$contents, $filename, array $aggregate_setting
 
   // Do not use jsmin() if the function can not be called.
   if ($compressor == 3 && !function_exists('jsmin')) {
-    if (defined('PHP_VERSION_ID') & PHP_VERSION_ID >= 50300) {
+    if (defined('PHP_VERSION_ID') && constant('PHP_VERSION_ID') >= 50300) {
       $compressor = 5;
       watchdog('advagg_js_compress', 'The jsmin function does not exist. Using JSqueeze.');
     }
@@ -337,20 +336,18 @@ function advagg_js_compress_prep(&$contents, $filename, array $aggregate_setting
     // Strip Byte Order Marks (BOM's), preg_* cannot parse these well.
     $contents = str_replace(pack("CCC", 0xef, 0xbb, 0xbf), "", $contents);
     // Use the compressor.
+    list(, , , $functions) = advagg_js_compress_configuration();
     if ($compressor == 1) {
       advagg_js_compress_jsminplus($contents, $log_errors);
     }
-    elseif ($compressor == 2) {
-      advagg_js_compress_jspacker($contents);
+    elseif (isset($functions[$compressor])) {
+      $run = $functions[$compressor];
+      if (function_exists($run)) {
+        $run($contents);
+      }
     }
-    elseif ($compressor == 3) {
-      $contents = jsmin($contents);
-    }
-    elseif ($compressor == 4) {
-      advagg_js_compress_jshrink($contents);
-    }
-    elseif ($compressor == 5) {
-      advagg_js_compress_jsqueeze($contents);
+    else {
+      return;
     }
 
     // Ensure that $contents ends with ; or }.
@@ -429,92 +426,6 @@ function advagg_js_compress_jsminplus(&$contents, $log_errors = TRUE) {
 }
 
 /**
- * Compress a JS string using jshrink.
- *
- * @param string $contents
- *   Javascript string.
- * @param bool $log_errors
- *   FALSE to disable logging to watchdog on failure.
- */
-function advagg_js_compress_jshrink(&$contents, $log_errors = TRUE) {
-  $contents_before = $contents;
-
-  // Only include jshrink.inc if the JShrink\Minifier class doesn't exist.
-  if (!class_exists('JShrink\Minifier')) {
-    include drupal_get_path('module', 'advagg_js_compress') . '/jshrink.inc';
-    $nesting_level = ini_get('xdebug.max_nesting_level');
-    if (!empty($nesting_level) && $nesting_level < 200) {
-      ini_set('xdebug.max_nesting_level', 200);
-    }
-  }
-  ob_start();
-  try {
-    // JShrink the contents of the aggregated file.
-    $contents = JShrink\Minifier::minify($contents, array('flaggedComments' => FALSE));
-
-    // Capture any output from JShrink.
-    $error = trim(ob_get_contents());
-    if (!empty($error)) {
-      throw new Exception($error);
-    }
-  }
-  catch (Exception $e) {
-    // Log the exception thrown by JShrink & roll back to uncompressed content.
-    if ($log_errors) {
-      watchdog('advagg_js_compress', $e->getMessage() . '<pre>' . $contents_before . '</pre>', NULL, WATCHDOG_WARNING);
-    }
-    $contents = $contents_before;
-  }
-  ob_end_clean();
-}
-
-/**
- * Compress a JS string using jsqueeze.
- *
- * @param string $contents
- *   Javascript string.
- * @param bool $log_errors
- *   FALSE to disable logging to watchdog on failure.
- */
-function advagg_js_compress_jsqueeze(&$contents, $log_errors = TRUE) {
-  $contents_before = $contents;
-
-  // Only include jshrink.inc if the Patchwork\JSqueeze class doesn't exist.
-  if (!class_exists('Patchwork\JSqueeze')) {
-    include drupal_get_path('module', 'advagg_js_compress') . '/jsqueeze.inc';
-    $nesting_level = ini_get('xdebug.max_nesting_level');
-    if (!empty($nesting_level) && $nesting_level < 200) {
-      ini_set('xdebug.max_nesting_level', 200);
-    }
-  }
-  ob_start();
-  try {
-    // Minify the contents of the aggregated file.
-    $jz = new Patchwork\JSqueeze();
-    $contents = $jz->squeeze(
-      $contents,
-      TRUE,
-      !variable_get('advagg_js_compress_add_license', ADVAGG_JS_COMPRESS_ADD_LICENSE),
-      FALSE
-    );
-
-    // Capture any output from JSqueeze.
-    $error = trim(ob_get_contents());
-    if (!empty($error)) {
-      throw new Exception($error);
-    }
-  }
-  catch (Exception $e) {
-    // Log the exception thrown by JSqueeze & roll back to uncompressed content.
-    if ($log_errors) {
-      watchdog('advagg_js_compress', $e->getMessage() . '<pre>' . $contents_before . '</pre>', NULL, WATCHDOG_WARNING);
-    }
-    $contents = $contents_before;
-  }
-  ob_end_clean();
-}
-
-/**
  * Compress a JS string using packer.
  *
  * @param string $contents
@@ -532,6 +443,16 @@ function advagg_js_compress_jspacker(&$contents) {
 
   $packer = new JavaScriptPacker($contents, 62, TRUE, FALSE);
   $contents = $packer->pack();
+}
+
+/**
+ * Compress a JS string using jsmin.
+ *
+ * @param string $contents
+ *   Javascript string.
+ */
+function advagg_js_compress_jsmin(&$contents) {
+  $contents = jsmin($contents);
 }
 
 /**

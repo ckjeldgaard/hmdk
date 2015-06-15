@@ -1,8 +1,10 @@
-name = AdvAgg CDN CSS
-description = Use a shared CDN for CSS libraries, Google Libraries API currently.
+name = AdvAgg External Compression
+description = Compress Javascript and/or CSS with a command line compressor.
 package = Advanced CSS/JS Aggregation
 core = 7.x
 dependencies[] = advagg
+
+configure = admin/config/development/performance/advagg/ext-compress
 
 ; Information added by Drupal.org packaging script on 2015-06-11
 version = "7.x-2.11"
