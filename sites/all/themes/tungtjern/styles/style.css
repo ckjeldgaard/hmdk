@@ -33,11 +33,43 @@ header {
 
 header h1 a {
   display:block;
-  background:url('../img/logo.png') no-repeat;
+  background:url('../img/logos/heavymetaldk.png') no-repeat;
   height: 0;
   background-size: 100%;
-  padding-bottom:14%; /* bg-height (75px) / bg-width (550px) * 100*/
+  padding-bottom:22%; /* bg-height (75px) / bg-width (550px) * 100*/
   text-indent:-9999px;
+}
+
+header h1 a.black {
+  background-image:url('../img/logos/heavymetaldk-black.png');
+}
+
+header h1 a.brutal-death {
+  background-image:url('../img/logos/heavymetaldk-brutal-death.png');
+}
+
+header h1 a.death {
+  background-image:url('../img/logos/heavymetaldk-death.png');
+}
+
+header h1 a.doom {
+  background-image:url('../img/logos/heavymetaldk-doom.png');
+}
+
+header h1 a.folk {
+  background-image:url('../img/logos/heavymetaldk-folk.png');
+}
+
+header h1 a.melodeath {
+  background-image:url('../img/logos/heavymetaldk-melodeath.png');
+}
+
+header h1 a.power {
+  background-image:url('../img/logos/heavymetaldk-power.png');
+}
+
+header h1 a.thrash {
+  background-image:url('../img/logos/heavymetaldk-thrash.png');
 }
 
 header h1 {

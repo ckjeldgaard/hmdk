@@ -1,0 +1,1 @@
+<h1><a href="/"<?php if ($class) : ?> class="<?php print $class; ?>"<?php endif; ?>>Heavymetal.dk</a></h1>
