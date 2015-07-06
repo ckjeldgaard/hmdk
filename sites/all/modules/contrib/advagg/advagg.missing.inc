@@ -121,7 +121,7 @@ function advagg_missing_generate($input = '') {
 }
 
 /**
- * Given the filename, type, & settings, create absolute URL for 307 redirect.
+ * Given the filename, type, and settings, create absolute URL for 307 redirect.
  *
  * Due to url inbound alter we can not trust that the redirect will work if
  * using $GLOBALS['base_path'] . $_GET['q']. Generate the uri as if it was
@@ -226,6 +226,8 @@ function advagg_missing_send_saved_file(array $files_to_save, $uri, $created, $f
     // @ignore druplart_andor_assignment
     if (file_exists($uri) && $filemtime = @filemtime($uri)) {
       header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', $filemtime));
+      // Etags generation in php is broken due to millisecond precision for the
+      // files mtime; apache has it, php does not.
     }
 
     if ($type === 'css') {
