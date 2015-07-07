@@ -41,10 +41,11 @@ function _logos_contents() {
   $class = FALSE;
   
   $genres = array(
-    1687 => 'black',
+    1687 => array('black', 'norwegian-black'),
     1688 => array('brutal-death', 'death'),
     1689 => 'doom',
     1690 => 'folk',
+    1693 => 'industrial',
     1694 => 'melodeath',
     1697 => 'power',
     1703 => 'thrash',
