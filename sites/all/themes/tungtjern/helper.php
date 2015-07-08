@@ -321,12 +321,17 @@ function _get_artist_concerts($artist_nid) {
     $q->range(0, 1);
     $rs = $q->execute()->fetchAssoc();
     
+    $review = (is_array($rs)) ? $rs['entity_id'] : FALSE;
+    if ($review == FALSE) {
+      $review = _concert_has_reportage($node->nid);
+    }
+    
     $concerts[] = array(
       'type' => 'concert',
       'node' => $node,
       'artists' => $artist_string,
       'venue' => (isset($node->field_venue[LANGUAGE_NONE])) ? _get_venue_name($node->field_venue[LANGUAGE_NONE][0]['tid']) : FALSE,
-      'review' => (is_array($rs)) ? $rs['entity_id'] : FALSE,
+      'review' => $review,
       'date' => $node->field_event_date[LANGUAGE_NONE][0]['value'],
       'endDate' => $node->field_event_date[LANGUAGE_NONE][0]['value2'],
     );
@@ -352,18 +357,36 @@ function _venue_get_events($tid) {
   
   $nids = array();
   foreach ($rs as $obj) {
+    
+    $reportage = _concert_has_reportage($obj->nid);
+    
     // Upcoming events:
     if ($obj->field_event_date_value >= $now && $obj->field_concert_target_id == NULL) {
       $nids[0][] = node_load($obj->nid);
     }
     // Former events:
-    if ($obj->field_event_date_value < $now && $obj->field_concert_target_id == NULL) {
+    if ($obj->field_event_date_value < $now && $obj->field_concert_target_id == NULL && $reportage == FALSE) {
       $nids[1][] = node_load($obj->nid);
     }
     // Reviewed events:
-    if (is_numeric($obj->field_concert_target_id)) {
+    if (is_numeric($obj->field_concert_target_id) || $reportage != FALSE) {
       $nids[2][] = node_load($obj->nid);
     }
   }
   return $nids;
+}
+
+/**
+ * Check if a concert has been referenced from a reportage.
+ *
+ * @param int $concert_nid Node ID of the concert node to check.
+ * @return int|bool Returns a reportage node ID if exists. FALSE otherwise.
+ */
+function _concert_has_reportage($concert_nid) {
+  $query = db_select('field_data_field_concert_reference', 'r');
+  $query->fields('r', array('entity_id'));
+  $query->condition('r.bundle', 'reportage');
+  $query->condition('r.field_concert_reference_target_id', $concert_nid);
+  $obj = $query->execute()->fetchObject();
+  return (isset($obj->entity_id)) ? $obj->entity_id : FALSE; 
 }
