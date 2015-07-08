@@ -11,8 +11,9 @@ function xpoll_preprocess_node(&$variables) {
   if ($node->type == 'poll') { 
 
     $closed = $node->field_closed[LANGUAGE_NONE][0]['value'];
-  
-    $form = drupal_get_form('xpoll_form', $node->field_poll_questions, $closed);
+	$type = $node->field_multiple_choice[LANGUAGE_NONE][0]['value'] ? 'checkboxes' : 'radios';
+	
+    $form = drupal_get_form('xpoll_form', $node->field_poll_questions, $closed, $type);
     $node->poll_form = $form;
     
     $node->warning = ($closed) ? t('This poll is closed for voting.') : FALSE;
@@ -22,7 +23,7 @@ function xpoll_preprocess_node(&$variables) {
 /**
  * Defines the contest form with questions and answers in radio buttons.
  */
-function xpoll_form($form, &$form_state, $questions, $closed) {
+function xpoll_form($form, &$form_state, $questions, $closed, $type) {
   $form = array();
   $form['#attributes'] = array('id' => array('poll-form'));
   
@@ -35,7 +36,7 @@ function xpoll_form($form, &$form_state, $questions, $closed) {
     }
   
     $form['poll_question_' . $question->item_id] = array(
-      '#type' => 'radios',
+      '#type' => $type,
       '#title' => check_plain($question->field_question[LANGUAGE_NONE][0]['value']),
       '#options' => $answer_options,
       '#disabled' => $closed,
@@ -55,6 +56,7 @@ function xpoll_form($form, &$form_state, $questions, $closed) {
   );
 
   $form['poll_nid'] = array('#type' => 'hidden', '#value' => arg(1));
+  $form['poll_type'] = array('#type' => 'hidden', '#value' => $type);
   
   $form['submit'] = array(
     '#type' => 'submit',
@@ -83,14 +85,26 @@ function xpoll_form_validate($form, &$form_state) {
   foreach ($form_state['values'] as $k => $v) {
     if (substr($k, 0, 14) == 'poll_question_') {
       if ($answer_field == NULL) {
-	$answer_field = $k;
+		$answer_field = $k;
       }
       $parts = explode('_', $k);
-      if (strlen($v) > 0) {
-        $answers[$parts[2]] = $v;
-      }
+	  if ($form_state['values']['poll_type'] == 'radios') {
+		if (strlen($v) > 0) {
+		  $answers[$parts[2]] = $v;
+		}
+	  } else {
+		// Checkboxes:
+		$opts = array();
+		foreach($v as $opt_key => $opt_val) {
+		  if ($opt_val != '0') {
+			$opts[] = $opt_val;
+		  }
+		}
+		$answers[$parts[2]] = $opts;
+	  }
     }
-  }  
+  }
+  
   if (count($answers) == 0) {
     form_set_error($answer_field, t('You must answer at least one question.'));
   }
@@ -123,10 +137,21 @@ function xpoll_form_submit($form, &$form_state) {
     $answers = array();
     foreach ($form_state['values'] as $k => $v) {
       if (substr($k, 0, 14) == 'poll_question_') {
-	$parts = explode('_', $k);
-	if (strlen($v) > 0) {
-	  $answers[$parts[2]] = $v;
-	}
+		$parts = explode('_', $k);
+		if ($form_state['values']['poll_type'] == 'radios') {
+		  if (strlen($v) > 0) {
+			$answers[$parts[2]] = $v;
+		  }
+		} else {
+		  // Checkboxes:
+		  $opts = array();
+		  foreach($v as $opt_key => $opt_val) {
+			if ($opt_val != '0') {
+			  $opts[] = $opt_val;
+			}
+		  }
+		  $answers[$parts[2]] = $opts;
+		}
       }
     }
   
@@ -134,14 +159,14 @@ function xpoll_form_submit($form, &$form_state) {
       
       // Save answer in database as serialized data:
       db_insert('xpoll_answers')
-	->fields(array(
-	  'poll_nid' => $poll_node->nid,
-	  'answers' => serialize($answers),
-	  'email' => check_plain($form_state['values']['email']),
-	  'ip' => $_SERVER['REMOTE_ADDR'],
-	  'timestamp' => time()
-	))
-	->execute();
+		->fields(array(
+		  'poll_nid' => $poll_node->nid,
+		  'answers' => serialize($answers),
+		  'email' => check_plain($form_state['values']['email']),
+		  'ip' => $_SERVER['REMOTE_ADDR'],
+		  'timestamp' => time()
+		))
+		->execute();
     }
   }
   

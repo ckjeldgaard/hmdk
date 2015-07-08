@@ -51,8 +51,16 @@ function _poll_admin_page() {
     $total_votes = 0;
     foreach ($rs as $r) {
       $answers = unserialize($r->answers);
+	  
       foreach ($answers as $question => $answer) {
-	$count_matrix[$question][$answer]++;
+		if (is_array($answer)) {
+		  // In case of multiple choice poll:
+		  foreach ($answer as $opt) {
+			$count_matrix[$question][$opt]++;
+		  }
+		} else {
+		  $count_matrix[$question][$answer]++;
+		}
       }
       $total_votes++;
     }
