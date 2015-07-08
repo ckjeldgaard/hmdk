@@ -15,5 +15,7 @@
   </td>
   <?php if ($node->review): ?>
   <td headers="event-review" data-label="Anmeldelse"><div class="<?php print get_edit_classes($node); ?>"></div><?php if ($node->review): print l(t('Read review'), 'node/' . $node->review); endif; ?></td>
+  <?php elseif ($node->reportage): ?>
+  <td headers="event-review" data-label="Anmeldelse"><?php if ($node->reportage): print l(t('Read reportage'), 'node/' . $node->reportage); endif; ?></td>
   <?php endif; ?>
 </tr>

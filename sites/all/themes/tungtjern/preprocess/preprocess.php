@@ -389,7 +389,7 @@ function _preprocess_concert(&$node) {
     }
   }
   $node->artists = implode(", ", $artists);
-
+  
   // Get concert review (if any):
   $q = db_select('field_data_field_concert', 'c');
   $q->fields('c', array('entity_id'));
@@ -398,6 +398,7 @@ function _preprocess_concert(&$node) {
   $rs = $q->execute()->fetchAssoc();
   
   $node->review = (is_array($rs)) ? $rs['entity_id'] : FALSE;
+  $node->reportage = _concert_has_reportage($node->nid);
   
   if ($node->status == 0) {
     drupal_set_message(t('The concert %concert is not published.', array('%concert' => $node->title)), 'warning');
