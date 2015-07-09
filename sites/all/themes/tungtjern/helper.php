@@ -317,7 +317,9 @@ function _get_artist_concerts($artist_nid) {
     // Get concert review (if any):
     $q = db_select('field_data_field_concert', 'c');
     $q->fields('c', array('entity_id'));
+    $q->join('node', 'n', 'c.entity_id = n.nid');
     $q->condition('c.field_concert_target_id', $node->nid);
+    $q->condition('n.status', 1);
     $q->range(0, 1);
     $rs = $q->execute()->fetchAssoc();
     
@@ -385,8 +387,11 @@ function _venue_get_events($tid) {
 function _concert_has_reportage($concert_nid) {
   $query = db_select('field_data_field_concert_reference', 'r');
   $query->fields('r', array('entity_id'));
+  $query->join('node', 'n', 'r.entity_id = n.nid');
   $query->condition('r.bundle', 'reportage');
   $query->condition('r.field_concert_reference_target_id', $concert_nid);
+  $query->condition('n.status', 1);
+  
   $obj = $query->execute()->fetchObject();
   return (isset($obj->entity_id)) ? $obj->entity_id : FALSE; 
 }
