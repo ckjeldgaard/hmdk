@@ -132,6 +132,9 @@ function sidebar_blocks_block_info() {
   $blocks['block-latest-concerts'] = array(
     'info' => t('Latest concerts'),
   );
+  $blocks['block-radio'] = array(
+    'info' => t('Radio'),
+  );
   return $blocks;
 }
 
@@ -152,6 +155,10 @@ function sidebar_blocks_block_view($delta) {
     case 'block-latest-concerts':
       $block['subject'] = t('Latest concerts');
       $block['content'] = theme('block-latest-concerts', array('concerts' => _latest_concerts_contents()));
+      break;
+    case 'block-radio':
+      $block['subject'] = t('Radio');
+      $block['content'] = theme('block-radio', array('radio' => NULL));
       break;
   }
   return $block;
@@ -174,6 +181,11 @@ function sidebar_blocks_theme() {
     ),
     'block-latest-concerts' => array(
       'template' => 'block--latest-concerts',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'sidebar_blocks'),
+    ),
+    'block-radio' => array(
+      'template' => 'block--radio',
       'variables' => array('form' => NULL),
       'path' => drupal_get_path('module', 'sidebar_blocks'),
     ),

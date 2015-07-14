@@ -1830,6 +1830,18 @@ ul.pager {
   padding: 7px 0 0 0;
 }
 
+/* RADIO: */
+
+.radio .desc {
+  box-sizing: border-box;
+  padding-left:10px;
+  padding-right:10px;
+}
+
+.radio p {
+  margin-top:0;
+}
+
 /* Table of contents: */
 
 .toc {

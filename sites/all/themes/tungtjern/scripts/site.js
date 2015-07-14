@@ -161,5 +161,13 @@
   });
   }
   
+  $(".popup_player").click(function() {
+    //popup();
+    window.open("http://dentungeradio.dk/popup_player/dtr_popup_player.html","_blank","width=300,height=450,location=0,menubar=0,resizable=0,scrollbars=0,toolbar=0");
+    //alert('Radio');
+  });
+  
+  
+  
   }};
 })(jQuery, Drupal);
