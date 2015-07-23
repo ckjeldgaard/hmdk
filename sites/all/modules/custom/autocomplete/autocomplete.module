@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function autocomplete_menu() {
+  $items['autocomplete'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => '_autocomplete',
+    'access arguments' => array('access content'),
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+function _autocomplete() {
+  $suggestions = array();
+
+  $query = db_select('node', 'n');
+  $query->fields('n', array('title'));
+  $or = db_or()
+    ->condition('n.type', 'reportage')
+    ->condition('n.type', 'artist')
+    ->condition('n.type', 'review');
+  $query->condition($or);
+  $query->condition('n.status', 1);
+  $query->orderBy('n.title');
+  $rs = $query->execute();
+  foreach ($rs as $row) {
+    $suggestions[] = str_replace(" - ", " ", strtolower($row->title));
+  }
+  
+  header('Content-Type: application/json');
+  print drupal_json_encode($suggestions);
+  return NULL;
+}

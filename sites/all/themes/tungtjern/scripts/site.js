@@ -4,6 +4,33 @@
     attach: function(context, settings) {
 //end drupal calls
 
+var autocomplete = new Bloodhound({
+  datumTokenizer: Bloodhound.tokenizers.whitespace,
+  queryTokenizer: Bloodhound.tokenizers.whitespace,
+  prefetch: '/autocomplete'
+});
+
+$('.query').typeahead({
+  hint: true,
+  highlight: true,
+  minLength: 1
+},
+{
+  name: 'autocomplete',
+  source: autocomplete
+});
+
+$('.query').keypress(function (e) {
+  if (e.which == 13) {
+    $('#searchform').submit();
+    return false;
+  }
+});
+$('.query').on('typeahead:selected', function(event, selection) {
+  $('#searchform').submit();
+  return false;
+});
+
   if ($.isFunction($.fn.chosen)) {
     $(".chosen-select").chosen({no_results_text:'Ingen elementer matchede søgningen'});
   }

@@ -13,6 +13,7 @@ stylesheets[all][] = styles/style.css
 scripts[] = scripts/raty/jquery.raty.min.js
 scripts[] = scripts/jquery.pajinate.min.js
 scripts[] = scripts/lightbox.min.js
+scripts[] = scripts/typeahead.bundle.js
 scripts[] = scripts/site.js
 
 blacklist[stylesheets][] = "modules/system/*"

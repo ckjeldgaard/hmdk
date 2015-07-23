@@ -28,8 +28,8 @@
       </nav>
     </div>
     <div class="search pure-u-1 pure-u-lg-4-24">
-      <form class="pure-form" action="/search" method="get">
-        <input type="text" name="s" class="pure-input-rounded" placeholder="<?php print t('Search'); ?>" value="<?php print (isset($_GET['s'])) ? check_plain($_GET['s']) : ''; ?>">
+      <form class="pure-form" action="/search" method="get" id="searchform">
+        <input type="text" name="s" class="query pure-input-rounded" placeholder="<?php print t('Search'); ?>" value="<?php print (isset($_GET['s'])) ? check_plain($_GET['s']) : ''; ?>">
       </form>
     </div>
   </div>
