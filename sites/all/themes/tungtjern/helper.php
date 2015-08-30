@@ -12,13 +12,14 @@
  * @return array Returns an array of reviews.
  */
 function _get_reviews_by_author($uid) {
-  $sql = "SELECT n.nid, d.published_at AS review_date, na.title AS artist, t.field_release_title_value AS title ";
+  $sql = "SELECT n.nid, d.published_at AS review_date, na.title AS artist, t.field_release_title_value AS title, ra.field_rating_value rating ";
   $sql .= "FROM node n ";
   $sql .= "INNER JOIN publication_date d ON n.nid = d.nid ";
   $sql .= "INNER JOIN field_data_field_release r ON n.nid = r.entity_id ";
   $sql .= "INNER JOIN field_data_field_release_title t ON r.field_release_target_id = t.entity_id ";
   $sql .= "INNER JOIN field_data_field_artist a ON r.field_release_target_id = a.entity_id ";
   $sql .= "INNER JOIN node na ON a.field_artist_target_id = na.nid ";
+  $sql .= "INNER JOIN field_data_field_rating ra ON n.nid = ra.entity_id ";
   $sql .= "WHERE  (n.type = :type) AND (n.status = :status) AND (n.uid = :uid) ";
   $sql .= "ORDER BY d.published_at DESC, n.created DESC";
   
@@ -27,6 +28,7 @@ function _get_reviews_by_author($uid) {
   foreach ($rs as $row) {
     $reviews[] = $row;
   }
+  
   return $reviews;
 }
 

@@ -9,7 +9,14 @@ function tungtjern_preprocess_user_profile(&$variables) {
   
   $uid = $variables['user_profile']['field_address']['#object']->uid;
 
-  $variables['user_reviews'] = _get_reviews_by_author($uid);
+  $author_reviews = _get_reviews_by_author($uid);
+  $rating_count = 0;
+  foreach ($author_reviews as $rev) {
+    $rating_count+= $rev->rating;
+  }
+  
+  $variables['user_reviews'] = $author_reviews;
+  $variables['user_avg_rating'] = round($rating_count / count($author_reviews), 1);
   $variables['user_news'] = _get_news_by_author($uid);
   $variables['user_interviews'] = _get_interviews_by_author($uid);
   $variables['user_concerts'] = _get_live_reviews_by_author($uid);

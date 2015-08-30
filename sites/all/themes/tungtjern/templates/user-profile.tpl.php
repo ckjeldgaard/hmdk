@@ -67,6 +67,7 @@
       <th>Dato</th>
       <th>Artist</th>
       <th>Titel</th>
+      <th>Karakter</th>
     </tr>
   </thead>
   <tbody class="content">
@@ -75,12 +76,14 @@
       <td><time datetime="<?php print date('Y-m-d', $review->review_date); ?>"><?php print date('d-m-Y', $review->review_date); ?></time></td>
       <td><?php print $review->artist; ?></td>
       <td><?php print l($review->title, 'node/' . $review->nid, array('attributes' => array('title' => $review->artist . ' - ' . $review->title))); ?></td>
+      <td><?php print $review->rating; ?>/10</td>
     </tr>
   <?php endforeach; ?>
   </tbody>
 </table>
 <div class="page_navigation"></div>
 </div>
+<p>Gennemsnitskarakter for <?php print $elements['#account']->name; ?>: <?php print number_format($user_avg_rating, 1, ',', '.'); ?></p>
 <?php endif; ?>
 
 <?php if (count($user_concerts) > 0) : ?>
