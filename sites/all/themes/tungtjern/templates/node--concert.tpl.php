@@ -49,8 +49,4 @@
 </ul>
 <?php endif; ?>
 
-<pre>
-  <?php print_r($node); ?>
-</pre>
-
 </article>
