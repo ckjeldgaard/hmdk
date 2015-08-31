@@ -40,13 +40,17 @@
   <?php if (isset($node->field_ticket_price[LANGUAGE_NONE][0]['value'])): ?>
     <li><i class="fa fa-money"></i> Billetpris: <?php print $node->field_ticket_price[LANGUAGE_NONE][0]['value']; ?>,- kr.</li>
   <?php endif; ?>
-  <?php if (isset($node->field_buy_link[LANGUAGE_NONE][0]['url'])): ?>
-    <li><i class="fa fa-ticket"></i> <a href="<?php print $node->field_buy_link[LANGUAGE_NONE][0]['url']; ?>" target="_blank">Køb billet</a></li>
+  <?php if (isset($node->field_buy_link[LANGUAGE_NONE][0]['display_url'])): ?>
+    <li><i class="fa fa-ticket"></i> <a href="<?php print $node->field_buy_link[LANGUAGE_NONE][0]['display_url']; ?>" target="_blank">Køb billet</a></li>
   <?php endif; ?>
   <?php if (isset($node->field_facebook_event[LANGUAGE_NONE][0]['url'])): ?>
-    <li><i class="fa fa-facebook"></i> <a href="<?php print $node->field_facebook_event[LANGUAGE_NONE][0]['url']; ?>" target="_blank">Facebook-event</a></li>
+    <li><i class="fa fa-facebook"></i> <a href="<?php print $node->field_facebook_event[LANGUAGE_NONE][0]['display_url']; ?>" target="_blank">Facebook-event</a></li>
   <?php endif; ?>
 </ul>
 <?php endif; ?>
+
+<pre>
+  <?php print_r($node); ?>
+</pre>
 
 </article>
