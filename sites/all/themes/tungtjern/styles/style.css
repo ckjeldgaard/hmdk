@@ -1490,6 +1490,18 @@ table.user-data, table.user-data tr, table.user-data td {
   width: 200px;
 }
 
+.event-meta {
+  width: 20px;
+}
+
+.event-meta a:link, .event-meta a:visited {
+    color: #d13c38;
+}
+
+.event-meta a:hover {
+    color: #444a54;
+}
+
 .cancelled td.event-date,
 .cancelled td.event-name .artists,
 .cancelled td.event-venue {
@@ -1713,7 +1725,7 @@ table.user-data, table.user-data tr, table.user-data td {
                 font-weight:bold;
 	}
         
-        .event-date, .event-name, .event-venue {
+        .event-date, .event-name, .event-venue, .event-meta {
           width: auto;
         }
         

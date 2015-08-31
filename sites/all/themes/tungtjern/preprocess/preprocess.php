@@ -407,6 +407,16 @@ function _preprocess_concert(&$node) {
   $node->review = (is_array($rs)) ? $rs['entity_id'] : FALSE;
   $node->reportage = _concert_has_reportage($node->nid);
   
+  // Check for more info:
+  $more = FALSE;
+  if (isset($node->field_start_time[LANGUAGE_NONE][0]['value']) ||
+    isset($node->field_ticket_price[LANGUAGE_NONE][0]['value']) ||
+    isset($node->field_buy_link[LANGUAGE_NONE][0]['url']) ||
+    isset($node->field_facebook_event[LANGUAGE_NONE][0]['url'])) {
+    $more = TRUE;
+  }
+  $node->more = $more;
+  
   if ($node->status == 0) {
     drupal_set_message(t('The concert %concert is not published.', array('%concert' => $node->title)), 'warning');
   }

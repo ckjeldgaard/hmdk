@@ -26,6 +26,11 @@
       <td class="event-venue" data-label="Spillested" itemprop="location" itemscope itemtype="http://schema.org/Place">
         <div class="<?php print get_edit_classes($concert['node']); ?>"></div>
         <a href="<?php print url('taxonomy/term/' . $concert['venue_tid']); ?>" itemprop="url"><?php print $concert['venue']; ?></a></td>
+      <td class="event-meta"<?php if ($concert['more']): ?> data-label="<?php print t('Info'); ?>"<?php endif; ?>>
+        <?php if ($concert['more']): ?>
+        <a href="<?php print url('node/' . $concert['node']->nid); ?>" title="<?php print t('More information'); ?>"><i class="fa fa-plus-circle"></i></a>
+        <?php endif; ?>
+      </td>
     </tr>
   <?php endforeach; ?>
   </table>

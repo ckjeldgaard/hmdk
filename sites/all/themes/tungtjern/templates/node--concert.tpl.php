@@ -23,11 +23,30 @@
 <?php endforeach; ?>
 </ul>
 <?php if (isset($node->field_support_artists[LANGUAGE_NONE])) : ?>
-<h2>Opvarmningsbands</h2>
+<h3>Opvarmningsbands</h3>
 <ul>
 <?php foreach ($node->field_support_artists[LANGUAGE_NONE] as $artist) : ?>
   <li><?php print l($artist['entity']->title, 'node/' . $artist['target_id']); ?></li>
 <?php endforeach; ?>
 </ul>
 <?php endif; ?>
+
+<?php if ($node->more) : ?>
+<h2>Yderligere information</h2>
+<ul>
+  <?php if (isset($node->field_start_time[LANGUAGE_NONE][0]['value'])): ?>
+    <li><i class="fa fa-clock-o"></i> Starttidspunkt: <?php print $node->field_start_time[LANGUAGE_NONE][0]['value']; ?></li>
+  <?php endif; ?>
+  <?php if (isset($node->field_ticket_price[LANGUAGE_NONE][0]['value'])): ?>
+    <li><i class="fa fa-money"></i> Billetpris: <?php print $node->field_ticket_price[LANGUAGE_NONE][0]['value']; ?>,- kr.</li>
+  <?php endif; ?>
+  <?php if (isset($node->field_buy_link[LANGUAGE_NONE][0]['url'])): ?>
+    <li><i class="fa fa-ticket"></i> <a href="<?php print $node->field_buy_link[LANGUAGE_NONE][0]['url']; ?>" target="_blank">Køb billet</a></li>
+  <?php endif; ?>
+  <?php if (isset($node->field_facebook_event[LANGUAGE_NONE][0]['url'])): ?>
+    <li><i class="fa fa-facebook"></i> <a href="<?php print $node->field_facebook_event[LANGUAGE_NONE][0]['url']; ?>" target="_blank">Facebook-event</a></li>
+  <?php endif; ?>
+</ul>
+<?php endif; ?>
+
 </article>
