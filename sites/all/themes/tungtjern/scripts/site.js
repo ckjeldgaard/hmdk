@@ -130,7 +130,7 @@ $('.query').on('typeahead:selected', function(event, selection) {
     $(".add-missing-toggler i").css('fa-minus-circle');
   }
   
-  $('#concert-add-form input[name=type]').change(function() {
+  $('#-concert-add-form input[name=type]').change(function() {
     // Concert:
     if (this.value == 0) {
       $('.festival-name').hide();

@@ -1,4 +1,8 @@
 <h1>Koncertkalender</h1>
+<div class="add-concert-box">
+  <p>Har du kendskab til en metalkoncert som ikke står på listen, så klik på knappen nedenfor for at tilføje den!</p>
+  <p><a href="/tilfoej-koncert" class="pure-button pure-button-primary">Tip os om en ny koncert</a></p>
+</div>
 <form method="get" action="" id="province-form">
   <label for="landsdel">Filtrér efter landsdel:</label>
   <select name="landsdel" id="landsdel">
@@ -38,8 +42,3 @@
 <?php else : ?>
   <p><em><?php print t("Unfortunately, we couldn't find any concerts."); ?></em></p>
 <?php endif; ?>
-
-<div class="add-concert-box">
-  <p>Har du kendskab til en metalkoncert som ikke står på listen, så klik på knappen nedenfor for at tilføje den!</p>
-  <p><a href="/tilfoej-koncert" class="pure-button pure-button-primary">Opret ny koncert</a></p>
-</div>

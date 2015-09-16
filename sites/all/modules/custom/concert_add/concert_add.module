@@ -27,6 +27,18 @@ function concert_add_permission() {
   );
 }
 
+function concert_add_menu() {
+  $items['admin/config/system/concert_add'] = array(
+    'title' => 'Concert add settings',
+    'description' => 'Manage the e-mail sent to editors when users submit a new concert',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_concert_add_settings_form'),
+    'access arguments' => array('administer content'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
 /**
  * Implements hook_form_alter(). Makes the 'Missing bands' field on the concert form read-only.
  */
@@ -81,9 +93,9 @@ function concert_add_theme() {
 function concert_add_contents() {
   global $user;
   
-  if ($user->uid == 0) {
+  /*if ($user->uid == 0) {
     drupal_access_denied();
-  }
+  } */
   
   $artists = _get_artists_options();
   $venues = _get_venues_options();
@@ -91,8 +103,11 @@ function concert_add_contents() {
   if (user_access('bypass concert add restrictions', $user)) {
     drupal_set_message(t('As a member of the editorial board, you should add concerts through the !url.', array('!url' => l(t('form in the backend'), 'node/add/concert'))), 'warning');
   }
+  
+  $form = drupal_get_form('_concert_add_form', $artists, $venues);
+  
   $contents = array(
-    'concert_add_form' => drupal_get_form('concert_add_form', $artists, $venues),
+    'concert_add_form' => $form,
   );
   
   return $contents;
@@ -135,13 +150,16 @@ function _get_venues_options() {
 /**
  * Defines the concert add form.
  */
-function concert_add_form($form, &$form_state, $artists, $venues) {
+function _concert_add_form($form, &$form_state, $artists, $venues) {
   global $user;
+  
   $form = array();
+  $form['#attributes']['id'] = 'concert-add-form';
+  //$form['id'] = 'concert-add-form';
   
   $disabled = FALSE;
   if (user_access('bypass concert add restrictions', $user)) {
-    $disabled = TRUE;
+    $disabled = FALSE;
   }
   
   $form['type'] = array(
@@ -239,14 +257,35 @@ function concert_add_form($form, &$form_state, $artists, $venues) {
 }
 
 /**
+* Implements hook_mollom_form_list().
+*/
+function concert_add_mollom_form_list() {
+  $forms['concert-add-form'] = array(
+    'title' => t('Add concert'),
+  );
+  
+  return $forms;
+}
+
+/**
+* Implements hook_mollom_form_info().
+*/
+function concert_add_mollom_form_info() {
+  $form_info = array(
+    'mode' => MOLLOM_MODE_CAPTCHA,
+  );
+  return $form_info;
+}
+
+/**
  * Validated the concert add form.
  */
-function concert_add_form_validate($form, &$form_state) {
+function _concert_add_form_validate($form, &$form_state) {
   global $user;
-  if ($user->uid == 0) {
+  /*if ($user->uid == 0) {
     form_set_error();
     drupal_set_message(t('This page requires that you have a registered account and are logged in.'), 'warning');
-  }
+  }*/
   
   if (count($form_state['values']['artists']) == 0 && strlen($form_state['values']['new_artists']) == 0) {
     form_set_error('artists', t("Please select one or more artists. If the artists doesn't exist in the list, expand the 'Missing artists' tab and type them there."));
@@ -276,7 +315,7 @@ function concert_add_form_validate($form, &$form_state) {
 /**
  * Submits the concert add form.
  */
-function concert_add_form_submit($form, &$form_state) {
+function _concert_add_form_submit($form, &$form_state) {
   global $user;
   
   $start_y = substr($form_state['values']['start_date'], 0, 4);
@@ -296,7 +335,7 @@ function concert_add_form_submit($form, &$form_state) {
       $msg = t('Thank you very much for your concert submission. Your entry will be validated by the editors before it is visible in the concert calendar.');
     }
     $node->language = "da";
-    $node->uid = $user->uid;
+    $node->uid = ($user->uid > 0) ? $user->uid : 0;
     
     $node->field_cancelled[LANGUAGE_NONE][0]['value'] = 0;
     $node->field_venue[LANGUAGE_NONE][0]['tid'] = $form_state['values']['venue'];
@@ -342,7 +381,7 @@ function concert_add_form_submit($form, &$form_state) {
       $msg = t('Thank you very much for your festival submission. Your entry will be validated by the editors before it is visible in the concert calendar.');
     }
     $node->language = "da";
-    $node->uid = $user->uid;
+    $node->uid = ($user->uid > 0) ? $user->uid : 0;
     
     $end_y = substr($form_state['values']['end_date'], 0, 4);
     $end_m = substr($form_state['values']['end_date'], 5, 2);

@@ -3,7 +3,7 @@
 /**
  * Implements hook_menu().
  */
-function concert_add_menu() {
+/*function concert_add_menu() {
   $items['admin/config/system/concert_add'] = array(
     'title' => 'Concert add settings',
     'description' => 'Manage the e-mail sent to editors when users submit a new concert',
@@ -13,7 +13,7 @@ function concert_add_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
   return $items;
-}
+}*/
 
 function _concert_add_settings_form() {
   $form = array();
@@ -78,14 +78,15 @@ function _concert_add_settings_form() {
  */
 function _concert_add_send_notification(&$node) {
   global $user;
-
+  
+  $name = ($user->uid != 0) ? $user->name : t('Anonymous');
   $site_email = variable_get('site_mail', '');
   $languages = language_list();
   $language = $languages['da'];
   
   $args = array(
-    '!name' => $user->name,
-    '!userlink' => url('user/' . $node->uid, array('absolute' => TRUE)),
+    '!name' => $name,
+    '!userlink' => ($user->uid != 0) ? url('user/' . $node->uid, array('absolute' => TRUE)) : '',
     '!concert' => $node->title,
     '!link' => url('node/' . $node->nid, array('absolute' => TRUE)),
   );
@@ -94,7 +95,7 @@ function _concert_add_send_notification(&$node) {
     'subject' => variable_get('concert_add_email_subject'),
     'body' => $body,
   );
-  
+
   $recipients = variable_get('concert_add_email_recipients');
   foreach ($recipients as $uid) {
     $editor = user_load($uid);
