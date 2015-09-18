@@ -417,7 +417,7 @@ function _preprocess_concert(&$node) {
   }
   $node->more = $more;
   
-  if ($node->status == 0) {
+  if ($node->status == 0 && arg(0) == 'node' && arg(1) == $node->nid) {
     drupal_set_message(t('The concert %concert is not published.', array('%concert' => $node->title)), 'warning');
   }
 }
