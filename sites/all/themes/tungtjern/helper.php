@@ -366,15 +366,24 @@ function _venue_get_events($tid) {
     
     // Upcoming events:
     if ($obj->field_event_date_value >= $now && $obj->field_concert_target_id == NULL) {
-      $nids[0][] = node_load($obj->nid);
+      $n = node_load($obj->nid);
+      if ($n->status == 1) {
+        $nids[0][] = $n;
+      }
     }
     // Former events:
     if ($obj->field_event_date_value < $now && $obj->field_concert_target_id == NULL && $reportage == FALSE) {
-      $nids[1][] = node_load($obj->nid);
+      $n = node_load($obj->nid);
+      if ($n->status == 1) {
+        $nids[1][] = $n;
+      }
     }
     // Reviewed events:
     if (is_numeric($obj->field_concert_target_id) || $reportage != FALSE) {
-      $nids[2][] = node_load($obj->nid);
+      $n = node_load($obj->nid);
+      if ($n->status == 1) {
+        $nids[2][] = $n;
+      }
     }
   }
   return $nids;
