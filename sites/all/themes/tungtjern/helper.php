@@ -335,6 +335,7 @@ function _get_artist_concerts($artist_nid) {
       'node' => $node,
       'artists' => $artist_string,
       'venue' => (isset($node->field_venue[LANGUAGE_NONE])) ? _get_venue_name($node->field_venue[LANGUAGE_NONE][0]['tid']) : FALSE,
+      'cancelled' => $node->field_cancelled[LANGUAGE_NONE][0]['value'],
       'review' => $review,
       'date' => $node->field_event_date[LANGUAGE_NONE][0]['value'],
       'endDate' => $node->field_event_date[LANGUAGE_NONE][0]['value2'],

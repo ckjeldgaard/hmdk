@@ -105,16 +105,19 @@
   </thead>
   <tbody class="content">
   <?php foreach ($node->concerts as $c) : ?>
-    <tr itemprop="event" itemscope itemtype="http://schema.org/Event">
-      <td scope="row" data-label="Dato">
+    <tr<?php if ($c['cancelled']): ?> class="cancelled"<?php endif; ?> itemprop="event" itemscope itemtype="http://schema.org/Event">
+      <td scope="row" data-label="Dato" class="event-date">
         <time datetime="<?php print date('Y-m-d', $c['date']); ?>" itemprop="startDate"><?php print date('d-m-Y', $c['date']); ?></time>
         <?php if ($c['date'] != $c['endDate']) : ?>
         - <time datetime="<?php print date('Y-m-d', $c['endDate']); ?>" itemprop="endDate"><?php print date('d-m-Y', $c['endDate']); ?></time>
         <?php endif ; ?>
       </td>
-      <td itemprop="name" data-label="Koncert"><?php print $c['artists']; ?></td>
+      <td itemprop="name" data-label="Koncert" class="event-name">
+        <span class="artists"><?php print $c['artists']; ?></span>
+        <?php if ($c['cancelled']): ?> <span class="cancelled-concert"><?php print t('Cancelled'); ?></span><?php endif; ?>
+      </td>
       <?php if (isset($c['venue'])) : ?>
-      <td itemprop="location" data-label="Sted" itemscope itemtype="http://schema.org/Place">
+      <td itemprop="location" data-label="Sted" itemscope itemtype="http://schema.org/Place" class="event-venue">
         <?php if (isset($c['node']->field_venue[LANGUAGE_NONE])): ?>
         <a href="<?php print url('taxonomy/term/' . $c['node']->field_venue[LANGUAGE_NONE][0]['tid']); ?>" itemprop="url"><?php print $c['venue']; ?></a>
         <?php elseif (isset($c['node']->field_venue_text[LANGUAGE_NONE])): ?>
