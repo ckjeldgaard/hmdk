@@ -16,7 +16,7 @@ function tungtjern_preprocess_user_profile(&$variables) {
   }
   
   $variables['user_reviews'] = $author_reviews;
-  $variables['user_avg_rating'] = round($rating_count / count($author_reviews), 1);
+  $variables['user_avg_rating'] = (count($author_reviews) > 0) ? round($rating_count / count($author_reviews), 1) : 0;
   $variables['user_news'] = _get_news_by_author($uid);
   $variables['user_interviews'] = _get_interviews_by_author($uid);
   $variables['user_concerts'] = _get_live_reviews_by_author($uid);
