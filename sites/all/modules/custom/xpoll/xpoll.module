@@ -73,8 +73,8 @@ function xpoll_form_validate($form, &$form_state) {
   }
   
   // Check if user has already voted:
-  $sql = "SELECT COUNT(email) from xpoll_answers WHERE email = :email";
-  $num = db_query($sql, array(':email' => $form_state['values']['email']))->fetchField();
+  $sql = "SELECT COUNT(email) from xpoll_answers WHERE email = :email AND poll_nid = :poll_nid";
+  $num = db_query($sql, array(':email' => $form_state['values']['email'], ':poll_nid' => arg(1)))->fetchField();
   if ($num > 0) {
     form_set_error('email', t('You have already voted in this poll.'));
   }
