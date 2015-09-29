@@ -7,7 +7,7 @@
 function tungtjern_preprocess_user_profile(&$variables) {
   global $user;
   
-  $uid = $variables['user_profile']['field_address']['#object']->uid;
+  $uid = $variables['elements']['#account']->uid;
 
   $author_reviews = _get_reviews_by_author($uid);
   $rating_count = 0;

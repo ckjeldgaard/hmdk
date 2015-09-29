@@ -33,7 +33,7 @@
         <td>Sidste besøg</td>
         <td><?php print formatted_date($elements['#account']->login); ?></td>
       </tr>
-      <?php if (isset($variables['address'])) : ?>
+      <?php if (isset($variables['user_profile']['field_address']['#object'])) : ?>
       <tr>
         <td>Adresse</td>
         <td>
