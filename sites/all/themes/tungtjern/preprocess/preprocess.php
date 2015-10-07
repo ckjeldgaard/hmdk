@@ -146,7 +146,10 @@ function _preprocess_review(&$node) {
     }
   }
   
-  if (isset($release->field_label[LANGUAGE_NONE][0]['tid'])) {
+  // Exclude N/A, [bandet selv]:
+  $excluded_labels = array(1267, 1341);
+  
+  if (isset($release->field_label[LANGUAGE_NONE][0]['tid']) && !in_array($release->field_label[LANGUAGE_NONE][0]['tid'], $excluded_labels)) {
     $label_term = taxonomy_term_load($release->field_label[LANGUAGE_NONE][0]['tid']);
     $node->label = $label_term;
   } else {

@@ -11,7 +11,7 @@
     <p class="post-meta">
       <?php print _get_type($node->type); ?>
       <span class="author">
-      <i class="fa fa-user"></i> Anmeldt den <meta itemprop="datePublished" content="<?php print date('Y-m-d', $node->published_at); ?>"><?php print formatted_date($node->published_at); ?>
+      <i class="fa fa-user"></i> Anmeldt <meta itemprop="datePublished" content="<?php print date('Y-m-d', $node->published_at); ?>"><?php print formatted_date($node->published_at); ?>
       af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid, array('attributes' => array('itemprop' => 'author'))) : t('Anonymous'); ?>
       </span>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
@@ -38,15 +38,17 @@
         <p class="classic"><i class="fa fa-star"></i> <?php print t('Classic'); ?></p>
       <?php endif; ?>
       <p>
-        <?php if ($node->label) : ?>
-        <span itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-          <a href="<?php print url('taxonomy/term/' . $node->label->tid); ?>" itemprop="url"><?php print $node->label->name; ?></a>
-        </span>
+        <?php if ($node->label || $node->distributor) : ?>
+          <?php if ($node->label) : ?>
+          <span itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+            <a href="<?php print url('taxonomy/term/' . $node->label->tid); ?>" itemprop="url"><?php print $node->label->name; ?></a>
+          </span>
+          <?php endif; ?>
+          <?php if ($node->distributor) : ?>
+            / <?php print $node->distributor->name; ?>
+          <?php endif; ?>
+          ·
         <?php endif; ?>
-        <?php if ($node->distributor) : ?>
-          / <?php print $node->distributor->name; ?>
-        <?php endif; ?>
-        ·
         <?php if ($node->release->field_release_date[LANGUAGE_NONE][0]['value'] < time()) : ?>
           <?php print t('Released'); ?>
         <?php else: ?>
@@ -85,8 +87,9 @@
 <?php if (isset($node->body[LANGUAGE_NONE][0]) && strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
   <p class="summary"><?php print $node->body[LANGUAGE_NONE][0]['summary']; ?></p>
 <?php endif; ?>
+
 <?php if (isset($node->body[LANGUAGE_NONE][0])) : ?>
-  <?php print $node->body[LANGUAGE_NONE][0]['value']; ?>
+  <?php print _entity_embed_render_placeholders($node->body[LANGUAGE_NONE][0]['value']); ?>
 <?php endif; ?>
 </div>
 
