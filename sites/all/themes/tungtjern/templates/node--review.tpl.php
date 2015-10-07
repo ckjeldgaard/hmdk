@@ -89,7 +89,7 @@
 <?php endif; ?>
 
 <?php if (isset($node->body[LANGUAGE_NONE][0])) : ?>
-  <?php print _entity_embed_render_placeholders($node->body[LANGUAGE_NONE][0]['value']); ?>
+  <?php print $node->body[LANGUAGE_NONE][0]['value']; ?>
 <?php endif; ?>
 </div>
 
