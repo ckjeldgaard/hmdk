@@ -31,8 +31,21 @@ function xpoll_form($form, &$form_state, $questions, $closed, $type) {
     $question = field_collection_item_load($questions[LANGUAGE_NONE][$i]['value']);
     
     $answer_options = array();
+	$i = 0;
     foreach ($question->field_poll_option[LANGUAGE_NONE] as $option) {
-      $answer_options[$option['safe_value']] = $option['safe_value'];
+	  $option_value = $option['safe_value'];
+	  if (isset($question->field_poll_option_link) && $question->field_poll_option_link[LANGUAGE_NONE][$i]) {
+		$option_value.= " · " . l(
+		  "Link <i class=\"fa fa-arrow-right\"></i>",
+		  $question->field_poll_option_link[LANGUAGE_NONE][$i]['url'],
+		  array(
+			'html' => TRUE
+		  )
+		); 
+	  }
+	  
+      $answer_options[$option['safe_value']] = $option_value;
+	  $i++;
     }
   
     $form['poll_question_' . $question->item_id] = array(
