@@ -13,7 +13,7 @@ function xpoll_preprocess_node(&$variables) {
     $closed = $node->field_closed[LANGUAGE_NONE][0]['value'];
 	$type = $node->field_multiple_choice[LANGUAGE_NONE][0]['value'] ? 'checkboxes' : 'radios';
 	
-    $form = drupal_get_form('xpoll_form', $node->field_poll_questions, $closed, $type);
+    $form = drupal_get_form('xpoll_form', $node->field_poll_questions, $closed, $type, $node);
     $node->poll_form = $form;
     
     $node->warning = ($closed) ? t('This poll is closed for voting.') : FALSE;
@@ -23,7 +23,7 @@ function xpoll_preprocess_node(&$variables) {
 /**
  * Defines the contest form with questions and answers in radio buttons.
  */
-function xpoll_form($form, &$form_state, $questions, $closed, $type) {
+function xpoll_form($form, &$form_state, $questions, $closed, $type, $node) {
   $form = array();
   $form['#attributes'] = array('id' => array('poll-form'));
   
@@ -35,13 +35,13 @@ function xpoll_form($form, &$form_state, $questions, $closed, $type) {
     foreach ($question->field_poll_option[LANGUAGE_NONE] as $option) {
 	  $option_value = $option['safe_value'];
 	  if (isset($question->field_poll_option_link) && $question->field_poll_option_link[LANGUAGE_NONE][$i]) {
-		$option_value.= " · " . l(
-		  "Link <i class=\"fa fa-arrow-right\"></i>",
+		$option_value.= " · (" . l(
+		  (isset($node->field_link_text[LANGUAGE_NONE][0]['value'])) ? $node->field_link_text[LANGUAGE_NONE][0]['value'] : "Link",
 		  $question->field_poll_option_link[LANGUAGE_NONE][$i]['url'],
 		  array(
 			'html' => TRUE
 		  )
-		); 
+		) . ")"; 
 	  }
 	  
       $answer_options[$option['safe_value']] = $option_value;
