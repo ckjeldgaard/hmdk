@@ -29,15 +29,15 @@ function xpoll_form($form, &$form_state, $questions, $closed, $type, $node) {
   
   for ($i = 0; $i < count($questions[LANGUAGE_NONE]); $i++) {
     $question = field_collection_item_load($questions[LANGUAGE_NONE][$i]['value']);
-    
+	
     $answer_options = array();
-	$i = 0;
+	$j = 0;
     foreach ($question->field_poll_option[LANGUAGE_NONE] as $option) {
 	  $option_value = $option['safe_value'];
-	  if (isset($question->field_poll_option_link) && $question->field_poll_option_link[LANGUAGE_NONE][$i]) {
+	  if (isset($question->field_poll_option_link) && $question->field_poll_option_link[LANGUAGE_NONE][$j]) {
 		$option_value.= " · (" . l(
 		  (isset($node->field_link_text[LANGUAGE_NONE][0]['value'])) ? $node->field_link_text[LANGUAGE_NONE][0]['value'] : "Link",
-		  $question->field_poll_option_link[LANGUAGE_NONE][$i]['url'],
+		  $question->field_poll_option_link[LANGUAGE_NONE][$j]['url'],
 		  array(
 			'html' => TRUE
 		  )
@@ -45,9 +45,9 @@ function xpoll_form($form, &$form_state, $questions, $closed, $type, $node) {
 	  }
 	  
       $answer_options[$option['safe_value']] = $option_value;
-	  $i++;
+	  $j++;
     }
-  
+
     $form['poll_question_' . $question->item_id] = array(
       '#type' => $type,
       '#title' => check_plain($question->field_question[LANGUAGE_NONE][0]['value']),

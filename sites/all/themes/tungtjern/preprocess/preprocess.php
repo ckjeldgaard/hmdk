@@ -244,6 +244,15 @@ function _preprocess_review(&$node) {
 }
 
 /**
+ * Preprocess poll node.
+ */
+function _preprocess_poll(&$node) {
+  if ($node->status == 0) {
+    drupal_set_message(t('The poll %poll is not published.', array('%poll' => $node->title)), 'warning');
+  }
+}
+
+/**
  * Preprocess concert review node.
  */
 function _preprocess_concert_review(&$node) {
