@@ -20,6 +20,7 @@ function workflow_menu() {
  * Unpromote nodes from frontpage that are no longer in the top on every cron run.
  */
 function workflow_cron() {
+
   // Build array of current frontpage item node ID's:
   $front = views_get_view_result('frontpage_mosaic');
   $current_frontpage_nids = array();
@@ -28,13 +29,22 @@ function workflow_cron() {
   }
   
   // Unpromote every node not in current frontpage
-  $num_updated = db_update('node')
+  $upd = db_update('node')
     ->fields(array(
       'promote' => 0,
     ))
     ->condition('promote', 1)
-    ->condition('nid', $current_frontpage_nids, 'NOT IN')
-    ->execute();
+    ->condition('nid', $current_frontpage_nids, 'NOT IN');
+
+  $upd_rev = db_update('node_revision')
+    ->fields(array(
+      'promote' => 0,
+    ))
+    ->condition('promote', 1)
+    ->condition('nid', $current_frontpage_nids, 'NOT IN');
+
+  $num_updated = $upd->execute();
+  $num_rev_updated = $upd_rev->execute();
   
   if ($num_updated > 0) {
     watchdog('workflow', 'Unpromoted %num nodes from frontpage on cron run.', array('%num' => $num_updated), WATCHDOG_INFO, NULL);
