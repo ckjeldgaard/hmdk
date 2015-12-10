@@ -891,7 +891,8 @@ pre {
 #comment-form--2 .form-textarea,
 #comment-form--2 .form-text,
 #contact-site-form .form-textarea,
-#contact-site-form .form-text
+#contact-site-form .form-text,
+#xpoll-form .form-text
 {
   width: 100%;
 }
