@@ -606,6 +606,9 @@ function image_cache($style, $field) {
 
 function _get_type($node_type, $css = TRUE) {
   switch ($node_type) {
+    case 'blog':
+      $type = t('Blog post');
+      break;
     case 'news':
       $type = t('News item');
       break;

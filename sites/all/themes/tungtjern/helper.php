@@ -209,6 +209,29 @@ function _get_artist_news($artist_nid) {
 }
 
 /**
+ * Get blog post nodes tagged with a particular artist.
+ *
+ * @param int $artist_nid The artist node ID.
+ * @return array Returns an array of blog posts.
+ */
+function _get_artist_blog_posts($artist_nid) {
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid', 'title', 'created'));
+  $query->join('field_data_field_artists', 'a', 'a.entity_id = n.nid');
+  $query->condition('n.type', 'blog');
+  $query->condition('n.status', 1);
+  $query->condition('a.field_artists_target_id', $artist_nid);
+  $query->orderBy('n.created', 'DESC');
+
+  $rs = $query->execute();
+  $blogs = array();
+  foreach ($rs as $row) {
+    $blogs[] = $row;
+  }
+  return $blogs;
+}
+
+/**
  * Get interview nodes tagged with a particular artist.
  *
  * @param int $artist_nid The artist node ID.

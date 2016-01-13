@@ -151,3 +151,10 @@
   <?php $node_view = node_view($node, 'teaser'); print render($node_view); ?>
 <?php endforeach; ?>
 <?php endif; ?>
+
+<?php if (count($node->blog_posts) > 0) : ?>
+<h2>Blog-indlæg</h2>
+<?php foreach ($node->blog_posts as $node) : ?>
+  <?php $node_view = node_view($node, 'teaser'); print render($node_view); ?>
+<?php endforeach; ?>
+<?php endif; ?>

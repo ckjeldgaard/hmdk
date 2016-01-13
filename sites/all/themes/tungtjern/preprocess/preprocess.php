@@ -466,6 +466,12 @@ function _preprocess_artist(&$node) {
   $node->interviews = _get_artist_interview($node->nid);
   $node->reports = _get_artist_reports($node->nid);
   
+  $blogs = array();
+  foreach (_get_artist_blog_posts($node->nid) as $b) {
+    $blogs[] = node_load($b->nid);
+  }
+  $node->blog_posts = $blogs;
+  
   $genres = FALSE;
   if (isset($node->field_artist_genres[LANGUAGE_NONE])) {
     $g = array();
