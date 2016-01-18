@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function embedded_videos_schema() {
+  $schema['embedded_videos'] = array(
+    'description' => 'Holding Youtube embedded videos',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary identifier',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'Video title',
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => TRUE,
+      ),
+      'video' => array(
+        'description' => 'YouTube embed code',
+        'type' => 'varchar',
+        'length' => '20',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+}

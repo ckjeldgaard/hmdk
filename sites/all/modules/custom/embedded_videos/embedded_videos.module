@@ -1,0 +1,154 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function embedded_videos_menu() {
+  $items['admin/config/system/embedded_videos'] = array(
+    'title' => 'Embedded videos settings',
+    'description' => 'Manage the embedded videos',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_embedded_videos_form'),
+    'access arguments' => array('administer embedded videos settings'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function embedded_videos_permission() {
+  return array(
+    'administer embedded videos settings' => array(
+      'title' => t('Administer embedded videos settings'),
+    ),
+  );
+}
+
+function _num_max_videos() {
+  $NUM_VIDEOS = 10;
+  return $NUM_VIDEOS;
+}
+
+/**
+ * @return array Returns an array of stored videos.
+ */
+function get_videos() {
+  $query = db_select('embedded_videos', 'v');
+  $query->fields('v');
+  $result = $query->execute();
+  
+  $videos = array();
+  foreach ($result as $row) {
+    $videos[] = $row;
+  }
+  return $videos;
+}
+
+function _embedded_videos_form() {
+
+  $form['description'] = array(
+    '#markup' => '<div>Embed-koder til videoer fra YouTube. Disse er typisk en tekststreng på 10 bogstaver, og står normalt vist i linket til videoen efter "v=" eller efter "embed/". Benyttes til at indlejre musikvideoer i sidebaren. Benyt kun officielle YouTube-videoer fra band/label.</div>',
+  );
+
+  $videos = get_videos();
+
+  for ($i = 0; $i < _num_max_videos(); $i++) {
+    $n = $i+1;
+    $form['vid_' . $i] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Video #' . $n),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $form['vid_' . $i]['title_' . $i] = array(
+      '#type' => 'textfield',
+      '#title' => t('Video title #' . $n),
+      '#prefix' => '<div class="col1">',
+      '#suffix' => '</div>'
+    );
+    $form['vid_' . $i]['video_' . $i] = array(
+      '#type' => 'textfield',
+      '#title' => t('YouTue embed code #' . $n),
+      '#prefix' => '<div class="col2">',
+      '#suffix' => '</div>'
+    );
+    if (array_key_exists($i, $videos)) {
+      $form['vid_' . $i]['title_' . $i]['#default_value'] = $videos[$i]->title;
+      $form['vid_' . $i]['video_' . $i]['#default_value'] = $videos[$i]->video;
+      $form['vid_' . $i]['#collapsed'] = FALSE;
+    }
+  }
+    
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+
+function _embedded_videos_form_submit($form, &$form_state) {
+
+  db_query("TRUNCATE embedded_videos");
+  
+  for ($i = 0; $i < _num_max_videos(); $i++) {
+    $title = $form_state['values']['title_' . $i];
+    $video = $form_state['values']['video_' . $i];
+    if (strlen($video) > 0) {
+        $nid = db_insert('embedded_videos')
+            ->fields(array(
+              'title' => $title,
+              'video' => $video,
+            ))
+            ->execute();
+    }
+  }
+
+  drupal_set_message(t('Embedded videos successfully saved.'));
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function embedded_videos_block_info() {
+  $blocks['block-embedded-videos'] = array(
+    'info' => t('Embedded videos'),
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function embedded_videos_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-embedded-videos':
+      $block['subject'] = t('Instagram feed');
+      $block['content'] = theme('block-embedded-videos', embedded_videos_contents());
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function embedded_videos_theme() {
+  return array(
+    'block-embedded-videos' => array(
+      'template' => 'block--embedded-videos',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'embedded_videos'),
+    ),
+  );
+}
+
+function embedded_videos_contents() {
+  return array(
+    'items' => get_videos(),
+  );
+}

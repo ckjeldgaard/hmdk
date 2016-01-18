@@ -1,0 +1,9 @@
+name = Embedded videos
+description = Provides a block displaying videos from YouTube.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+configure = admin/config/system/embedded_videos
+
+files[] = embedded_videos.install
+files[] = embedded_videos.module

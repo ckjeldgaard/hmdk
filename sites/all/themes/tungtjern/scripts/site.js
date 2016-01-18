@@ -75,6 +75,16 @@ $('.query').on('typeahead:selected', function(event, selection) {
     'responsive' : true,
     'nexttext' : '»',
     'prevtext' : '«',
+    'showmarkers' : false,
+    'automatic' : false
+  });
+  
+  $('#video-slide').bjqs({
+    'height' : 172,
+    'width' : 306,
+    'responsive' : true,
+    'nexttext' : '»',
+    'prevtext' : '«',
     'showmarkers' : false
   });
   
