@@ -15,6 +15,7 @@ scripts[] = scripts/jquery.pajinate.min.js
 scripts[] = scripts/lightbox.min.js
 scripts[] = scripts/typeahead.bundle.js
 scripts[] = scripts/site.js
+scripts[] = sites/all/libraries/*
 
 blacklist[stylesheets][] = "modules/system/*"
 blacklist[stylesheets][] = "modules/comment/*"
