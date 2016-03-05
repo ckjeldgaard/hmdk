@@ -1,9 +1,5 @@
 <article>
   
-<pre>
-  <?php print_r($node); ?>
-</pre>
-  
 <div class="pure-g byline">
   <div class="pure-u-2-3 pure-u-md-4-5">
     <p class="post-meta">
