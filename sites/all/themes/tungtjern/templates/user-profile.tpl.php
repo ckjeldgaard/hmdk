@@ -1,7 +1,7 @@
 <div class="user-profile-header">
 <h1><?php print $elements['#account']->name; ?></h1>
-<?php if ($role = _user_role($elements['#account']->uid)) : ?>
-  <p class="role"><?php print $role; ?></p>
+<?php if ($variables['user_role_name'] != FALSE) : ?>
+  <p class="role"><?php print $variables['user_role_name']; ?></p>
 <?php endif; ?>
 </div>
 <div class="pure-g">

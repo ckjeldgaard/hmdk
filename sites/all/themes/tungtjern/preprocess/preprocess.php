@@ -21,6 +21,7 @@ function tungtjern_preprocess_user_profile(&$variables) {
   $variables['user_interviews'] = _get_interviews_by_author($uid);
   $variables['user_concerts'] = _get_live_reviews_by_author($uid);
   $variables['user_comments'] = _get_user_comments($uid);
+  $variables['user_role_name'] = _user_role($uid);
   
   // Compute age:
   if (isset($variables['user_profile']['field_address']['#object']->field_birthday[LANGUAGE_NONE][0]['value']) && $variables['user_profile']['field_address']['#object']->field_birthday[LANGUAGE_NONE][0]['value'] > 0) {

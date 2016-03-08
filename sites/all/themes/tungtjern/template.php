@@ -707,6 +707,10 @@ function _user_role($uid) {
   if (isset($obj->rid)) {
     return $roles[$obj->rid];
   }
+  if (_get_num_reviews_by_author($uid) > 0) {
+    return t("Former reviewer");
+  }
+  
   return FALSE;
 }
 

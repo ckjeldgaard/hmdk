@@ -32,6 +32,17 @@ function _get_reviews_by_author($uid) {
   return $reviews;
 }
 
+function _get_num_reviews_by_author($uid) {
+  if ($uid == 0) {
+    return 0;
+  }
+  $sql = "SELECT COUNT(*) AS cnt ";
+  $sql .= "FROM node n ";
+  $sql .= "WHERE (n.type = :type) AND (n.status = :status) AND (n.uid = :uid)";
+  return db_query($sql, array(':type' => 'review', ':status' => 1, ':uid' => $uid))->fetchField();
+}
+
+
 /**
  * Get recent comments written by a particular author.
  *
