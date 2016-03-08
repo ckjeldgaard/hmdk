@@ -69,8 +69,8 @@ function tungtjern_form_alter(&$form, &$form_state, $form_id) {
 function tungtjern_preprocess_html(&$variables) {
   global $base_root;
   
-  //drupal_add_css('http://yui.yahooapis.com/pure/0.5.0/pure-min.css', array('type' => 'external'));
-  //drupal_add_css('http://yui.yahooapis.com/pure/0.5.0/grids-responsive-min.css', array('type' => 'external'));
+  $font_awesome_path = drupal_get_path('theme', 'tungtjern') . "/styles/font-awesome.min.css";
+  drupal_add_css($font_awesome_path, array('group' => CSS_THEME, 'type' => 'file', 'preprocess' => FALSE));
   
   if (current_path() == 'nyheder') {
     $element = array(

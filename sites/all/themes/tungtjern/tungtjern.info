@@ -6,7 +6,6 @@ engine = phptemplate
 
 stylesheets[all][] = styles/pure-min.css
 stylesheets[all][] = styles/grids-responsive-min.css
-stylesheets[all][] = styles/font-awesome.min.css
 stylesheets[all][] = styles/lightbox.css
 stylesheets[all][] = styles/style.css
 
