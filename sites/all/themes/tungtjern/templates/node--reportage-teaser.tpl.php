@@ -14,7 +14,7 @@
       <p class="post-meta">
         <?php print _get_type($node->type); ?>
         <span class="author">
-          <i class="fa fa-user"></i> Publiceret den <?php print formatted_date($node->published_at); ?> <?php if($node->field_display_author[LANGUAGE_NONE][0]['value'] == 1): ?>af <?php print l($node->name, 'user/' . $node->uid); ?><?php endif; ?>
+          <i class="fa fa-user"></i> Publiseret den <?php print formatted_date($node->published_at); ?> <?php if($node->field_display_author[LANGUAGE_NONE][0]['value'] == 1): ?>af <?php print l($node->name, 'user/' . $node->uid); ?><?php endif; ?>
         </span>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
         <span class="comments"><a href="<?php print url('node/' . $node->nid); ?>#comments"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></span>
