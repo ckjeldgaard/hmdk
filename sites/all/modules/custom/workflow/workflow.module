@@ -70,6 +70,9 @@ function workflow_block_info() {
   $blocks['block-editor-messages'] = array(
     'info' => t('Editor messages'),
   );
+  $blocks['block-accreditations'] = array(
+    'info' => t('Accreditations'),
+  );
   return $blocks;
 }
 
@@ -98,6 +101,10 @@ function workflow_block_view($delta) {
     case 'block-editor-messages':
       $block['subject'] = t('Editor messages');
       $block['content'] = theme('block-editor-messages', array('content' => _block_editor_messages()));
+      break;
+    case 'block-accreditations':
+      $block['subject'] = t('Concert accreditations');
+      $block['content'] = theme('block-accreditations', array('content' => _block_accreditations()));
       break;
   }
   return $block;
@@ -131,6 +138,11 @@ function workflow_theme() {
     ),
     'block-editor-messages' => array(
       'template' => 'block--block-editor-messages',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-accreditations' => array(
+      'template' => 'block--block-accreditations',
       'variables' => array('form' => NULL),
       'path' => drupal_get_path('module', 'workflow'),
     ),
@@ -469,6 +481,57 @@ function _block_editor_messages() {
     'can_edit' => (user_access('edit editor messages')) ? TRUE : FALSE,
     'form' => $form,
   );
+}
+
+function _block_accreditations() {
+  $days = 4;
+  $limit = 86400 * $days;
+  
+  $header = array(
+    t('Concert'),
+    t('Reviewers'),
+    t('Status'),
+    t('Photographer'),
+    t('Actions'),
+  );
+  
+  $sql = "SELECT n.nid, n.title, r.field_reviewers_target_id AS reviewer_uid, u.name AS reviewer_name, ";
+  $sql.= "s.field_concert_status_value AS status, ";
+  $sql.= "p.field_photographer_value AS photographer, ";
+  $sql.= "pn.field_photographer_name_value AS photographer_name ";
+  $sql.= "FROM node n ";
+  $sql.= "LEFT JOIN field_data_field_concert c ON c.field_concert_target_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_reviewers r ON r.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_concert_status s ON s.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_photographer p ON p.entity_id = n.nid ";
+  $sql.= "LEFT JOIN field_data_field_photographer_name pn ON pn.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_event_date e ON e.entity_id = n.nid ";
+  $sql.= "INNER JOIN users u ON u.uid = r.field_reviewers_target_id ";
+  $sql.= "WHERE n.status = :status AND n.type = :type AND c.field_concert_target_id IS NULL AND e.field_event_date_value > (UNIX_TIMESTAMP() - " . $limit . ") ";
+  $sql.= "ORDER BY e.field_event_date_value ASC";
+  
+  $rs = db_query($sql, array(':status' => 1, ':type' => 'concert'));
+
+  $concerts = array();
+  foreach ($rs as $row) {
+    $concerts[$row->nid] = array(
+      'concert' => '<b>' . $row->title . '</b>',
+      'reviewer_uid' => $concerts[$row->nid]['reviewer_uid'],
+      'status' => $row->status == 1 ? t('Approved') : t('Pending'),
+      'photographer' => $row->photographer == 1 ? t('Yes') : '',
+      'actions' => l(t('edit'), 'node/' . $row->nid . '/edit'),
+    );
+    $concerts[$row->nid]['reviewer_uid'][] = l($row->reviewer_name, 'user/' . $row->reviewer_uid);
+    
+    if ($row->photographer == 1 && strlen($row->photographer_name) > 0) {
+      $concerts[$row->nid]['photographer'].= " (" . $row->photographer_name . ")";
+    }
+  }
+  foreach ($concerts as $nid => $concert) {
+    $concerts[$nid]['reviewer_uid'] = implode(", ", $concerts[$nid]['reviewer_uid']);
+  }
+  
+  return theme('table', array('header' => $header, 'rows' => $concerts ));
 }
 
 /**
