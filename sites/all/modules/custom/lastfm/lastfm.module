@@ -63,8 +63,8 @@ function _lastfm() {
       
       if (count($field_related_bands) > 0) {
         $node->field_related_bands = $field_related_bands;
-        print_r($node);
-        //node_save($node);
+        //print_r($node);
+        node_save($node);
       }
     }
   }
