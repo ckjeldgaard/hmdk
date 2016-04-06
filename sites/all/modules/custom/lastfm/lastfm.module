@@ -1,0 +1,102 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function lastfm_menu() {
+  $items['lastfm'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => '_lastfm',
+    'access arguments' => array('access content'),
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+function _lastfm() {
+  header('Content-Type: text/plain;charset=utf-8');
+  $apikey = "4b3207e16b62f1ce0e50e2d6d0e6b391";
+  $matches = 0;
+  
+  //$node = node_load(343);
+  //print_r($node);
+  
+  $sql = "SELECT n.nid, n.title ";
+  $sql.= "FROM node n ";
+  $sql.= "LEFT JOIN field_data_field_related_bands r ON r.entity_id = n.nid ";
+  $sql.= "WHERE n.type = :type AND n.status = :status AND r.entity_id IS NULL ";
+  //$sql.= "LIMIT 5";
+
+  $rs = db_query($sql, array(':status' => 1, ':type' => 'artist'));
+  //echo "Num artists: " . $rs->rowCount() . "\n\n";
+  foreach ($rs as $row) {
+    $url = "http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=" . $row->title . "&api_key=" . $apikey;
+    $contents = file_get_contents($url);
+    //$xml = simplexml_load_string($contents);
+    
+    $xml = new DOMDocument();
+    $xml->loadXML($contents);
+    
+    $similar_artist_nids = array();
+    $artists = $xml->getElementsByTagName("artist");
+    foreach( $artists as $artist ) {
+      $name = $artist->getElementsByTagName("name")->item(0)->nodeValue;
+      $nid = _get_artist_nid($name);
+      if ($nid != null && _has_reviews($nid)) {
+        $similar_artist_nids[] = $nid;
+      }
+    }
+
+    if (count($similar_artist_nids) > 0) {
+        
+      $node = node_load($row->nid);
+      
+      //usort($similar_artist_nids, "compare_by_reviews");
+      
+      $field_related_bands = array();
+      for ($i = 0; $i < 5; $i++) {
+        if (is_numeric($similar_artist_nids[$i])) {
+          $field_related_bands[LANGUAGE_NONE][]['target_id'] = $similar_artist_nids[$i];
+          $matches++;
+        }
+      }
+      
+      if (count($field_related_bands) > 0) {
+        $node->field_related_bands = $field_related_bands;
+        print_r($node);
+        //node_save($node);
+      }
+    }
+  }
+  
+  echo "Matches = " . $matches;
+  
+  return NULL;
+}
+
+function _get_artist_nid($artist_name) {
+  $sql = "SELECT nid FROM node WHERE title = :artist_name";
+  return db_query($sql, array(":artist_name" => $artist_name))->fetchField();
+}
+
+function _has_reviews($artist_nid) {
+  $sql = "SELECT COUNT(*) AS num ";
+  $sql.= "FROM node n ";
+  $sql.= "INNER JOIN field_data_field_release r ON r.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_artist a ON a.entity_id = r.field_release_target_id ";
+  $sql.= "WHERE n.type = :type AND n.status = :status AND a.field_artist_target_id = :nid";
+  
+  $num = db_query($sql, array(':status' => 1, ':type' => 'review', ':nid' => $artist_nid))->fetchField();
+  return ($num > 0) ? TRUE : FALSE;
+}
+
+function compare_by_reviews($nid_a, $nid_b)
+{
+    $a = _has_reviews($nid_a);
+    $b = _has_reviews($nid_b);
+    
+    if ($a == $b) {
+        return 0;
+    }
+    return ($a < $b) ? -1 : 1;
+}

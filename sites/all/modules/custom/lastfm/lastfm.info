@@ -1,0 +1,7 @@
+name = Last.fm
+description = Get similar artists from Last.fm API
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = lastfm.module
