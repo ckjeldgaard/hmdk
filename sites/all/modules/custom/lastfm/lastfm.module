@@ -37,10 +37,10 @@ function _lastfm() {
   $sql = "SELECT n.nid, n.title ";
   $sql.= "FROM node n ";
   $sql.= "LEFT JOIN field_data_field_related_bands r ON r.entity_id = n.nid ";
-  $sql.= "WHERE n.type = :type AND n.status = :status AND r.entity_id IS NULL ";
+  $sql.= "WHERE n.type = :type AND n.status = :status AND r.entity_id IS NULL AND n.nid > :maxnid ";
   //$sql.= "LIMIT 10";
 
-  $rs = db_query($sql, array(':status' => 1, ':type' => 'artist'));
+  $rs = db_query($sql, array(':status' => 1, ':type' => 'artist', ':maxnid' => 28000));
 
   foreach ($rs as $row) {
     $url = "http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=" . $row->title . "&api_key=" . $apikey;
