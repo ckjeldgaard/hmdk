@@ -15,7 +15,7 @@
 </div>
 <?php endif; ?>
 
-<?php if (isset($node->field_website_link[LANGUAGE_NONE][0]['url']) || $node->genres) : ?>
+<?php if (isset($node->field_website_link[LANGUAGE_NONE][0]['url']) || $node->genres || $node->related) : ?>
   <ul>
   <?php if (isset($node->field_website_link[LANGUAGE_NONE][0]['url'])) : ?>
     <li><?php print t('Homepage'); ?>: <?php print l($node->field_website_link[LANGUAGE_NONE][0]['display_url'], $node->field_website_link[LANGUAGE_NONE][0]['url'], array('attributes' => array('target' => '_blank'))); ?></li>
