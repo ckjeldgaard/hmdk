@@ -13,26 +13,38 @@ function lastfm_menu() {
   return $items;
 }
 
+function download_page($path){
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL,$path);
+	curl_setopt($ch, CURLOPT_FAILONERROR,1);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION,1);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+	curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+	$retValue = curl_exec($ch);			 
+	curl_close($ch);
+	return $retValue;
+}
+
 function _lastfm() {
+  # Enable Error Reporting and Display:
+  error_reporting(~0);
+  ini_set('display_errors', 1);
+
   header('Content-Type: text/plain;charset=utf-8');
   $apikey = "4b3207e16b62f1ce0e50e2d6d0e6b391";
   $matches = 0;
-  
-  //$node = node_load(343);
-  //print_r($node);
   
   $sql = "SELECT n.nid, n.title ";
   $sql.= "FROM node n ";
   $sql.= "LEFT JOIN field_data_field_related_bands r ON r.entity_id = n.nid ";
   $sql.= "WHERE n.type = :type AND n.status = :status AND r.entity_id IS NULL ";
-  //$sql.= "LIMIT 5";
+  //$sql.= "LIMIT 10";
 
   $rs = db_query($sql, array(':status' => 1, ':type' => 'artist'));
-  //echo "Num artists: " . $rs->rowCount() . "\n\n";
+
   foreach ($rs as $row) {
     $url = "http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=" . $row->title . "&api_key=" . $apikey;
-    $contents = file_get_contents($url);
-    //$xml = simplexml_load_string($contents);
+    $contents = download_page($url);
     
     $xml = new DOMDocument();
     $xml->loadXML($contents);
@@ -41,7 +53,9 @@ function _lastfm() {
     $artists = $xml->getElementsByTagName("artist");
     foreach( $artists as $artist ) {
       $name = $artist->getElementsByTagName("name")->item(0)->nodeValue;
+      
       $nid = _get_artist_nid($name);
+      
       if ($nid != null && _has_reviews($nid)) {
         $similar_artist_nids[] = $nid;
       }
@@ -63,7 +77,6 @@ function _lastfm() {
       
       if (count($field_related_bands) > 0) {
         $node->field_related_bands = $field_related_bands;
-        //print_r($node);
         node_save($node);
       }
     }
