@@ -5,7 +5,10 @@
   <?php print $node->upcoming_concert; ?>
 </div>
 <?php endif; ?>
-  
+
+
+<i class="fa fa-smile-o" aria-hidden="true" style="color:#2d2d2d; font-size:800px;"></i>
+
 <div class="pure-g byline">
   <div class="pure-u-2-3 pure-u-md-4-5">
     <p class="post-meta">
