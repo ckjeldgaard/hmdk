@@ -185,8 +185,7 @@ function xmlsitemap_generate_chunk(stdClass $sitemap, XMLSitemapWriter $writer, 
   while ($link = $links->fetchAssoc()) {
     $link['language'] = $link['language'] != LANGUAGE_NONE ? xmlsitemap_language_load($link['language']) : $url_options['language'];
     if ($url_options['alias']) {
-      $link['language'] = is_object($link['language']) ? $link['language']->language : $link['language'];
-      $link['loc'] = xmlsitemap_get_path_alias($link['loc'], $link['language']);
+      $link['loc'] = xmlsitemap_get_path_alias($link['loc'], $link['language']->language);
     }
     $link_options = array(
       'language' => $link['language'],
@@ -425,22 +424,8 @@ function xmlsitemap_batch_variable_set(array $variables) {
  */
 function xmlsitemap_rebuild_batch_clear(array $entities, $save_custom, &$context) {
   if (!empty($entities)) {
-    // Let other modules respond to the rebuild clearing.
-    module_invoke_all('xmlsitemap_rebuild_clear', $entities, $save_custom);
-
-    $query = db_delete('xmlsitemap');
-    $query->condition('type', $entities);
-
-    // If we want to save the custom data, make sure to exclude any links
-    // that are not using default inclusion or priority.
-    if ($save_custom) {
-      $query->condition('status_override', 0);
-      $query->condition('priority_override', 0);
-    }
-
-    $query->execute();
+    xmlsitemap_rebuild_clear($entities, $save_custom);
   }
-
   $context['message'] = t('Purging links.');
 }
 
@@ -534,4 +519,33 @@ function xmlsitemap_get_rebuildable_link_types() {
   }
 
   return $rebuild_types;
+}
+
+/**
+ * Clear all sitemap links for given entity types.
+ *
+ * @param array $types
+ *   An array of link types.
+ * @param bool $save_custom
+ *   A boolean if links with status or priority overridden should not be
+ *   removed (and hence overridden values not lost).
+ *
+ * @return int
+ *   The number of deleted links.
+ */
+function xmlsitemap_rebuild_clear(array $types, $save_custom) {
+  // Let other modules respond to the rebuild clearing.
+  module_invoke_all('xmlsitemap_rebuild_clear', $types, $save_custom);
+
+  $query = db_delete('xmlsitemap');
+  $query->condition('type', $types);
+
+  // If we want to save the custom data, make sure to exclude any links
+  // that are not using default inclusion or priority.
+  if ($save_custom) {
+    $query->condition('status_override', 0);
+    $query->condition('priority_override', 0);
+  }
+
+  return $query->execute();
 }
