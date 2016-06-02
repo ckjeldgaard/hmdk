@@ -544,7 +544,7 @@ function _block_accreditations() {
     $concerts[$row->nid] = array(
       'concert' => '<b>' . $row->title . '</b>',
       'reviewer_uid' => $concerts[$row->nid]['reviewer_uid'],
-      'status' => $row->status == 1 ? t('Approved') : t('Pending'),
+      'status' => _status($row->status),
       'photographer' => $row->photographer == 1 ? t('Yes') : '',
       'actions' => l(t('edit'), 'node/' . $row->nid . '/edit'),
     );
@@ -559,6 +559,16 @@ function _block_accreditations() {
   }
   
   return theme('table', array('header' => $header, 'rows' => $concerts ));
+}
+
+function _status($status) {
+  if ($status == -1) {
+    return '<span style="color:red;font-weight:bold;">' . t('Mail not sent') . '</span>';
+  } else if ($status == 0) {
+    return '<span style="color:#dadc0a;font-weight:bold;">' .t('Pending') . '</span>';
+  } else if ($status == 1) {
+    return '<span style="color:green;font-weight:bold;">' . t('Approved') . '</span>';
+  }
 }
 
 /**
