@@ -210,6 +210,7 @@ function _block_unreviewed_releases() {
 
   $header = array(
     array('data' => t('Name'), 'field' => 'title'),
+    array('data' => t('Priority'), 'field' => 'field_priority_value'),
     array('data' => t('Release date'), 'field' => 'field_release_date_value', 'sort' => 'desc'),
     t('Deadline'),
     array('data' => t('Artist genre')),
@@ -225,7 +226,9 @@ function _block_unreviewed_releases() {
     ->orderByHeader($header);
   $query->fields('n', array('nid', 'title'));
   $query->fields('d', array('field_release_date_value'));
+  $query->fields('p', array('field_priority_value'));
   $query->join('field_data_field_release_date', 'd', 'd.entity_id = n.nid');
+  $query->leftJoin('field_data_field_priority', 'p', 'p.entity_id = n.nid');
   $query->leftJoin('field_data_field_release', 'r', 'r.field_release_target_id = n.nid');
   $query->condition('n.status', 1);
   $query->condition('n.type', 'release');
@@ -238,6 +241,7 @@ function _block_unreviewed_releases() {
   foreach ($results as $row) {
     $rows[] = array(
       $row->title,
+      _priority($row->field_priority_value),
       format_date($row->field_release_date_value, 'displaydate_short'),
       _deadline($row->field_release_date_value),
       _get_artist_genre_by_release($row->nid),
@@ -263,6 +267,25 @@ function _block_unreviewed_releases() {
   );
 }
 
+function _priority($priority) {
+  $none = '(' . t('None') . ')';
+  $low = '<span style="color:green;font-weight:bold;">' . t('Low') . '</span>';
+  $medium = '<span style="color:#dadc0a;font-weight:bold;">' . t('Medium') . '</span>';
+  $high = '<span style="color:red;font-weight:bold;">' . t('High') . '</span>';
+  
+  if ($priority == NULL) {
+    return $none;
+  }
+  switch ($priority) {
+    case 0:
+      return $low;
+    case 1:
+      return $medium;
+    case 2:
+      return $high;
+  }
+}
+
 /**
  * Creates a sortable table displaying reviews currently in progress.
  */
@@ -273,6 +296,7 @@ function _block_reviews_in_progress() {
 
   $header = array(
     array('data' => t('Name'), 'field' => 'title'),
+    array('data' => t('Priority'), 'field' => 'field_priority_value'),
     array('data' => t('Release date'), 'field' => 'field_release_date_value'),
     t('Deadline'),
     array('data' => t('Author'), 'field' => 'name', 'sort' => 'asc'),
@@ -287,9 +311,11 @@ function _block_reviews_in_progress() {
     ->orderByHeader($header);
   $query->fields('n', array('nid', 'title', 'uid'));
   $query->fields('d', array('field_release_date_value'));
+  $query->fields('p', array('field_priority_value'));
   $query->fields('u', array('name'));
   $query->join('field_data_field_release', 'r', 'r.entity_id = n.nid');
   $query->join('field_data_field_release_date', 'd', 'd.entity_id = r.field_release_target_id');
+  $query->leftJoin('field_data_field_priority', 'p', 'p.entity_id = r.field_release_target_id');
   $query->join('users', 'u', 'n.uid = u.uid');
   $query->condition('n.status', 0);
   $query->condition('n.type', 'review');
@@ -301,6 +327,7 @@ function _block_reviews_in_progress() {
   foreach ($results as $row) {
     $rows[] = array(
       l($row->title, 'node/' . $row->nid),
+      _priority($row->field_priority_value),
       format_date($row->field_release_date_value, 'displaydate_short'),
       _deadline($row->field_release_date_value),
       $row->name,
