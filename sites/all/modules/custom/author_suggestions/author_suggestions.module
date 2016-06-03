@@ -1,0 +1,64 @@
+<?php
+
+function author_suggestions_form_node_form_alter(&$form, &$form_state, $form_id) {
+
+  if (isset($_GET['release_nid'])) {
+    $release_nid = $_GET['release_nid'];
+    if ($form_id == 'review_node_form' && arg(1) == 'add' && is_numeric($release_nid)) {
+      $node = node_load($release_nid);
+      if ($node->type == 'release') {
+        $artist_nid = $node->field_artist[LANGUAGE_NONE][0]['target_id'];
+        $genres = _genres($artist_nid);
+        if (count($genres) > 0) {
+          $suggestions = _author_suggestions($genres[0]);
+          if (count($suggestions) > 0) {
+            $suggestion_description = _build_suggestion_description($genres[0], $suggestions);
+            $form['author']['name']['#description'] = $suggestion_description;
+          }
+        }
+      }
+    }
+  }
+}
+
+function _genres($artist_nid) {
+  $artist_node = node_load($artist_nid);
+  $genres = array();
+  foreach ($artist_node->field_artist_genres[LANGUAGE_NONE] as $g) {
+    $genres[] = taxonomy_term_load($g['tid']);
+  }
+  return $genres;
+}
+
+function _author_suggestions($genre) {
+  $reviewer_rid = 4;
+  
+  $sql = "SELECT u.uid, u.name ";
+  $sql.= "FROM users u ";
+  $sql.= "INNER JOIN field_data_field_preferred_genres g ON u.uid = g.entity_id ";
+  $sql.= "INNER JOIN users_roles ur ON u.uid = ur.uid ";
+  $sql.= "WHERE g.field_preferred_genres_target_id = :genre_id AND ur.rid = :rid ";
+  $sql.= "ORDER BY u.name ";
+  
+  $rs = db_query($sql, array(':genre_id' => $genre->tid, ':rid' => $reviewer_rid));
+
+  $suggestions = array();
+  foreach ($rs as $row) {
+    $suggestions[] = array(
+      'uid' => $row->uid,
+      'name' => $row->name,
+    );
+  }
+  return $suggestions;
+}
+
+function _build_suggestion_description($genre, $suggestions) {
+  $desc = t('Reviewers that has !genre as preffered genre:', array('!genre' => $genre->name));
+  
+  $desc.= "<ul>";
+  foreach ($suggestions as $s) {
+    $desc.= "<li>" . l($s['name'], 'user/' . $s['uid']) . "</li>";
+  }
+  $desc.= "<ul>";
+  return $desc;
+}

@@ -1,0 +1,7 @@
+name = Author suggestions
+description = Suggests a list of authors for a review based on their preferred genres.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = author_suggestions.module
