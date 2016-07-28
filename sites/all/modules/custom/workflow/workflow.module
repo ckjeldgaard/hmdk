@@ -511,53 +511,64 @@ function _block_editor_messages() {
 }
 
 function _block_accreditations() {
+  $element = 4; // Integer to distinguish between multiple pagers on same page.
+  
   $days = 4;
   $limit = 86400 * $days;
+  $date_limit = time() - $limit; 
   
   $header = array(
-    t('Concert'),
+    array('data' => t('Concert'), 'field' => 'title'),
     t('Venue'),
-    t('Date'),
+    array('data' => t('Date'), 'field' => 'field_event_date_value', 'sort' => 'asc'),
     t('Reviewers'),
-    t('Status'),
+    array('data' => t('Status'), 'field' => 'field_concert_status_value'),
     t('Photographer'),
     t('Actions'),
   );
-  
-  $sql = "SELECT n.nid, n.title, r.field_reviewers_target_id AS reviewer_uid, u.name AS reviewer_name, ";
-  $sql.= "s.field_concert_status_value AS status, ";
-  $sql.= "p.field_photographer_value AS photographer, ";
-  $sql.= "pn.field_photographer_name_value AS photographer_name, ";
-  $sql.= "f.field_is_festival_value AS is_festival, ";
-  $sql.= "v.field_venue_tid AS venue_tid, ";
-  $sql.= "d.field_event_date_value AS start_date, ";
-  $sql.= "d.field_event_date_value2 AS end_date ";
-  $sql.= "FROM node n ";
-  $sql.= "LEFT JOIN field_data_field_concert c ON c.field_concert_target_id = n.nid ";
-  $sql.= "INNER JOIN field_data_field_reviewers r ON r.entity_id = n.nid ";
-  $sql.= "INNER JOIN field_data_field_concert_status s ON s.entity_id = n.nid ";
-  $sql.= "INNER JOIN field_data_field_photographer p ON p.entity_id = n.nid ";
-  $sql.= "LEFT JOIN field_data_field_photographer_name pn ON pn.entity_id = n.nid ";
-  $sql.= "INNER JOIN field_data_field_event_date e ON e.entity_id = n.nid ";
-  $sql.= "INNER JOIN users u ON u.uid = r.field_reviewers_target_id ";
-  $sql.= "INNER JOIN field_data_field_is_festival f ON f.entity_id = n.nid ";
-  $sql.= "INNER JOIN field_data_field_venue v ON v.entity_id = n.nid ";
-  $sql.= "INNER JOIN field_data_field_event_date d ON d.entity_id = n.nid ";
-  $sql.= "WHERE n.status = :status AND n.type = :type AND c.field_concert_target_id IS NULL AND e.field_event_date_value > (UNIX_TIMESTAMP() - " . $limit . ") ";
-  $sql.= "ORDER BY e.field_event_date_value ASC";
-  
-  $rs = db_query($sql, array(':status' => 1, ':type' => 'concert'));
 
+  $query = db_select('node', 'n')
+    ->extend('PagerDefault')->element($element)
+    ->limit(15)
+    ->extend('TableSort')
+    ->orderByHeader($header);
+  $query->fields('n', array('nid', 'title'));
+  $query->fields('r', array('field_reviewers_target_id'));
+  $query->fields('u', array('name'));
+  $query->fields('s', array('field_concert_status_value'));
+  $query->fields('p', array('field_photographer_value'));
+  $query->fields('pn', array('field_photographer_name_value'));
+  $query->fields('f', array('field_is_festival_value'));
+  $query->fields('v', array('field_venue_tid'));
+  $query->fields('d', array('field_event_date_value', 'field_event_date_value2'));
+  $query->leftJoin('field_data_field_concert', 'c', 'c.field_concert_target_id = n.nid');
+  $query->join('field_data_field_reviewers', 'r', 'r.entity_id = n.nid');
+  $query->join('field_data_field_concert_status', 's', 's.entity_id = n.nid');
+  $query->join('field_data_field_photographer', 'p', 'p.entity_id = n.nid');
+  $query->leftJoin('field_data_field_photographer_name', 'pn', 'pn.entity_id = n.nid');
+  $query->join('field_data_field_event_date', 'e', 'e.entity_id = n.nid');
+  $query->join('users', 'u', 'u.uid = r.field_reviewers_target_id');
+  $query->join('field_data_field_is_festival', 'f', 'f.entity_id = n.nid');
+  $query->join('field_data_field_venue', 'v', 'v.entity_id = n.nid');
+  $query->join('field_data_field_event_date', 'd', 'd.entity_id = n.nid');
+  $query->condition('n.status', 1);
+  $query->condition('n.type', 'concert');
+  $query->isNull('c.field_concert_target_id');
+  $query->condition('e.field_event_date_value', $date_limit, '>');
+  $query->orderBy('e.field_event_date_value');
+  
+  $results = $query->execute();
+  
   $concerts = array();
-  foreach ($rs as $row) {
+  foreach ($results as $row) {
     
     $title_parts = explode(" - ", $row->title);
-    $venue = taxonomy_term_load($row->venue_tid);
+    $venue = taxonomy_term_load($row->field_venue_tid);
     $title = "<strong>" . $title_parts[0] . "</strong>";
     
-    $date = format_date($row->start_date, 'displaydate_short');
-    if ($row->is_festival == 1 && $row->end_date != $row->start_date) {
-      $date .= " - " .  format_date($row->end_date, 'displaydate_short');
+    $date = format_date($row->field_event_date_value, 'displaydate_short');
+    if ($row->field_is_festival_value == 1 && $row->field_event_date_value2 != $row->field_event_date_value) {
+      $date .= " - " .  format_date($row->field_event_date_value2, 'displaydate_short');
     }
     
     $concerts[$row->nid] = array(
@@ -565,21 +576,31 @@ function _block_accreditations() {
       'venue' => $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'],
       'date' => $date,
       'reviewer_uid' => $concerts[$row->nid]['reviewer_uid'],
-      'status' => _status($row->status),
-      'photographer' => $row->photographer == 1 ? t('Yes') : '',
+      'status' => _status($row->field_concert_status_value),
+      'photographer' => $row->field_photographer_value == 1 ? t('Yes') : '',
       'actions' => l(t('edit'), 'node/' . $row->nid . '/edit'),
     );
-    $concerts[$row->nid]['reviewer_uid'][] = l($row->reviewer_name, 'user/' . $row->reviewer_uid);
+    $concerts[$row->nid]['reviewer_uid'][] = l($row->name, 'user/' . $row->field_reviewers_target_id);
     
-    if ($row->photographer == 1 && strlen($row->photographer_name) > 0) {
-      $concerts[$row->nid]['photographer'].= " (" . $row->photographer_name . ")";
+    if ($row->field_photographer_value == 1 && strlen($row->field_photographer_name_value) > 0) {
+      $concerts[$row->nid]['photographer'].= " (" . $row->field_photographer_name_value . ")";
     }
   }
   foreach ($concerts as $nid => $concert) {
     $concerts[$nid]['reviewer_uid'] = implode(", ", $concerts[$nid]['reviewer_uid']);
   }
   
-  return theme('table', array('header' => $header, 'rows' => $concerts ));
+  $output = theme('table', array('header' => $header, 'rows' => $concerts));
+
+  $pager = array('#theme' => 'pager', '#element' => $element);
+  $output .= render($pager);
+  
+  global $pager_accreditations_total_items;
+  
+  return array(
+    'table' => $output,
+    'count' => $pager_accreditations_total_items[1],
+  );
 }
 
 function _status($status) {
