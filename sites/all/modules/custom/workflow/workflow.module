@@ -529,7 +529,7 @@ function _block_accreditations() {
 
   $query = db_select('node', 'n')
     ->extend('PagerDefault')->element($element)
-    ->limit(15)
+    ->limit(10)
     ->extend('TableSort')
     ->orderByHeader($header);
   $query->fields('n', array('nid', 'title'));
