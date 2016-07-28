@@ -550,15 +550,13 @@ function _block_accreditations() {
   $concerts = array();
   foreach ($rs as $row) {
     
-    $title = $row->title;
+    $title_parts = explode(" - ", $row->title);
+    $venue = taxonomy_term_load($row->venue_tid);
+    $title = $title_parts[0] . " - " . $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'];
+    
     $date = format_date($row->start_date, 'displaydate_short');
-    if ($row->is_festival == 1) {
-      $venue = taxonomy_term_load($row->venue_tid);
-
-      $title .= " - " . $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'];
-      if ($row->end_date != $row->start_date) {
-        $date .= " - " .  format_date($row->end_date, 'displaydate_short');
-      }
+    if ($row->is_festival == 1 && $row->end_date != $row->start_date) {
+      $date .= " - " .  format_date($row->end_date, 'displaydate_short');
     }
     
     $concerts[$row->nid] = array(
