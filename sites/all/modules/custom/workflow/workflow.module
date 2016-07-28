@@ -516,6 +516,7 @@ function _block_accreditations() {
   
   $header = array(
     t('Concert'),
+    t('Date'),
     t('Reviewers'),
     t('Status'),
     t('Photographer'),
@@ -525,7 +526,11 @@ function _block_accreditations() {
   $sql = "SELECT n.nid, n.title, r.field_reviewers_target_id AS reviewer_uid, u.name AS reviewer_name, ";
   $sql.= "s.field_concert_status_value AS status, ";
   $sql.= "p.field_photographer_value AS photographer, ";
-  $sql.= "pn.field_photographer_name_value AS photographer_name ";
+  $sql.= "pn.field_photographer_name_value AS photographer_name, ";
+  $sql.= "f.field_is_festival_value AS is_festival, ";
+  $sql.= "v.field_venue_tid AS venue_tid, ";
+  $sql.= "d.field_event_date_value AS start_date, ";
+  $sql.= "d.field_event_date_value2 AS end_date ";
   $sql.= "FROM node n ";
   $sql.= "LEFT JOIN field_data_field_concert c ON c.field_concert_target_id = n.nid ";
   $sql.= "INNER JOIN field_data_field_reviewers r ON r.entity_id = n.nid ";
@@ -534,6 +539,9 @@ function _block_accreditations() {
   $sql.= "LEFT JOIN field_data_field_photographer_name pn ON pn.entity_id = n.nid ";
   $sql.= "INNER JOIN field_data_field_event_date e ON e.entity_id = n.nid ";
   $sql.= "INNER JOIN users u ON u.uid = r.field_reviewers_target_id ";
+  $sql.= "INNER JOIN field_data_field_is_festival f ON f.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_venue v ON v.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_event_date d ON d.entity_id = n.nid ";
   $sql.= "WHERE n.status = :status AND n.type = :type AND c.field_concert_target_id IS NULL AND e.field_event_date_value > (UNIX_TIMESTAMP() - " . $limit . ") ";
   $sql.= "ORDER BY e.field_event_date_value ASC";
   
@@ -541,8 +549,21 @@ function _block_accreditations() {
 
   $concerts = array();
   foreach ($rs as $row) {
+    
+    $title = $row->title;
+    $date = format_date($row->start_date, 'displaydate_short');
+    if ($row->is_festival == 1) {
+      $venue = taxonomy_term_load($row->venue_tid);
+
+      $title .= " - " . $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'];
+      if ($row->end_date != $row->start_date) {
+        $date .= " - " .  format_date($row->end_date, 'displaydate_short');
+      }
+    }
+    
     $concerts[$row->nid] = array(
-      'concert' => '<b>' . $row->title . '</b>',
+      'concert' => '<b>' . $title . '</b>',
+      'date' => $date,
       'reviewer_uid' => $concerts[$row->nid]['reviewer_uid'],
       'status' => _status($row->status),
       'photographer' => $row->photographer == 1 ? t('Yes') : '',
