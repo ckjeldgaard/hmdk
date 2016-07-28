@@ -516,6 +516,7 @@ function _block_accreditations() {
   
   $header = array(
     t('Concert'),
+    t('Venue'),
     t('Date'),
     t('Reviewers'),
     t('Status'),
@@ -552,7 +553,7 @@ function _block_accreditations() {
     
     $title_parts = explode(" - ", $row->title);
     $venue = taxonomy_term_load($row->venue_tid);
-    $title = $title_parts[0] . " - " . $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'];
+    $title = "<strong>" . $title_parts[0] . "</strong>";
     
     $date = format_date($row->start_date, 'displaydate_short');
     if ($row->is_festival == 1 && $row->end_date != $row->start_date) {
@@ -560,7 +561,8 @@ function _block_accreditations() {
     }
     
     $concerts[$row->nid] = array(
-      'concert' => '<b>' . $title . '</b>',
+      'concert' => $title,
+      'venue' => $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'],
       'date' => $date,
       'reviewer_uid' => $concerts[$row->nid]['reviewer_uid'],
       'status' => _status($row->status),
