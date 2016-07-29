@@ -820,7 +820,12 @@ pre {
   color:#d13c38;
   font-weight:bold;
   font-size:.8em;
-  margin-bottom:10px;
+}
+
+.comment .post_count {
+  color: #666666;
+  font-size: 0.8em;
+  padding-bottom:10px;
 }
 
 .comment .comment-userrating {

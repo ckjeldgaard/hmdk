@@ -58,7 +58,7 @@ function _get_user_comments($uid, $limit = 10) {
   $query->condition('c.uid', $uid);
   $query->condition('c.status', 1);
   $query->orderBy('c.created', 'DESC');
-  $query->range(0, $limit);
+  //$query->range(0, $limit);
   $rs = $query->execute();
   $comments = array();
   foreach ($rs as $row) {

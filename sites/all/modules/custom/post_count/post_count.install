@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function post_count_schema() {
+  $schema['post_count'] = array(
+    'description' => 'Table holding the number of comments written for each registered user.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'User ID',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'post_count' => array(
+        'description' => 'Number of posts written.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('uid'),
+  );
+  return $schema;
+}

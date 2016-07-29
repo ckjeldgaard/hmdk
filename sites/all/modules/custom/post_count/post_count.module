@@ -1,0 +1,62 @@
+<?php
+
+function post_count_cron() {
+  update_post_counts();
+  
+  
+}
+
+function update_post_counts() {
+  foreach (_user_uids() as $uid) {
+    _update_user_post_count($uid, _get_database_num_user_comments($uid));
+  }
+  watchdog('post_count', 'Post counts updated on cron run.', array(), WATCHDOG_NOTICE);
+}
+
+function post_count($uid) {
+  $query = db_select('post_count', 'pc');
+  $query->fields('pc', array('post_count'));
+  $query->condition('pc.uid', $uid);
+  $post_count = $query->execute()->fetchField();
+  return (is_numeric($post_count)) ? $post_count : 0;
+}
+
+/**
+ * @return array Returns an array of uid's.
+ */
+function _user_uids() {
+  $query = db_select('users', 'u');
+  $query->fields('u', array('uid'));
+  $query->condition('u.status', 1);
+  $query->orderBy('u.uid', 'ASC');
+  
+  $rs = $query->execute();
+  $uids = array();
+  foreach ($rs as $row) {
+    $uids[] = $row->uid;
+  }
+  return $uids;
+}
+
+/**
+ * Get number of comments written by a particular author.
+ *
+ * @param int $uid The user UID.
+ * @return int
+ */
+function _get_database_num_user_comments($uid) {
+  $query = db_select('comment', 'c');
+  $query->fields('c', array('cid'));
+  $query->condition('c.uid', $uid);
+  $query->condition('c.status', 1);
+  return $query->execute()->rowCount();
+}
+
+function _update_user_post_count($uid, $post_count) {
+  db_merge('post_count')
+  ->key(array('uid' => $uid))
+  ->fields(array(
+      'post_count' => $post_count,
+  ))
+  ->execute();
+}

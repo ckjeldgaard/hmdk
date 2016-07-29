@@ -145,9 +145,13 @@
 
 <?php if (count($user_comments) > 0) : ?>
 <h2><?php print _genitive($elements['#account']->name); ?> seneste kommentarer</h2>
-<ul>
-  <?php foreach ($user_comments as $c) : ?>
-  <li><strong><a href="<?php print url('node/' . $c->nid); ?>#comment-<?php print $c->cid; ?>"><?php print $c->subject; ?></a></strong> <?php print t('%time ago', array('%time' => format_interval(time() - $c->created))); ?> til <?php print l($c->title, 'node/' . $c->nid); ?></li>
-  <?php endforeach; ?>
-</ul>
+<div class="comments_page_container">
+  <p class="info_text"></p>
+  <ul class="content">
+    <?php foreach ($user_comments as $c) : ?>
+    <li><strong><a href="<?php print url('node/' . $c->nid); ?>#comment-<?php print $c->cid; ?>"><?php print $c->subject; ?></a></strong> <?php print t('%time ago', array('%time' => format_interval(time() - $c->created))); ?> til <?php print l($c->title, 'node/' . $c->nid); ?></li>
+    <?php endforeach; ?>
+  </ul>
+<div class="page_navigation"></div>
+</div>
 <?php endif; ?>

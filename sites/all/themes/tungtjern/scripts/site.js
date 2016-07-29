@@ -122,6 +122,14 @@ $('.query').on('typeahead:selected', function(event, selection) {
       nav_label_prev: 'Forrige',
       nav_label_info: 'Viser {0}-{1} af {2}'
     });
+    $('.comments_page_container').pajinate({
+      items_per_page: 25,
+      abort_on_small_lists: true,
+      show_first_last: false,
+      nav_label_next: 'Næste',
+      nav_label_prev: 'Forrige',
+      nav_label_info: 'Viser {0}-{1} af {2}'
+    });
   }
   
   if ($('input[name=type]:checked', '#concert-add-form').val() == 0) {
