@@ -13,6 +13,9 @@
     <?php if ($role = _user_role($comment->uid)) : ?>
       <p class="role"><?php print $role; ?></p>
     <?php endif; ?>
+    <?php if ($comment->uid > 0) : ?>
+      <p class="post_count"><strong><?php print t('Posts'); ?>:</strong> <?php print post_count($comment->uid); ?></p>
+    <?php endif; ?>
     <time datetime="<?php print format_date($comment->created, 'datetime'); ?>" itemprop="commentTime"><?php print format_date($comment->created, 'shortdate'); ?></time>
   </div>
   <div class="commentContent pure-u-2-3 pure-u-md-3-4 pure-u-lg-4-5">
