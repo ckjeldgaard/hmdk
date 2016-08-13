@@ -170,11 +170,11 @@ function _instagram_feed_settings_form_submit($form_id, &$form_state) {
  * Implements hook_cron(). Scheduled fetching of Instagram images.
  */
 function instagram_feed_cron() {
-  $cron_last = variable_get('cron_last', 0);
+  /* $cron_last = variable_get('cron_last', 0);
   $next_up = $cron_last + variable_get('instagram_feed_update_interval', 0);
   if (time() >= $next_up) {
     _instagram_feed_fetch_images();
-  }
+  } */
 }
 
 /**
