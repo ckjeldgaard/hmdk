@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * Implements hook_init().
+ */
+function secure_pages_init() {
+  $secure_pages = array(
+    "user/login",
+    "user/register",
+    "contact",
+  );
+  
+  $https = (in_array($_GET['q'], $secure_pages)) ? TRUE : FALSE;
+  secure_pages_secure_redirect($https);
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function secure_pages_form_alter(&$form, &$form_state, $form_id) {
+
+  $secure_forms = array(
+    "user_login",
+    "user_register_form",
+    "contact_site_form",
+  );
+
+  if (in_array($form_id, $secure_forms)) {
+    secure_pages_secure_form($form);
+  }
+}
+
+function secure_pages_secure_form(&$form) {
+  global $base_path, $base_secure_url, $is_https;
+
+  $form['#https'] = TRUE;
+  $base_url = variable_get('securelogin_base_url', $base_secure_url);
+  $form['#action'] = substr_replace($form['#action'], $base_url, 0, strlen($base_path) - 1);
+}
+
+/**
+ * Redirects an insecure request to the same path on the secure base URL and a secure request to the same path on the insecure base URL.
+ *
+ * Originally taken from the securelogin module <https://www.drupal.org/project/securelogin>.
+ */
+function secure_pages_secure_redirect($https) {
+  global $is_https;
+  // POST requests are not redirected, to prevent unintentional redirects which
+  // result in lost POST data. Likewise do not redirect from HTTPS requests, the
+  // command-line environment or cron runs.
+  if (($is_https && $https) || (!$is_https && !$https) || $_SERVER['REQUEST_METHOD'] == 'POST' || drupal_is_cli() || drupal_static('securelogin_is_cron')) {
+    return;
+  }
+  $path = drupal_is_front_page() ? '' : $_GET['q'];
+  $http_response_code = 301;
+  // Do not permit redirecting to an external URL.
+  $options = array('query' => drupal_get_query_parameters(), 'https' => $https, 'external' => FALSE);
+  // We don't use drupal_goto() here because we want to be able to use the
+  // page cache, but let's pretend that we are.
+  drupal_alter('drupal_goto', $path, $options, $http_response_code);
+  // The 'Location' HTTP header must be absolute.
+  $options['absolute'] = TRUE;
+  $url = url($path, $options);
+  $status = "$http_response_code Moved Permanently";
+  drupal_add_http_header('Status', $status);
+  drupal_add_http_header('Location', $url);
+  // Drupal page cache requires a non-empty page body for some reason.
+  print $status;
+  // Mimic drupal_exit() and drupal_page_footer() and then exit.
+  module_invoke_all('exit', $url);
+  drupal_session_commit();
+  if (variable_get('cache', 0) && ($cache = drupal_page_set_cache())) {
+    drupal_serve_page_from_cache($cache);
+  }
+  else {
+    ob_flush();
+  }
+  exit;
+}

@@ -1,0 +1,4 @@
+name = Secure Pages
+description = "A fork of the Secure Login Drupal contrib module to enforce SSL only on login pages."
+core = 7.x
+files[] = secure_pages.module
