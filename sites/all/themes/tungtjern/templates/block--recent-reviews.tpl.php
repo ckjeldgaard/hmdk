@@ -8,7 +8,9 @@
     </div>
     <div class="pure-u-2-3 pure-u-md-1 pure-u-lg-2-3 meta">
       <h3><?php print l($node->title, 'node/' . $node->nid); ?></h3>
+      <?php if ($node->field_rating[LANGUAGE_NONE][0]['value'] > 0) : ?>
       <p class="rating-small grade<?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>"><?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>/10</p>
+      <?php endif; ?>
     </div>
   </div>
   <?php endforeach; ?>
