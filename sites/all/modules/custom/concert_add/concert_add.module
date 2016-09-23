@@ -101,7 +101,7 @@ function concert_add_contents() {
   $venues = _get_venues_options();
   
   if (user_access('bypass concert add restrictions', $user)) {
-    drupal_set_message(t('As a member of the editorial board, you should add concerts through the !url.', array('!url' => l(t('form in the backend'), 'node/add/concert'))), 'warning');
+    drupal_set_message(t('As a member of the editorial board, you should add concerts through the !url.', array('!url' => l(t('form in the backend'), 'node/add/concert', array('absolute' => TRUE)))), 'warning');
   }
   
   $form = drupal_get_form('_concert_add_form', $artists, $venues);

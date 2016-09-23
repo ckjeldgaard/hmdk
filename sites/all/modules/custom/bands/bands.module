@@ -115,7 +115,7 @@ function _bands_contents() {
     $country.= $row->country;
     
     $bands[] = array(
-      l($row->band, 'node/' . $row->nid),
+      l($row->band, 'node/' . $row->nid, array('absolute' => TRUE)),
       $country,
       $row->genre,
     );

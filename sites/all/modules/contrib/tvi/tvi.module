@@ -249,10 +249,12 @@ function tvi_render_view($tid, $depth = NULL) {
       // as a page callback so we need to explicitly set the page title
       // and just return the $block['content'].
       $block = $view->execute_display($display, $args);
-      drupal_set_title($block['subject']);
+      drupal_set_title(filter_xss_admin($block['subject']), PASS_THROUGH);
       $output = $block['content'];
     }
     else {
+      global $language;
+      module_invoke_all('entity_view', $term, 'taxonomy_term', 'full', $language->language);
       $output = $view->execute_display($display, $args);
     }
 

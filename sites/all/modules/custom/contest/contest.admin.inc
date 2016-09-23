@@ -83,7 +83,7 @@ function _contest_admin_page() {
       '#title' => $node->title,
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
-      '#description' => l('Redigér konkurrence', 'node/' . $node->nid . '/edit') . '. Slutdato: ' . format_date($node->field_enddate[LANGUAGE_NONE][0]['value'], 'fulldate') . '. Detagere: ' . $num_answers,
+      '#description' => l('Redigér konkurrence', 'node/' . $node->nid . '/edit', array('absolute' => TRUE)) . '. Slutdato: ' . format_date($node->field_enddate[LANGUAGE_NONE][0]['value'], 'fulldate') . '. Detagere: ' . $num_answers,
     );
     $form['contest_group_' . $node->nid]['contests'] = array(
       '#markup' => $table,

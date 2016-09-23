@@ -88,7 +88,6 @@ function tvi_taxonomy_admin_form(&$form, $settings) {
   $form['tvi'] = array(
     '#type' => 'fieldset',
     '#title' => t('View usage'),
-    '#weight' => -10,
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
     '#tree' => TRUE,
@@ -240,7 +239,7 @@ function tvi_submit_handler($form, &$form_state) {
   $settings = (object) $form_state['values']['tvi'];
 
   // Handle the case of the creation form.
-  if (empty($settings->xid) ||$settings->xid == '_autocreate') {
+  if (empty($settings->xid) || $settings->xid == '_autocreate') {
     if ($settings->type == TVI_TYPE_VOCAB) {
       $settings->xid = $form_state['vocabulary']->vid;
     }

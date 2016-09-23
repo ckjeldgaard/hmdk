@@ -4,6 +4,7 @@
   <?php print l(variable_get('sidebar_blocks_reviewer_button_text'),
 		variable_get('sidebar_blocks_reviewer_button_destination'),
 		array(
+      'absolute' => TRUE,
 		  'attributes' => array(
 		    'class' => array(
 		      'pure-button',

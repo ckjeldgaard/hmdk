@@ -14,8 +14,8 @@ function contest_preprocess_node(&$variables) {
     $warning = FALSE;
     $disabled = FALSE;
     if ($user->uid == 0) {
-      $create = l(t('Create new account'), 'user/register', array('query' => array('destination' => 'node/' . $node->nid)));
-      $login = l(t('login'), 'user/login', array('query' => array('destination' => 'node/' . $node->nid)));
+      $create = l(t('Create new account'), 'user/register', array('query' => array('destination' => 'node/' . $node->nid)), array('absolute' => TRUE));
+      $login = l(t('login'), 'user/login', array('query' => array('destination' => 'node/' . $node->nid)), array('absolute' => TRUE));
       $warning = t('Participation in contests requires that you have a user account and are logged in. !create or !login.', array('!create' => $create, '!login' => $login));
       $disabled = TRUE;
     }

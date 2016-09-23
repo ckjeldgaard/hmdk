@@ -235,12 +235,12 @@ function _latest_concerts_contents() {
     
     $artist_string = '';
     if ($node->field_is_festival[LANGUAGE_NONE][0]['value'] == 1) {
-      $artist_string = "<strong>" . l($node->title, 'node/' . $node->nid) . "</strong>: ";
+      $artist_string = "<strong>" . l($node->title, 'node/' . $node->nid, array('absolute' => TRUE)) . "</strong>: ";
     }
     $artists = array();
     for ($i = 0; $i < $band_limit; $i++) {
       if (isset($node->field_artists[LANGUAGE_NONE][$i])) {
-        $artists[] = l(_get_artist_name($node->field_artists[LANGUAGE_NONE][$i]['target_id']), 'node/' . $node->field_artists[LANGUAGE_NONE][$i]['target_id']);
+        $artists[] = l(_get_artist_name($node->field_artists[LANGUAGE_NONE][$i]['target_id']), 'node/' . $node->field_artists[LANGUAGE_NONE][$i]['target_id'], array('absolute' => TRUE));
       }
     }
     $artist_string.= implode(", ", $artists);

@@ -39,7 +39,8 @@ function xpoll_form($form, &$form_state, $questions, $closed, $type, $node) {
 		  (isset($node->field_link_text[LANGUAGE_NONE][0]['value'])) ? $node->field_link_text[LANGUAGE_NONE][0]['value'] : "Link",
 		  $question->field_poll_option_link[LANGUAGE_NONE][$j]['url'],
 		  array(
-			'html' => TRUE
+			'html' => TRUE,
+      'absolute' => TRUE
 		  )
 		) . ")"; 
 	  }
