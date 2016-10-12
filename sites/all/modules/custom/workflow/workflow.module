@@ -168,8 +168,14 @@ function workflow_permission() {
  *
  * @return Returns an HTML human-readable date string in either green or red.
  */
-function _deadline($ts) {
+function _deadline($ts, $priority) {
   $deadline = $ts - 259200; // 3 days
+  if ($priority == 0) { // Low priority
+    $deadline = $ts + 5184000; // 60 days
+  } else if ($priority == 1) { // Medium priority
+    $deadline = $ts + 1209600; // 14 days
+  }
+  
   $now = time();
   if ($deadline > $now) {
     $interval = $deadline - $now;
@@ -243,7 +249,7 @@ function _block_unreviewed_releases() {
       $row->title,
       _priority($row->field_priority_value),
       format_date($row->field_release_date_value, 'displaydate_short'),
-      _deadline($row->field_release_date_value),
+      _deadline($row->field_release_date_value, $row->field_priority_value),
       _get_artist_genre_by_release($row->nid),
       l(t('edit'), 'node/' . $row->nid . '/edit') . '&emsp;' . l(t('delete'), 'node/' . $row->nid . '/delete'),
       l(t('Create review'), 'node/add/review', array('query' => array('release_nid' => $row->nid))),
@@ -329,7 +335,7 @@ function _block_reviews_in_progress() {
       l($row->title, 'node/' . $row->nid),
       _priority($row->field_priority_value),
       format_date($row->field_release_date_value, 'displaydate_short'),
-      _deadline($row->field_release_date_value),
+      _deadline($row->field_release_date_value, $row->field_priority_value),
       $row->name,
       l(t('edit'), 'node/' . $row->nid . '/edit') . '&emsp;' . l(t('delete'), 'node/' . $row->nid . '/delete'),
     );
