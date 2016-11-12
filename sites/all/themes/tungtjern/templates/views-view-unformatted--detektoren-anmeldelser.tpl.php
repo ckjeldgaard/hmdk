@@ -1,4 +1,5 @@
 <?php $c = 0; ?>
+<?php $i = 1; ?>
 <?php foreach ($rows as $id => $row): ?>
   <?php if ($c == 0) : ?>
     <div class="pure-g focus">
@@ -10,8 +11,9 @@
   <?php if ($c == 0 || $c == 1) : ?>
     </div>
   <?php endif; ?>
-  <?php if ($c == 1) : ?>
+  <?php if ($c == 1 || $i == count($rows)) : ?>
     </div>
   <?php endif; ?>
   <?php if ($c == 1) { $c = 0; } else { $c++; } ?>
+  <?php $i++; ?>
 <?php endforeach; ?>
