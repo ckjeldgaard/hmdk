@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function detektoren_overview_block_info() {
+  $blocks['block-detektoren-overview'] = array(
+    'info' => t('Detektoren overview'),
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function detektoren_overview_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-detektoren-overview':
+      $block['subject'] = t('Detektoren overview');
+      $block['content'] = theme('block-detektoren-overview', detektoren_overview_contents());
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function detektoren_overview_theme() {
+  $path = drupal_get_path('module', 'detektoren_overview');
+  return array(
+    "block-detektoren-overview" => array(
+      "template" => "block--detektoren_overview",
+      "path" => $path,
+      "arguments" => array(
+        "content" => NULL,
+        "class" => NULL, 
+      ),
+    ),
+  );
+}
+
+function detektoren_overview_contents() {
+  return array();
+}

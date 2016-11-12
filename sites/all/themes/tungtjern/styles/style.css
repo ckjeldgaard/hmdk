@@ -383,6 +383,21 @@ a.pure-button-primary {
   background-color:#ffffff;
 }
 
+.detektoren .reviews {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  padding-right: 10px;
+  border-right: 1px solid #aaaaaa;
+}
+
+.detektoren .interviews {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  padding-left: 10px;
+}
+
 .mainContent .contentInner p {
   line-height: 1.4em;
 }

@@ -1,0 +1,7 @@
+name = Detektoren
+description = Provides a block containing Detektoren reviews and interviews.
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+
+files[] = detektoren_overview.module
