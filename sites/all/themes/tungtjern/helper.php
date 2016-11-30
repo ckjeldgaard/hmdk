@@ -2,7 +2,7 @@
 /**
  * @file
  * File containing common helper functions to retreive, update or delete various data or content types.
- * 
+ *
  */
 
 /**
@@ -22,13 +22,13 @@ function _get_reviews_by_author($uid) {
   $sql .= "INNER JOIN field_data_field_rating ra ON n.nid = ra.entity_id ";
   $sql .= "WHERE  (n.type = :type) AND (n.status = :status) AND (n.uid = :uid) ";
   $sql .= "ORDER BY d.published_at DESC, n.created DESC";
-  
+
   $rs = db_query($sql, array(':type' => 'review', ':status' => 1, ':uid' => $uid));
   $reviews = array();
   foreach ($rs as $row) {
     $reviews[] = $row;
   }
-  
+
   return $reviews;
 }
 
@@ -80,7 +80,7 @@ function _get_news_by_author($uid) {
   $query->condition('n.status', 1);
   $query->condition('n.uid', $uid);
   $query->orderBy('n.created', 'DESC');
-  
+
   $rs = $query->execute();
   $news = array();
   foreach ($rs as $row) {
@@ -102,7 +102,7 @@ function _get_interviews_by_author($uid) {
   $query->condition('n.status', 1);
   $query->condition('n.uid', $uid);
   $query->orderBy('n.created', 'DESC');
-  
+
   $rs = $query->execute();
   $interviews = array();
   foreach ($rs as $row) {
@@ -123,7 +123,7 @@ function _get_next_artist_concert($artist_nid) {
   $query->fields('n', array('nid', 'title'));
   $query->leftJoin('field_data_field_artists', 'a', 'a.entity_id = n.nid');
   $query->leftJoin('field_data_field_support_artists', 's', 's.entity_id = n.nid');
-  $query->join('field_data_field_event_date', 'd', 'd.entity_id = n.nid'); 
+  $query->join('field_data_field_event_date', 'd', 'd.entity_id = n.nid');
   $query->condition('n.type', 'concert');
   $query->condition('n.status', 1);
   $or = db_or()
@@ -133,7 +133,7 @@ function _get_next_artist_concert($artist_nid) {
   $query->condition('d.field_event_date_value', time(), '>');
   $query->orderBy('d.field_event_date_value', 'ASC');
   $query->range(0, 1);
-  
+
   $obj = $query->execute()->fetchObject();
   if (is_object($obj)) {
     return node_load($obj->nid);
@@ -156,13 +156,13 @@ function _get_live_reviews_by_author($uid) {
   $query->condition('n.status', 1);
   $query->condition('n.uid', $uid);
   $query->orderBy('n.created', 'DESC');
-  
+
   $rs = $query->execute();
   $concerts = array();
   foreach ($rs as $row) {
     $concerts[] = $row;
   }
-  
+
   // Get reportages:
   $query = db_select('node', 'n');
   $query->fields('n', array('nid', 'title', 'created'));
@@ -174,15 +174,15 @@ function _get_live_reviews_by_author($uid) {
   $query->condition('a.field_author_target_id', $uid);
   $query->orderBy('n.created', 'DESC');
   $query->groupBy('n.nid');
-  
+
   $rs = $query->execute();
   foreach ($rs as $row) {
     $concerts[] = $row;
   }
-  
+
   // Sort concert reviews and reports:
   usort($concerts, "cmp_concerts");
-  
+
   return $concerts;
 }
 
@@ -210,7 +210,7 @@ function _get_artist_news($artist_nid) {
   $query->condition('n.status', 1);
   $query->condition('a.field_artists_target_id', $artist_nid);
   $query->orderBy('n.created', 'DESC');
-  
+
   $rs = $query->execute();
   $news = array();
   foreach ($rs as $row) {
@@ -256,7 +256,7 @@ function _get_artist_interview($artist_nid) {
   $query->condition('n.status', 1);
   $query->condition('a.field_artist_target_id', $artist_nid);
   $query->orderBy('n.created', 'DESC');
-  
+
   $rs = $query->execute();
   $interviews = array();
   foreach ($rs as $row) {
@@ -298,7 +298,7 @@ function _get_artist_reports($artist_nid) {
  * @return array Returns an array of concerts and festivals.
  */
 function _get_artist_concerts($artist_nid) {
-  
+
   // Get concerts:
   $query = db_select('node', 'n');
   $query->distinct();
@@ -317,7 +317,7 @@ function _get_artist_concerts($artist_nid) {
   $rs = $query->execute();
   $concerts = array();
   foreach ($rs as $row) {
-    
+
     $node = node_load($row->nid);
     // If festival:
     if (isset($node->field_is_festival[LANGUAGE_NONE]) && $node->field_is_festival[LANGUAGE_NONE][0]['value'] == 1) {
@@ -349,7 +349,7 @@ function _get_artist_concerts($artist_nid) {
       }
       $artist_string = implode(", ", $artists);
     }
-    
+
     // Get concert review (if any):
     $q = db_select('field_data_field_concert', 'c');
     $q->fields('c', array('entity_id'));
@@ -358,12 +358,12 @@ function _get_artist_concerts($artist_nid) {
     $q->condition('n.status', 1);
     $q->range(0, 1);
     $rs = $q->execute()->fetchAssoc();
-    
+
     $review = (is_array($rs)) ? $rs['entity_id'] : FALSE;
     if ($review == FALSE) {
       $review = _concert_has_reportage($node->nid);
     }
-    
+
     $concerts[] = array(
       'type' => 'concert',
       'node' => $node,
@@ -374,7 +374,7 @@ function _get_artist_concerts($artist_nid) {
       'date' => $node->field_event_date[LANGUAGE_NONE][0]['value'],
       'endDate' => $node->field_event_date[LANGUAGE_NONE][0]['value2'],
     );
-    
+
   }
   return $concerts;
 }
@@ -393,12 +393,12 @@ function _venue_get_events($tid) {
   $query->condition('v.field_venue_tid', $tid);
   $query->orderBy('d.field_event_date_value', 'DESC');
   $rs = $query->execute();
-  
+
   $nids = array();
   foreach ($rs as $obj) {
-    
+
     $reportage = _concert_has_reportage($obj->nid);
-    
+
     // Upcoming events:
     if ($obj->field_event_date_value >= $now && $obj->field_concert_target_id == NULL) {
       $n = node_load($obj->nid);
@@ -437,7 +437,7 @@ function _concert_has_reportage($concert_nid) {
   $query->condition('r.bundle', 'reportage');
   $query->condition('r.field_concert_reference_target_id', $concert_nid);
   $query->condition('n.status', 1);
-  
+
   $obj = $query->execute()->fetchObject();
-  return (isset($obj->entity_id)) ? $obj->entity_id : FALSE; 
+  return (isset($obj->entity_id)) ? $obj->entity_id : FALSE;
 }
