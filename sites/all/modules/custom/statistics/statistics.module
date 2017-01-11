@@ -40,10 +40,12 @@ function statistics_theme() {
 function statistics_contents() {
   $countries = _artist_countries();
   $ratings = _rating_distribution();
+  $ratings_last_year = _rating_distribution(mktime(0, 0, 0, 1, 1, (date('Y') - 1)), mktime(0, 0, 0, 1, 1, date('Y')));
   $ratings_year = _rating_distribution(mktime(0, 0, 0, 1, 1, date('Y')));
   return array(
     'artist_countries' => $countries,
     'ratings_overall' => $ratings,
+    'ratings_last_year' => $ratings_last_year,
     'ratings_year' => $ratings_year,
   );
 }
@@ -96,7 +98,12 @@ function _artist_countries() {
   return $return;
 }
 
-function _rating_distribution($start_time = NULL) {
+function _rating_distribution($start_time = NULL, $end_time = NULL) {
+  
+  if ($end_time == NULL) {
+    $end_time = time();
+  }
+  
   $ratings = array(
     1 => 0,
     2 => 0,
@@ -115,8 +122,9 @@ function _rating_distribution($start_time = NULL) {
   $sql.= "FROM field_data_field_rating r ";
   if (is_numeric($start_time)) {
     $sql.= "INNER JOIN publication_date p ON r.entity_id = p.nid ";
-    $sql.= "WHERE r.bundle = :type AND p.published_at > :start_time ";
+    $sql.= "WHERE r.bundle = :type AND p.published_at > :start_time AND p.published_at < :end_time ";
     $params[':start_time'] = $start_time;
+    $params[':end_time'] = $end_time;
   } else {
     $sql.= "WHERE r.bundle = :type ";
   }
