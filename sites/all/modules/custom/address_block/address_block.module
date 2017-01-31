@@ -1,5 +1,33 @@
 <?php
 
+/*
+function address_block_init() {
+  header('Content-Type:text/plain');
+  
+  $sql = "SELECT CONCAT('/', u.alias) AS url
+FROM node n
+INNER JOIN url_alias u ON  CONCAT('node/', n.nid) = u.source
+WHERE n.status = 1 AND n.type = 'concert_review' AND n.created > 1451606400 AND n.created < 1483228800";
+  
+  $rs = db_query($sql);
+  $urls = array();
+  foreach ($rs as $row) {
+    $urls[] = $row->url;
+  }
+  
+  $file = file_get_contents('/var/www/html/sites/all/modules/custom/address_block/pages.txt');
+  foreach(preg_split("/((\r?\n)|(\r\n?))/", $file) as $line){
+    
+    $parts = explode(",", $line);
+    
+    if (in_array($parts[0], $urls)) {
+      echo $parts[0] . "," . $parts[1] . "\n";
+    }
+  } 
+  
+  die;
+}*/
+
 /**
  * Implements hook_menu().
  */
