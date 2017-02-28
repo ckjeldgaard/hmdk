@@ -34,7 +34,7 @@ $('.query').on('typeahead:selected', function(event, selection) {
   if ($.isFunction($.fn.chosen)) {
     $(".chosen-select").chosen({no_results_text:'Ingen elementer matchede søgningen'});
   }
-  
+
   if ($.isFunction($.fn.raty)) {
     $('.userrating').raty({
       number: 10,
@@ -60,15 +60,15 @@ $('.query').on('typeahead:selected', function(event, selection) {
             $(".userRatingStats").text(json.text);
           }
         });
-        
+
       }
     });
   }
-  
+
   if ($.isFunction($.fn.easytabs)) {
     $('#tab-container').easytabs();
-  } 
-  
+  }
+
   $('#instagram-slide').bjqs({
     'height' : 306,
     'width' : 306,
@@ -78,7 +78,7 @@ $('.query').on('typeahead:selected', function(event, selection) {
     'showmarkers' : false,
     'automatic' : false
   });
-  
+
   $('#video-slide').bjqs({
     'height' : 172,
     'width' : 306,
@@ -87,7 +87,7 @@ $('.query').on('typeahead:selected', function(event, selection) {
     'prevtext' : '«',
     'showmarkers' : false
   });
-  
+
   $('#next-concerts').bjqs({
     'height' : 100,
     'width' : 306,
@@ -96,7 +96,7 @@ $('.query').on('typeahead:selected', function(event, selection) {
     'prevtext' : '«',
     'showmarkers' : false
   });
-  
+
   if ($.isFunction($.fn.pajinate)) {
     $('.page_container').pajinate({
       items_per_page: 15,
@@ -131,7 +131,7 @@ $('.query').on('typeahead:selected', function(event, selection) {
       nav_label_info: 'Viser {0}-{1} af {2}'
     });
   }
-  
+
   if ($('input[name=type]:checked', '#concert-add-form').val() == 0) {
     $('.festival-name').hide();
     $('.end-date').hide();
@@ -147,7 +147,7 @@ $('.query').on('typeahead:selected', function(event, selection) {
     $(".new-artists").show();
     $(".add-missing-toggler i").css('fa-minus-circle');
   }
-  
+
   $('#-concert-add-form input[name=type]').change(function() {
     // Concert:
     if (this.value == 0) {
@@ -168,13 +168,13 @@ $('.query').on('typeahead:selected', function(event, selection) {
     $(".add-missing-toggler i").toggleClass('fa-plus-circle fa-minus-circle');
     return false;
   });
-  
+
   // Concert calendar select submit:
   $('#landsdel').change(
     function(){
       $('#province-form').submit();
   });
-    
+
   if ($.isFunction($.fn.dataTable)) {
   $('#bands').dataTable( {
     "language": {
@@ -205,10 +205,26 @@ $('.query').on('typeahead:selected', function(event, selection) {
     "ajax": "/bands_overview"
   });
   }
-  
+
   $(".popup_player").click(function() {
     window.open("http://dentungeradio.dk/popup_player/dtr_popup_player.html","_blank","width=300,height=450,location=0,menubar=0,resizable=0,scrollbars=0,toolbar=0");
   });
-  
+
+  // Closeable ads:
+  $("footer .adslist").append(
+    '<div class="close"><i class="fa fa-times" aria-hidden="true"></i></div>'
+  );
+
+  $("footer .close").click(function () {
+    Cookies.set('adsclosed', '1');
+    $("footer .adslist").animate({width:'toggle'},350);
+  });
+
+  if (Cookies.get('adsclosed') == '1') {
+    $("footer .adslist").remove();
+  } else {
+    $("footer .adslist").show();
+  }
+
   }};
 })(jQuery, Drupal);
