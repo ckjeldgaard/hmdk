@@ -16,6 +16,12 @@ function lastfm_menu() {
     'access arguments' => array('access content'),
     'access callback' => TRUE,
   );
+  $items['lastfm_artist_genres'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => '_lastfm_artist_genres',
+    'access arguments' => array('access content'),
+    'access callback' => TRUE,
+  );
   return $items;
 }
 
@@ -29,6 +35,36 @@ function download_page($path){
 	$retValue = curl_exec($ch);			 
 	curl_close($ch);
 	return $retValue;
+}
+
+function _lastfm_artist_genres() {
+  # Enable Error Reporting and Display:
+  error_reporting(~0);
+  ini_set('display_errors', 1);
+  header('Content-Type:text/plain');
+  $matches = 0;
+  
+  $sql = "SELECT n.nid, n.title, g.field_artist_genres_tid ";
+  $sql.= "FROM node n ";
+  $sql.= "LEFT JOIN field_data_field_artist_genres g ON g.entity_id = n.nid ";
+  $sql.= "WHERE n.type = :type AND n.status = :status AND g.field_artist_genres_tid IS NULL ";
+  $sql.= "LIMIT 50";
+  
+  $rs = db_query($sql, array(':status' => 1, ':type' => 'artist'));
+  foreach ($rs as $row) {
+
+    $genres = lookup_artist_genre($row->title);
+   
+    if (count($genres) > 0) {
+      $node = node_load($row->nid);
+      $node->field_artist_genres[LANGUAGE_NONE][]['tid'] = $genres[0];
+     
+      node_save($node);
+	    $matches++;
+    }
+  }
+  
+   echo "Matches = " . $matches;
 }
 
 function _lastfm_genres() {
@@ -107,11 +143,13 @@ function lookup_artist_genre($artist_name) {
   $url = "http://ws.audioscrobbler.com/2.0/?method=artist.gettoptags&artist=" . $artist_name . "&api_key=4b3207e16b62f1ce0e50e2d6d0e6b391";
   $contents = download_page($url);
 
+  
   $xml = new DOMDocument();
   $xml->loadXML($contents);
   
   $tags = $xml->getElementsByTagName("tag");
   $genres = array();
+  
 	foreach ($tags as $tag) {
 	  $tag_url = $tag->getElementsByTagName("url")->item(0)->nodeValue;
 	  $genre_tid = _get_genre_term_tid($tag_url);
@@ -127,56 +165,56 @@ function lookup_artist_genre($artist_name) {
 
 function _get_genre_term_tid($url) {
   $tids = array(
-	'http://www.last.fm/tag/alternative+metal' => 1686,
-	'http://www.last.fm/tag/avantgarde+metal' => 1786,
-	'http://www.last.fm/tag/avant-garde+metal' => 1786,
-	'http://www.last.fm/tag/black+metal' => 1687,
-	'http://www.last.fm/tag/death+metal' => 1688,
-	'http://www.last.fm/tag/old+school+death+metal' => 1688,
-	'http://www.last.fm/tag/technical+death+metal' => 1688,
-	'http://www.last.fm/tag/brutal+death+metal' => 1688,
-	'http://www.last.fm/tag/deathcore' => 1800,
-	'http://www.last.fm/tag/doom+metal' => 1689,
-	'http://www.last.fm/tag/doom' => 1689,
-	'http://www.last.fm/tag/extreme+metal' => 1788,
-	'http://www.last.fm/tag/folk+metal' => 1690,
-	'http://www.last.fm/tag/glam+metal' => 1789,
-	'http://www.last.fm/tag/gothic+metal' => 1691,
-	'http://www.last.fm/tag/goth+metal' => 1691,
-	'http://www.last.fm/tag/hard+rock' => 1692,
-	'http://www.last.fm/tag/hardrock' => 1692,
-	'http://www.last.fm/tag/hardcore' => 1785,
-	'http://www.last.fm/tag/heavy+metal' => 1784,
-	'http://www.last.fm/tag/industrial+metal' => 1693,
-	'http://www.last.fm/tag/melodic+black+metal' => 1821,
-	'http://www.last.fm/tag/melodic+death+metal' => 1694,
-	'http://www.last.fm/tag/melodic+metal' => 1790,
-	'http://www.last.fm/tag/metalcore' => 1695,
-	'http://www.last.fm/tag/nu+metal' => 1795,
-	'http://www.last.fm/tag/nwobhm' => 1696,
-	'http://www.last.fm/tag/new+wave+of+british+heavy+metal' => 1696,
-	'http://www.last.fm/tag/post+hardcore' => 1810,
-	'http://www.last.fm/tag/power+metal' => 1697,
-	'http://www.last.fm/tag/progressive+heavy+metal' => 1698,
-	'http://www.last.fm/tag/progressive+metal' => 1698,
-	'http://www.last.fm/tag/prog+rock' => 1805,
-	'http://www.last.fm/tag/progressive+rock' => 1805,
-	'http://www.last.fm/tag/progressive+black+metal' => 1809,
-	'http://www.last.fm/tag/progressive+death+metal' => 1793,
-	'http://www.last.fm/tag/psychedelic+rock' => 1802,
-	'http://www.last.fm/tag/punk' => 1787,
-	'http://www.last.fm/tag/rock' => 1780,
-	'http://www.last.fm/tag/sludge+metal' => 1699,
-	'http://www.last.fm/tag/speed+metal' => 1700,
-	'http://www.last.fm/tag/stoner+rock' => 1833,
-	'http://www.last.fm/tag/symphonic+black+metal' => 1701,
-	'http://www.last.fm/tag/symphonic+metal' => 1702,
-	'http://www.last.fm/tag/symphonic+power+metal' => 1806,
-	'http://www.last.fm/tag/tech+metal' => 1794,
-	'http://www.last.fm/tag/match+metal' => 1794,
-	'http://www.last.fm/tag/thrash+metal' => 1703,
-	'http://www.last.fm/tag/thrash' => 1703,
-	'http://www.last.fm/tag/viking+metal' => 1704,
+	'https://www.last.fm/tag/alternative+metal' => 1686,
+	'https://www.last.fm/tag/avantgarde+metal' => 1786,
+	'https://www.last.fm/tag/avant-garde+metal' => 1786,
+	'https://www.last.fm/tag/black+metal' => 1687,
+	'https://www.last.fm/tag/death+metal' => 1688,
+	'https://www.last.fm/tag/old+school+death+metal' => 1688,
+	'https://www.last.fm/tag/technical+death+metal' => 1688,
+	'https://www.last.fm/tag/brutal+death+metal' => 1688,
+	'https://www.last.fm/tag/deathcore' => 1800,
+	'https://www.last.fm/tag/doom+metal' => 1689,
+	'https://www.last.fm/tag/doom' => 1689,
+	'https://www.last.fm/tag/extreme+metal' => 1788,
+	'https://www.last.fm/tag/folk+metal' => 1690,
+	'https://www.last.fm/tag/glam+metal' => 1789,
+	'https://www.last.fm/tag/gothic+metal' => 1691,
+	'https://www.last.fm/tag/goth+metal' => 1691,
+	'https://www.last.fm/tag/hard+rock' => 1692,
+	'https://www.last.fm/tag/hardrock' => 1692,
+	'https://www.last.fm/tag/hardcore' => 1785,
+	'https://www.last.fm/tag/heavy+metal' => 1784,
+	'https://www.last.fm/tag/industrial+metal' => 1693,
+	'https://www.last.fm/tag/melodic+black+metal' => 1821,
+	'https://www.last.fm/tag/melodic+death+metal' => 1694,
+	'https://www.last.fm/tag/melodic+metal' => 1790,
+	'https://www.last.fm/tag/metalcore' => 1695,
+	'https://www.last.fm/tag/nu+metal' => 1795,
+	'https://www.last.fm/tag/nwobhm' => 1696,
+	'https://www.last.fm/tag/new+wave+of+british+heavy+metal' => 1696,
+	'https://www.last.fm/tag/post+hardcore' => 1810,
+	'https://www.last.fm/tag/power+metal' => 1697,
+	'https://www.last.fm/tag/progressive+heavy+metal' => 1698,
+	'https://www.last.fm/tag/progressive+metal' => 1698,
+	'https://www.last.fm/tag/prog+rock' => 1805,
+	'https://www.last.fm/tag/progressive+rock' => 1805,
+	'https://www.last.fm/tag/progressive+black+metal' => 1809,
+	'https://www.last.fm/tag/progressive+death+metal' => 1793,
+	'https://www.last.fm/tag/psychedelic+rock' => 1802,
+	'https://www.last.fm/tag/punk' => 1787,
+	'https://www.last.fm/tag/rock' => 1780,
+	'https://www.last.fm/tag/sludge+metal' => 1699,
+	'https://www.last.fm/tag/speed+metal' => 1700,
+	'https://www.last.fm/tag/stoner+rock' => 1833,
+	'https://www.last.fm/tag/symphonic+black+metal' => 1701,
+	'https://www.last.fm/tag/symphonic+metal' => 1702,
+	'https://www.last.fm/tag/symphonic+power+metal' => 1806,
+	'https://www.last.fm/tag/tech+metal' => 1794,
+	'https://www.last.fm/tag/match+metal' => 1794,
+	'https://www.last.fm/tag/thrash+metal' => 1703,
+	'https://www.last.fm/tag/thrash' => 1703,
+	'https://www.last.fm/tag/viking+metal' => 1704,
   );
   return $tids[strtolower($url)];
 }
