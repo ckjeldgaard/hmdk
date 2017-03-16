@@ -48,7 +48,6 @@ function _lastfm_artist_genres() {
   $sql.= "FROM node n ";
   $sql.= "LEFT JOIN field_data_field_artist_genres g ON g.entity_id = n.nid ";
   $sql.= "WHERE n.type = :type AND n.status = :status AND g.field_artist_genres_tid IS NULL ";
-  $sql.= "LIMIT 50";
   
   $rs = db_query($sql, array(':status' => 1, ':type' => 'artist'));
   foreach ($rs as $row) {
