@@ -24,9 +24,17 @@
   <?php else: ?>
     <p><?php print truncate_utf8(strip_tags($node->body[LANGUAGE_NONE][0]['value']), 80, TRUE, TRUE); ?></p>
   <?php endif; ?>
-	
+
   <?php if (isset($node->field_rating[LANGUAGE_NONE])) : ?>
     <p class="rating-small grade<?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>"><?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>/10</p>
+  <?php endif; ?>
+
+  <?php if (count($node->tab_names) > 0 && count($node->tabs) > 0) : ?>
+    <ul class="reportage-shortcuts">
+      <?php foreach ($node->tabs as $tab): ?>
+        <li><a href="<?php print url('node/' . $node->nid); ?>#/<?php print $tab->field_tab_headline[LANGUAGE_NONE][0]['machine']; ?>"><?php print $tab->field_tab_headline[LANGUAGE_NONE][0]['human']; ?></a></li>
+      <?php endforeach; ?>
+    </ul>
   <?php endif; ?>
 
   <p class="author meta-inline">
@@ -35,6 +43,6 @@
   </p>
   <?php if (isset($node->first_genre)) : ?>
     <p class="genre meta-inline"><i class="fa fa-music"></i> Genre: <?php print l($node->first_genre->name, 'taxonomy/term/'.$node->first_genre->tid); ?></p>
-  <?php endif; ?> 
-  
+  <?php endif; ?>
+
 </section>

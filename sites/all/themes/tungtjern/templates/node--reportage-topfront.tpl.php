@@ -15,7 +15,7 @@
         <time datetime="<?php print format_date($node->published_at, 'date'); ?>"><?php print format_date($node->published_at, 'displaydate'); ?></time>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
         <span class="comments"><a href="<?php print url('node/' . $node->nid); ?>#comments" title="<?php print format_plural($node->comment_count, '1 comment', '@count comments'); ?>"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></span>
-      <?php endif; ?>  
+      <?php endif; ?>
       </p>
     <h1><?php print l($node->title, 'node/' . $node->nid); ?></h1>
     <?php if (isset($node->field_tagline[LANGUAGE_NONE][0])) : ?>
@@ -25,5 +25,14 @@
     <?php else: ?>
       <p><?php print truncate_utf8(strip_tags($node->body[LANGUAGE_NONE][0]['safe_value']), 140, TRUE, TRUE); ?></p>
     <?php endif; ?>
+
+    <?php if (count($node->tab_names) > 0 && count($node->tabs) > 0) : ?>
+      <ul class="reportage-shortcuts">
+        <?php foreach ($node->tabs as $tab): ?>
+          <li><a href="<?php print url('node/' . $node->nid); ?>#/<?php print $tab->field_tab_headline[LANGUAGE_NONE][0]['machine']; ?>"><?php print $tab->field_tab_headline[LANGUAGE_NONE][0]['human']; ?></a></li>
+        <?php endforeach; ?>
+      </ul>
+    <?php endif; ?>
+
     </div>
 </section>

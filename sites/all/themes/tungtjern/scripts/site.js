@@ -226,5 +226,54 @@ $('.query').on('typeahead:selected', function(event, selection) {
     $("footer .adslist").show();
   }
 
+      var tabs =  $(".reportage-tabs li a");
+
+      if(window.location.hash) {
+        if (window.location.hash.indexOf('/') !== -1) {
+          // Selected tab
+          var content = window.location.hash.replace('/','');
+          tabs.removeClass("active");
+
+          for (var key in tabs) {
+            if (tabs.hasOwnProperty(key)) {
+              if (tabs[key].href !== undefined && tabs[key].href.indexOf(window.location.hash) !== -1) {
+                tabs[key].className += " active";
+              }
+            }
+          }
+
+          $("#reportage-content").find('.tab-content').hide();
+          $(content).addClass("current");
+          $(content).fadeIn(200);
+        } else {
+          // Selected performance
+          var parentTab = $(window.location.hash).closest(".tab-content");
+          var tabID = $(window.location.hash).closest(".tab-content").attr('id');
+
+          tabs.removeClass("active");
+          for (var key in tabs) {
+            if (tabs.hasOwnProperty(key)) {
+              if (tabs[key].href !== undefined && tabs[key].href.indexOf(tabID) !== -1) {
+                tabs[key].className += " active";
+              }
+            }
+          }
+          $("#reportage-content").find('.tab-content').hide();
+          $(parentTab).addClass("current");
+          $(parentTab).fadeIn(200);
+        }
+
+      }
+
+      tabs.click(function() {
+
+        var content = this.hash.replace('/','');
+        tabs.removeClass("active");
+        $(this).addClass("active");
+        $("#reportage-content").find('.tab-content').hide();
+        $(content).addClass("current");
+        $(content).fadeIn(400);
+      });
+
   }};
 })(jQuery, Drupal);

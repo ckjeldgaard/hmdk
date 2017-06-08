@@ -6,7 +6,7 @@
 
 function tungtjern_preprocess_user_profile(&$variables) {
   global $user;
-  
+
   $uid = $variables['elements']['#account']->uid;
 
   $author_reviews = _get_reviews_by_author($uid);
@@ -14,7 +14,7 @@ function tungtjern_preprocess_user_profile(&$variables) {
   foreach ($author_reviews as $rev) {
     $rating_count+= $rev->rating;
   }
-  
+
   $variables['user_reviews'] = $author_reviews;
   $variables['user_avg_rating'] = (count($author_reviews) > 0) ? round($rating_count / count($author_reviews), 1) : 0;
   $variables['user_news'] = _get_news_by_author($uid);
@@ -22,7 +22,7 @@ function tungtjern_preprocess_user_profile(&$variables) {
   $variables['user_concerts'] = _get_live_reviews_by_author($uid);
   $variables['user_comments'] = _get_user_comments($uid);
   $variables['user_role_name'] = _user_role($uid);
-  
+
   // Compute age:
   if (isset($variables['user_profile']['field_address']['#object']->field_birthday[LANGUAGE_NONE][0]['value']) && $variables['user_profile']['field_address']['#object']->field_birthday[LANGUAGE_NONE][0]['value'] > 0) {
     $birth = $variables['user_profile']['field_address']['#object']->field_birthday[LANGUAGE_NONE][0]['value'];
@@ -31,7 +31,7 @@ function tungtjern_preprocess_user_profile(&$variables) {
     $age = floor($age/31536000);
     $variables['age'] = $age;
   }
-  
+
   if (isset($variables['user_profile']['field_address']['#object']->field_gender[LANGUAGE_NONE][0]['value'])) {
     if ($variables['user_profile']['field_address']['#object']->field_gender[LANGUAGE_NONE][0]['value'] == 'M') {
       $variables['gender'] = t('Man');
@@ -40,11 +40,11 @@ function tungtjern_preprocess_user_profile(&$variables) {
       $variables['gender'] = t('Woman');
     }
   }
-  
+
   // Only administrators can view addresses:
   if (in_array('administrator', $user->roles)) {
     $address = '';
-    
+
     if (strlen($variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['thoroughfare']) > 0) {
       $address .= $variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['thoroughfare'] . "<br />\n";
     }
@@ -66,11 +66,11 @@ function tungtjern_preprocess_user_profile(&$variables) {
     }*/
     $variables['address'] = $address;
   }
-  
+
   // Protect personal info (like email addresses etc.)
   $variables['display'] = (in_array('administrator', $user->roles)) ? TRUE : FALSE;
-  
-  
+
+
 }
 
 /**
@@ -78,22 +78,22 @@ function tungtjern_preprocess_user_profile(&$variables) {
  */
 function tungtjern_preprocess_node(&$variables) {
   global $user;
-  
+
   $node = $variables['node'];
-  
+
   $comments_display = TRUE;
   if ($user->uid == 0 && $node->comment != 0 && $node->comment_count == 0) {
     $comments_display = FALSE;
   }
   $node->comments_display = $comments_display;
-  
+
   $view_mode = $variables['view_mode'];
 
   // Add templates hook suggestions.
   if ($view_mode !== 'full') {
     array_push($variables['theme_hook_suggestions'], 'node__' . $node->type . '_' . $view_mode);
   }
-  
+
   //Preprocess function
   $preprocess_function = "_preprocess_" . $node->type;
 
@@ -115,7 +115,7 @@ function _preprocess_review(&$node) {
   }
   $node->release = $release;
   $node->artist = node_load($release->field_artist[LANGUAGE_NONE][0]['target_id']);
-  
+
   // Upcoming concert:
   $node->upcoming_concert = FALSE;
   $concert = _get_next_artist_concert($node->artist->nid);
@@ -123,10 +123,10 @@ function _preprocess_review(&$node) {
 
     $venue = taxonomy_term_load($concert->field_venue[LANGUAGE_NONE][0]['tid']);
     $venue_name = $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'];
-    
+
     if ($concert->field_is_festival[LANGUAGE_NONE][0]['value']) {
       $link = l($concert->field_festival_name[LANGUAGE_NONE][0]['value'], 'node/' . $concert->nid);
-      
+
       if ($concert->field_event_date[LANGUAGE_NONE][0]['value'] == $concert->field_event_date[LANGUAGE_NONE][0]['value2']) {
         // One day festival
         $date = format_date($concert->field_event_date[LANGUAGE_NONE][0]['value'], 'eventdate');
@@ -146,7 +146,7 @@ function _preprocess_review(&$node) {
       $node->upcoming_concert = t('!artist plays a concert in !venue on !date.', array('!artist' => $node->artist->title, '!venue' => $link, '!date' => $display_date));
     }
   }
-  
+
   // Exclude N/A, [bandet selv]:
   $excluded_labels = array(1267, 1341);
 
@@ -156,12 +156,12 @@ function _preprocess_review(&$node) {
   } else {
     $node->label = FALSE;
   }
-  
+
   $distributor_term = (isset($release->field_distributor[LANGUAGE_NONE][0]['tid'])) ? taxonomy_term_load($release->field_distributor[LANGUAGE_NONE][0]['tid']) : FALSE;
   $node->distributor = $distributor_term;
-  
+
   $node->user_ratings = _get_item_user_rating($node->nid);
- 
+
   // Load tracklist as array (for unordered list):
   $tracks = array();
   if (isset($node->field_tracklist[LANGUAGE_NONE])) {
@@ -188,7 +188,7 @@ function _preprocess_review(&$node) {
     }
   }
   $node->tracklist = $tracks;
-  
+
   // Load genres (if any):
   $genres = FALSE;
   $genre_label = 'Genre';
@@ -209,18 +209,18 @@ function _preprocess_review(&$node) {
   }
   $node->genre_label = $genre_label;
   $node->genre = $genres;
-  
+
   // Load first genre for teaser and topfront view:
   if (isset($node->field_genre[LANGUAGE_NONE][0]['entity'])) {
     $node->first_genre = $node->field_genre[LANGUAGE_NONE][0]['entity'];
   } else if (isset($node->field_genre[LANGUAGE_NONE][0]['target_id'])) {
     $node->first_genre = taxonomy_term_load($node->field_genre[LANGUAGE_NONE][0]['target_id']);
   }
-  
+
   if ($node->status == 0) {
     drupal_set_message(t('The review %review is not published.', array('%review' => $node->title)), 'warning');
   }
-  
+
   // Check if email to label and distributor has never been sent (after October 18th 2014):
   if ($node->status == 1 && arg(0) == 'node' && arg(1) == $node->nid && $node->published_at > 1413634059) {
     // If label contact is set:
@@ -232,7 +232,7 @@ function _preprocess_review(&$node) {
           $query = db_select('review_email_log', 'l');
           $query->fields('l', array('nid', 'timestamp'));
           $query->condition('l.nid', $node->nid);
-        
+
           $log = $query->execute()->fetchObject();
           if ($log == null) {
             drupal_set_message(t('Label and distributor has never received an email about the %review review.', array('%review' => $node->title)), 'error');
@@ -241,7 +241,7 @@ function _preprocess_review(&$node) {
       }
     }
   }
-  
+
 }
 
 /**
@@ -257,7 +257,7 @@ function _preprocess_poll(&$node) {
  * Preprocess concert review node.
  */
 function _preprocess_concert_review(&$node) {
-  
+
   $concert_reviews = array();
   if (isset($node->field_concert_reviews[LANGUAGE_NONE])) {
     foreach ($node->field_concert_reviews[LANGUAGE_NONE] as $concert_review) {
@@ -265,18 +265,18 @@ function _preprocess_concert_review(&$node) {
     }
   }
   $node->concert_reviews = $concert_reviews;
-  
+
   $concert_node = node_load($node->field_concert[LANGUAGE_NONE][0]['target_id']);
-  
+
   $is_festival = (isset($concert_node->field_is_festival[LANGUAGE_NONE]) && $concert_node->field_is_festival[LANGUAGE_NONE][0]['value'] == 1) ? TRUE : FALSE;
-  
+
   $node->headline = (!$is_festival) ? _generate_artists_string($concert_node->field_artists[LANGUAGE_NONE]) : $concert_node->title;
   $node->venue = (isset($concert_node->field_venue[LANGUAGE_NONE])) ? _get_venue_name($concert_node->field_venue[LANGUAGE_NONE][0]['tid']) : '';
   $node->venue_tid = (isset($concert_node->field_venue[LANGUAGE_NONE])) ? $concert_node->field_venue[LANGUAGE_NONE][0]['tid'] : NULL;
-  
+
   $node->concertdate = $concert_node->field_event_date[LANGUAGE_NONE][0]['value'];
   $node->enddate = ($concert_node->field_event_date[LANGUAGE_NONE][0]['value'] != $concert_node->field_event_date[LANGUAGE_NONE][0]['value2']) ? $concert_node->field_event_date[LANGUAGE_NONE][0]['value2'] : FALSE;
-  
+
   $headliners = array();
   $support = array();
   $full_lineup = FALSE;
@@ -303,12 +303,12 @@ function _preprocess_concert_review(&$node) {
       $support[] = l(_get_artist_name($b['target_id']), 'node/' . $b['target_id']);
     }
   }
-  
+
   $node->num_headliners = (isset($node->published_at)) ? count($concert_node->field_artists[LANGUAGE_NONE]) : 0;
   $node->headliners = implode(", ", $headliners);
   $node->support = implode(", ", $support);
   $node->full_lineup = $full_lineup;
-  
+
   $node->primary_img = (isset($node->field_image[LANGUAGE_NONE][0])) ? TRUE : FALSE;
   $node->has_galley = (isset($node->field_photos[LANGUAGE_NONE]) && count($node->field_photos[LANGUAGE_NONE]) > 0) ? TRUE : FALSE;
   $node->concert_node = $concert_node;
@@ -320,20 +320,22 @@ function _preprocess_concert_review(&$node) {
 function _preprocess_reportage(&$node) {
 
   $has_gallery = (isset($node->field_photos[LANGUAGE_NONE]) && count($node->field_photos[LANGUAGE_NONE]) > 0) ? TRUE : FALSE;
-  
+
   $rating_value = 0;
   $rating_count = 0;
-  
+
   $number_reviews = 0;
-  
+
   $tabs = array();
   $tab_names = array();
-  
+
   if (isset($node->field_tabs[LANGUAGE_NONE])) {
 
     for ($i = 0; $i < count($node->field_tabs[LANGUAGE_NONE]); $i++) {
+
       $tab_item = field_collection_item_load($node->field_tabs[LANGUAGE_NONE][$i]['value']);
-      
+      $tab_item->active = ($i == 0) ? TRUE : FALSE;
+
       //$next = FALSE;
       $tab_item->next_link = FALSE;
       $prev_index = $i-1;
@@ -348,11 +350,11 @@ function _preprocess_reportage(&$node) {
           'machine' => 'galleri',
         );
       }
-      
+
       $tab_item->reviews = array();
       foreach ($tab_item->field_reportage_review[LANGUAGE_NONE] as $review) {
         $review = field_collection_item_load($review['value']);
-        
+
         // Create machine key of artist name:
         if (isset($review->field_artist[LANGUAGE_NONE][0]['entity'])) {
           $machine_suggestion = transliteration_get($review->field_artist[LANGUAGE_NONE][0]['entity']->title, '-', 'en');
@@ -362,7 +364,7 @@ function _preprocess_reportage(&$node) {
           $machine_suggestion = '';
         }
         $review->artist_key = $machine_suggestion;
-        
+
         if (isset($review->field_rating[LANGUAGE_NONE][0]['value'])) {
           $rating_value += $review->field_rating[LANGUAGE_NONE][0]['value'];
           $rating_count++;
@@ -380,12 +382,12 @@ function _preprocess_reportage(&$node) {
   $node->rating_count = $rating_count;
   $node->has_gallery = $has_gallery;
   $node->number_reviews = $number_reviews;
-  
+
   $node->tab_names = $tab_names;
   $node->tabs = $tabs;
-  
+
   $node->primary_img = (isset($node->field_image[LANGUAGE_NONE][0])) ? TRUE : FALSE;
-  
+
   if ($node->status == 0) {
     drupal_set_message(t('The reportage %reportage is not published.', array('%reportage' => $node->title)), 'warning');
   }
@@ -409,17 +411,17 @@ function _preprocess_concert(&$node) {
     }
   }
   $node->artists = implode(", ", $artists);
-  
+
   // Get concert review (if any):
   $q = db_select('field_data_field_concert', 'c');
   $q->fields('c', array('entity_id'));
   $q->condition('c.field_concert_target_id', $node->nid);
   $q->range(0, 1);
   $rs = $q->execute()->fetchAssoc();
-  
+
   $node->review = (is_array($rs)) ? $rs['entity_id'] : FALSE;
   $node->reportage = _concert_has_reportage($node->nid);
-  
+
   // Check for more info:
   $more = FALSE;
   if (isset($node->field_start_time[LANGUAGE_NONE][0]['value']) ||
@@ -429,7 +431,7 @@ function _preprocess_concert(&$node) {
     $more = TRUE;
   }
   $node->more = $more;
-  
+
   if ($node->status == 0 && arg(0) == 'node' && arg(1) == $node->nid) {
     drupal_set_message(t('The concert %concert is not published.', array('%concert' => $node->title)), 'warning');
   }
@@ -449,30 +451,30 @@ function _preprocess_artist(&$node) {
   $sql.= "AND a.bundle = :bundle ";
   $sql.= "ORDER BY d.field_release_date_value DESC";
   $rs = db_query($sql, array(':artist_id' => $node->nid, ':bundle' => 'release'));
-  
+
   $releases = array();
   foreach ($rs as $row) {
     $release_node = node_load($row->release_id);
     $review_node = (!is_null($row->review_id)) ? node_load($row->review_id) : FALSE;
-    
+
     $releases[] = array(
       'release' => $release_node,
       'review' => $review_node,
     );
   }
   $node->releases = $releases;
-  
+
   $node->news = _get_artist_news($node->nid);
   $node->concerts = _get_artist_concerts($node->nid);
   $node->interviews = _get_artist_interview($node->nid);
   $node->reports = _get_artist_reports($node->nid);
-  
+
   $blogs = array();
   foreach (_get_artist_blog_posts($node->nid) as $b) {
     $blogs[] = node_load($b->nid);
   }
   $node->blog_posts = $blogs;
-  
+
   $genres = FALSE;
   if (isset($node->field_artist_genres[LANGUAGE_NONE])) {
     $g = array();
@@ -488,7 +490,7 @@ function _preprocess_artist(&$node) {
     $genres .= implode(", ", $g);
   }
   $node->genres = $genres;
-  
+
   // Load related bands:
   $related = FALSE;
   if (isset($node->field_related_bands[LANGUAGE_NONE])) {
