@@ -1,5 +1,5 @@
 body {
-  background: #333333 url('../img/body-bg.gif') repeat-x;
+  background: #333333 url('/sites/all/themes/tungtjern/img/body-bg.gif') repeat-x;
   padding:0;
   margin: 0;
 }
@@ -33,7 +33,7 @@ header {
 
 header h1 a {
   display:block;
-  background:url('../img/logos/heavymetaldk.png') no-repeat;
+  background:url('/sites/all/themes/tungtjern/img/logos/heavymetaldk.png') no-repeat;
   height: 0;
   background-size: 100%;
   padding-bottom:23%; /* bg-height (75px) / bg-width (550px) * 100*/
@@ -41,39 +41,39 @@ header h1 a {
 }
 
 header h1 a.black {
-  background-image:url('../img/logos/heavymetaldk-black.png');
+  background-image:url('/sites/all/themes/tungtjern/img/logos/heavymetaldk-black.png');
 }
 
 header h1 a.brutal-death {
-  background-image:url('../img/logos/heavymetaldk-brutal-death.png');
+  background-image:url('/sites/all/themes/tungtjern/img/logos/heavymetaldk-brutal-death.png');
 }
 
 header h1 a.death, header h1 a.melodeath {
-  background-image:url('../img/logos/heavymetaldk-death.png');
+  background-image:url('/sites/all/themes/tungtjern/img/logos/heavymetaldk-death.png');
 }
 
 header h1 a.doom {
-  background-image:url('../img/logos/heavymetaldk-doom.png');
+  background-image:url('/sites/all/themes/tungtjern/img/logos/heavymetaldk-doom.png');
 }
 
 header h1 a.folk {
-  background-image:url('../img/logos/heavymetaldk-folk.png');
+  background-image:url('/sites/all/themes/tungtjern/img/logos/heavymetaldk-folk.png');
 }
 
 header h1 a.industrial {
-  background-image:url('../img/logos/heavymetaldk-industrial.png');
+  background-image:url('/sites/all/themes/tungtjern/img/logos/heavymetaldk-industrial.png');
 }
 
 header h1 a.norwegian-black {
-  background-image:url('../img/logos/heavymetaldk-norwegian-black.png');
+  background-image:url('/sites/all/themes/tungtjern/img/logos/heavymetaldk-norwegian-black.png');
 }
 
 header h1 a.power {
-  background-image:url('../img/logos/heavymetaldk-power.png');
+  background-image:url('/sites/all/themes/tungtjern/img/logos/heavymetaldk-power.png');
 }
 
 header h1 a.thrash {
-  background-image:url('../img/logos/heavymetaldk-thrash.png');
+  background-image:url('/sites/all/themes/tungtjern/img/logos/heavymetaldk-thrash.png');
 }
 
 header h1 {
@@ -352,7 +352,7 @@ a.pure-button-primary {
 /* Main content */
 
 .mainContent {
-  background: #dddddd url('../img/bg.jpg');
+  background: #dddddd url('/sites/all/themes/tungtjern/img/bg.jpg');
   padding: 15px 0;
 }
 
@@ -1040,7 +1040,7 @@ pre {
 }
 
 .rating {
-  background: url('../img/skulls.png') no-repeat;
+  background: url('/sites/all/themes/tungtjern/img/skulls.png') no-repeat;
   height: 25px;
   padding-left:255px;
   font-weight: bold;
@@ -1049,7 +1049,7 @@ pre {
 }
 
 .rating-small {
-  background: url('../img/skulls-small.png') no-repeat;
+  background: url('/sites/all/themes/tungtjern/img/skulls-small.png') no-repeat;
   height: 15px;
   padding: 0 0 0 155px;
   font-weight: bold;
