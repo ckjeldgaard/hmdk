@@ -7,17 +7,12 @@
 
 /**
  * @defgroup advagg_forms Advanced Aggregates Forms
- *
  * @{
  * Advanced Aggregates administration forms.
- *
- * @}
  */
 
 /**
  * Form builder; Configure advagg settings.
- *
- * @ingroup advagg_forms
  *
  * @see system_settings_form()
  */
@@ -418,7 +413,7 @@ function advagg_admin_settings_form($form, $form_state) {
     $form['global']['obscure']['advagg_brotli']['#disabled'] = TRUE;
     $form['global']['obscure']['advagg_brotli']['#description'] .= ' ' . t('The <a href="@url">PHP brotli extension</a> is needed in order to enable this feature.', array('@url' => 'https://github.com/kjdev/php-ext-brotli'));
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-      $form['global']['obscure']['advagg_brotli']['#description'] .= ' ' . t('If running on windows this is a helpful guide on how to compile <a href="@url">PHP extensions</a>. Also noted that <a href"@iis">IIS has a Brotli extension<a/>,', array(
+      $form['global']['obscure']['advagg_brotli']['#description'] .= ' ' . t('If running on windows this is a helpful guide on how to compile <a href="@url">PHP extensions</a>. Also noted that <a href"@iis">IIS has a Brotli extension</a>,', array(
         '@url' => 'https://wiki.php.net/internals/windows/stepbystepbuild',
         '@iis' => 'https://www.iis.net/downloads/community/2016/03/iis-brotli',
       ));
@@ -429,6 +424,12 @@ function advagg_admin_settings_form($form, $form_state) {
     '#title' => t('Run advagg_ajax_render_alter()'),
     '#default_value' => variable_get('advagg_ajax_render_alter', ADVAGG_AJAX_RENDER_ALTER),
     '#description' => t('If disabled, AdvAgg will not alter the aggregates returned by ajax requests.'),
+  );
+  $form['global']['obscure']['advagg_disable_on_admin'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Do not use AdvAgg or any aggregation in the admin section.'),
+    '#default_value' => variable_get('advagg_disable_on_admin', ADVAGG_DISABLE_ON_ADMIN),
+    '#description' => t('If checked, AdvAgg will not be used in the /admin section as well as any place the admin theme is used.'),
   );
   $form['global']['obscure']['advagg_include_base_url'] = array(
     '#type' => 'checkbox',
@@ -605,8 +606,6 @@ function advagg_admin_settings_form($form, $form_state) {
 
 /**
  * Form builder; Do advagg operations.
- *
- * @ingroup advagg_forms
  */
 function advagg_admin_operations_form($form, $form_state) {
   drupal_set_title(t('AdvAgg: Operations'));
@@ -861,8 +860,6 @@ function advagg_admin_operations_form($form, $form_state) {
 /**
  * Form builder; Show info about advagg and advagg settings.
  *
- * @ingroup advagg_forms
- *
  * @see system_settings_form()
  */
 function advagg_admin_info_form($form, $form_state) {
@@ -1087,7 +1084,16 @@ function advagg_admin_system_performance_settings_form(&$form, $form_state) {
   );
 }
 
-// Submit callback.
+/**
+ * @} End of "defgroup advagg_forms".
+ */
+
+/**
+ * @defgroup advagg_forms_callback AdvAgg forms callbacks and validation.
+ * @{
+ * Functions that handle user input from forms.
+ */
+
 /**
  * Clear out the advagg cache bin when the save configuration button is pressed.
  */
@@ -1170,7 +1176,6 @@ function advagg_admin_settings_form_submit($form, &$form_state) {
   advagg_cache_clear_admin_submit();
 }
 
-// Callbacks for buttons.
 /**
  * Set or remove the AdvAggDisabled cookie.
  */
@@ -1620,3 +1625,7 @@ function advagg_admin_cleanup_temp_files_button() {
     drupal_set_message(format_plural($count, '1 leftover temp files from advagg was found. A total of 1 temp files was removed.', 'Some leftover temp files from advagg were found. A total of %count temp files were removed.'));
   }
 }
+
+/**
+ * @} End of "defgroup advagg_forms_callback".
+ */

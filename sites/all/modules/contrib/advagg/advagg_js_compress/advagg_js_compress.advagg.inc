@@ -11,6 +11,11 @@ if (defined('PHP_VERSION_ID') && constant('PHP_VERSION_ID') >= 50300) {
 }
 
 /**
+ * @addtogroup advagg_hooks
+ * @{
+ */
+
+/**
  * Implements hook_advagg_get_info_on_files_alter().
  *
  * Used to make sure the info is up to date in the cache.
@@ -182,6 +187,10 @@ function advagg_js_compress_advagg_save_aggregate_alter(&$files_to_save, $aggreg
 }
 
 /**
+ * @} End of "addtogroup advagg_hooks".
+ */
+
+/**
  * Get a list of enabled compressors.
  *
  * @param array $aggregate_settings
@@ -346,10 +355,17 @@ function advagg_js_compress_prep(&$contents, $filename, array $aggregate_setting
     // extraneous/wrong chars at the end of the string. This work-around will
     // remove these chars if necessary. See https://www.drupal.org/node/2627468.
     // Also see https://github.com/sqmk/pecl-jsmin/issues/46.
-    $a = strrpos($contents, ';');
-    $b = strrpos($contents, '}');
-    $c = strrpos($contents, ')');
-    $contents = substr($contents, 0, 1 + max($a, $b, $c));
+    if ($compressor == 3 || $compressor == 5) {
+      $a = strrpos($contents, ';');
+      $b = strrpos($contents, '}');
+      $c = strrpos($contents, ')');
+
+      // Simple scripts can just end, check to make sure there's a
+      // match before cutting.
+      if ($a !== FALSE || $b !== FALSE || $c !== FALSE) {
+        $contents = substr($contents, 0, 1 + max($a, $b, $c));
+      }
+    }
 
     // Ensure that $contents ends with ; or }.
     if (strpbrk(substr(trim($contents), -1), ';}') === FALSE) {
