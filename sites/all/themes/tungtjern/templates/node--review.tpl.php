@@ -1,5 +1,5 @@
 <article itemprop="review" itemscope itemtype="http://schema.org/Review">
-  
+
 <?php if ($node->upcoming_concert) : ?>
 <div class="pure-alert pure-alert-info">
   <?php print $node->upcoming_concert; ?>
@@ -32,6 +32,12 @@
   </div>
   <div class="pure-u-1 pure-u-sm-2-3 pure-u-md-2-3 pure-u-lg-1-2 review-meta">
     <div itemprop="itemReviewed" itemscope itemtype="http://schema.org/MusicAlbum">
+      <?php if (isset($node->field_detektoren[LANGUAGE_NONE]) && $node->field_detektoren[LANGUAGE_NONE][0]['value'] == 1): ?>
+        <div class="detektoren-tooltip">
+          <a href="<?php print url('detektoren'); ?>"><?php print t('Detektoren'); ?></a>
+        </div>
+      <?php endif; ?>
+
       <h1 itemprop="byArtist" itemscope itemtype="http://schema.org/MusicGroup"><a href="<?php print url('node/' . $node->artist->nid); ?>" itemprop="url" title="<?php print $node->artist->title; ?> bandprofil"><?php print $node->artist->title; ?></a></h1>
       <p class="title" itemprop="name"><?php print $node->release->field_release_title[LANGUAGE_NONE][0]['value']; ?></p>
       <?php if (isset($node->field_classic[LANGUAGE_NONE]) && $node->field_classic[LANGUAGE_NONE][0]['value'] == 1): ?>
@@ -57,7 +63,7 @@
         <?php print formatted_date($node->release->field_release_date[LANGUAGE_NONE][0]['value']); ?>
         <meta itemprop="dateCreated" content="<?php print date('Y-m-d', $node->release->field_release_date[LANGUAGE_NONE][0]['value']); ?>" />
       </p>
-      
+
       <table class="record-details" border="0" cellspacing="0" cellpadding="0">
       <?php if (isset($node->release->field_release_type[LANGUAGE_NONE])) : ?><tr><th>Type:</th><td><?php print $node->release->field_release_type[LANGUAGE_NONE][0]['value']; ?></td></tr><?php endif; ?>
       <?php if (isset($node->genre) && strlen($node->genre) > 0) : ?><tr><th><?php print $node->genre_label; ?>:</th><td><?php print $node->genre; ?></td></tr><?php endif; ?>
@@ -65,7 +71,7 @@
       <?php if (isset($node->release->field_tracks[LANGUAGE_NONE][0])) : ?><tr><th>Antal numre:</th><td itemprop="numTracks"><?php print $node->release->field_tracks[LANGUAGE_NONE][0]['value']; ?></td></tr><?php endif; ?>
       </table>
     </div>
-    
+
     <?php if (isset($node->field_rating[LANGUAGE_NONE])) : ?>
     <p itemprop="reviewRating" itemscope itemtype="http://schema.org/Rating"><meta itemprop="worstRating" content ="1">Officiel vurdering:
       <span class="rating grade<?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>"><span itemprop="ratingValue"><?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?></span>/<span itemprop="bestRating">10</span></span>
