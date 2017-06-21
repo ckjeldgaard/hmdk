@@ -1,0 +1,131 @@
+<?php
+error_reporting(E_ALL);
+
+
+/**
+ * Implements hook_menu().
+ */
+function firebase_menu() {
+  $items['admin/config/system/firebase'] = array(
+    'title' => 'Firebase settings',
+    'description' => 'Edit Firebase settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_firebase_settings_form'),
+    'access arguments' => array('edit firebase settings'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'firebase.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function firebase_permission() {
+  return array(
+    'edit firebase settings' => array(
+      'title' => t('Edit Firebase settings'),
+    )
+  );
+}
+
+/**
+ * Implements hook_init().
+ */
+function firebase_init() {
+  // _firebase_sync();
+}
+
+function _firebase_sync() {
+  header("content-type:text/plain;charset=utf-8");
+
+  $sql = "SELECT n.nid ";
+  $sql.= "FROM node n ";
+  $sql.= "INNER JOIN field_data_field_event_date d ON d.entity_id = n.nid ";
+  $sql.= "WHERE n.type = :type AND d.field_event_date_value > :now AND status = :status ";
+  $sql.= "LIMIT 10 ";
+
+  $rs = db_query($sql, array(':type' => 'concert', ':now' => time(), ':status' => 1));
+  foreach ($rs as $row) {
+    $node = node_load($row->nid);
+
+    $cancelled = $node->field_cancelled[LANGUAGE_NONE][0]['value'];
+    $is_festival = $node->field_is_festival[LANGUAGE_NONE][0]['value'];
+    $date_start = $node->field_event_date[LANGUAGE_NONE][0]['value'];
+    $date_end = $node->field_event_date[LANGUAGE_NONE][0]['value2'];
+
+    $venue_term = taxonomy_term_load($node->field_venue[LANGUAGE_NONE][0]['tid']);
+    $venue = $venue_term->name . ", " . $venue_term->field_address[LANGUAGE_NONE][0]['locality'];
+
+    $title_parts = explode(" - ", $node->title);
+
+    $events['event-' . $row->nid] = array(
+      "cancelled" => $cancelled,
+      "dateEnd" => $date_end,
+      "dateStart" => $date_start,
+      "festival" => $is_festival,
+      "name" => ($is_festival) ? $node->title : $title_parts[0],
+      "venue" => $venue
+    );
+
+  }
+
+  ksort($events);
+  foreach($events as &$month) {
+    uasort($month, 'date_start_cmp');
+  }
+
+  _update_events($events);
+  die;
+}
+
+function date_start_cmp($a, $b) {
+  if ($a['dateStart'] == $b['dateStart']) {
+    return 0;
+  }
+  return ($a['dateStart'] < $b['dateStart']) ? -1 : 1;
+}
+
+function _update_events(array $events) {
+  $firebase_url = variable_get('firebase_url');
+  $token = _fetch_access_token();
+
+  $headers = array(
+    'Content-Type: application/json',
+    'Authorization: Bearer ' . $token
+  );
+
+  $curl = curl_init();
+  curl_setopt($curl, CURLOPT_URL, $firebase_url . '/data/events/.json');
+  curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
+  curl_setopt($curl, CURLOPT_POSTFIELDS, drupal_json_encode($events));
+  curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+  $result = curl_exec($curl);
+
+  print_r($result);
+  curl_close($curl);
+}
+
+function _fetch_access_token() {
+  module_load_include('php', 'firebase', 'google-api-php-client/vendor/autoload');
+
+  $client = new Google_Client();
+  $service_account_file = _service_account_file();
+
+  $client->setApplicationName(variable_get('firebase_application_name'));
+  $client->setAuthConfig($service_account_file->uri);
+  $client->setScopes([
+    'https://www.googleapis.com/auth/firebase.database',
+    Google_Service_Oauth2::USERINFO_EMAIL
+  ]);
+
+  $client->fetchAccessTokenWithAssertion();
+  $token = $client->getAccessToken();
+  $accessToken = $token['access_token'];
+  return $accessToken;
+}
+
+function _service_account_file() {
+  $firebase_service_account_file = variable_get('firebase_service_account_file');
+  return isset($firebase_service_account_file->fid) ? $firebase_service_account_file : false;
+}

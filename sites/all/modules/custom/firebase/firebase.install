@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function firebase_schema() {
+  $schema['firebase'] = array(
+    'description' => 'Table containing Firebase database credentials',
+    'fields' => array(
+      'firebase_url' => array(
+        'description' => 'Base URL to Firebase database',
+        'type' => 'varchar',
+        'length' => '256',
+        'not null' => TRUE,
+      ),
+      'firebase_token' => array(
+        'description' => 'Firebase auth token',
+        'type' => 'varchar',
+        'length' => '256',
+        'not null' => TRUE,
+      ),
+    ),
+  );
+  return $schema;
+}
