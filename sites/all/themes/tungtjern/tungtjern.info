@@ -16,6 +16,7 @@ scripts[] = scripts/typeahead.bundle.js
 scripts[] = scripts/js.cookie.js
 scripts[] = scripts/site.js
 scripts[] = sites/all/libraries/*
+scripts[] = ../../modules/contrib/lazyloader/jquery.lazyloader.js
 
 blacklist[stylesheets][] = "modules/system/*"
 blacklist[stylesheets][] = "modules/comment/*"

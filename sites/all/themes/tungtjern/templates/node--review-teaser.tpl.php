@@ -2,7 +2,7 @@
     <div class="pure-u-1-3 pure-u-md-1-6 pure-u-lg-1-5">
       <div class="img-wrapper">
         <a href="<?php print url('node/' . $node->nid); ?>">
-          <img src="<?php print image_cache('review_thumbnail', $node->release->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->release->title); ?>" class="pure-img" />
+          <img data-src="<?php print image_cache('review_thumbnail', $node->release->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->release->title); ?>" class="pure-img" />
         </a>
       </div>
     </div>
@@ -15,7 +15,7 @@
         </span>
       <?php if (isset($node->first_genre)) : ?>
         <span class="genre"><i class="fa fa-music"></i> Genre: <?php print l($node->first_genre->name, 'taxonomy/term/'.$node->first_genre->tid); ?></span>
-      <?php endif; ?> 
+      <?php endif; ?>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
         <span class="comments"><a href="<?php print url('node/' . $node->nid); ?>#comments"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></span>
       <?php endif; ?>

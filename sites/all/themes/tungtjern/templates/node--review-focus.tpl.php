@@ -7,9 +7,9 @@
   </div>
   <a href="<?php print url('node/' . $node->nid); ?>">
     <?php if ($node->type == 'review') : ?>
-    <img src="<?php print image_cache('review', $node->release->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->release->title); ?>" class="pure-img" />
+    <img data-src="<?php print image_cache('review', $node->release->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->release->title); ?>" class="pure-img" />
     <?php else: ?>
-    <img src="<?php print image_cache('review', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->title); ?>" class="pure-img" />
+    <img data-src="<?php print image_cache('review', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->title); ?>" class="pure-img" />
     <?php endif; ?>
   </a>
   <?php if ($node->type == 'review') : ?>
@@ -24,7 +24,7 @@
   <?php else: ?>
     <p><?php print truncate_utf8(strip_tags($node->body[LANGUAGE_NONE][0]['value']), 80, TRUE, TRUE); ?></p>
   <?php endif; ?>
-	
+
   <?php if (isset($node->field_rating[LANGUAGE_NONE])) : ?>
     <p class="rating-small grade<?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>"><?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>/10</p>
   <?php endif; ?>
@@ -35,6 +35,6 @@
   </p>
   <?php if (isset($node->first_genre)) : ?>
     <p class="genre meta-inline"><i class="fa fa-music"></i> Genre: <?php print l($node->first_genre->name, 'taxonomy/term/'.$node->first_genre->tid); ?></p>
-  <?php endif; ?> 
-  
+  <?php endif; ?>
+
 </section>

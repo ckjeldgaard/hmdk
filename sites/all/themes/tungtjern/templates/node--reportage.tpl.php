@@ -77,7 +77,7 @@
           </div>
           <?php if (isset($review->field_image[LANGUAGE_NONE][0])): ?>
             <div class="img <?php if ($swap == 0) : $swap = 1; ?>left<?php else: $swap = 0; ?>right<?php endif; ?>">
-              <a href="<?php print image_cache('gallery_large', $review->field_image[LANGUAGE_NONE][0]); ?>" data-lightbox="reviewimage" <?php if (strlen($review->field_image[LANGUAGE_NONE][0]['title']) > 0): ?>data-title="<?php print $review->field_image[LANGUAGE_NONE][0]['title']; ?>"<?php endif; ?>><img src="<?php print image_cache('concert_thumb', $review->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print $review->field_image[LANGUAGE_NONE][0]['alt']; ?>" /></a>
+              <a href="<?php print image_cache('gallery_large', $review->field_image[LANGUAGE_NONE][0]); ?>" data-lightbox="reviewimage" <?php if (strlen($review->field_image[LANGUAGE_NONE][0]['title']) > 0): ?>data-title="<?php print $review->field_image[LANGUAGE_NONE][0]['title']; ?>"<?php endif; ?>><img data-src="<?php print image_cache('concert_thumb', $review->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print $review->field_image[LANGUAGE_NONE][0]['alt']; ?>" /></a>
             </div>
           <?php endif; ?>
           <div itemprop="reviewBody">

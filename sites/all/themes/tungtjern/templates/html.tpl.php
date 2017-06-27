@@ -27,5 +27,6 @@
   }(document, 'script', 'facebook-jssdk'));</script>
   <?php print $page; ?>
   <?php print $scripts; ?>
+  <?php print $page_bottom; ?>
 </body>
 </html>

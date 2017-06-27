@@ -1153,6 +1153,10 @@ pre {
   border-bottom: 5px solid #d13c38;
 }
 
+.frontpage-mosaic img.lazyloader-icon {
+  border-bottom: none;
+}
+
 .frontpage-mosaic h1 {
   font-size: 1.8em;
 }
