@@ -45,6 +45,11 @@ function _firebase_settings_form($form, &$form_state) {
     '#value' => t('Save settings'),
     '#name' => 'settings'
   );
+  $form['sync'] = array(
+    '#type' => 'submit',
+    '#value' => t('Sync Firebase'),
+    '#submit' => array('_firebase_sync'),
+  );
 
   return $form;
 }

@@ -38,7 +38,22 @@ function firebase_init() {
 
 function _firebase_sync() {
   header("content-type:text/plain;charset=utf-8");
+  $token = _fetch_access_token();
 
+  $events = _get_events();
+  _update_events($events, $token);
+
+  die;
+}
+
+function date_start_cmp($a, $b) {
+  if ($a['dateStart'] == $b['dateStart']) {
+    return 0;
+  }
+  return ($a['dateStart'] < $b['dateStart']) ? -1 : 1;
+}
+
+function _get_events() {
   $sql = "SELECT n.nid ";
   $sql.= "FROM node n ";
   $sql.= "INNER JOIN field_data_field_event_date d ON d.entity_id = n.nid ";
@@ -75,20 +90,11 @@ function _firebase_sync() {
     uasort($month, 'date_start_cmp');
   }
 
-  _update_events($events);
-  die;
+  return $events;
 }
 
-function date_start_cmp($a, $b) {
-  if ($a['dateStart'] == $b['dateStart']) {
-    return 0;
-  }
-  return ($a['dateStart'] < $b['dateStart']) ? -1 : 1;
-}
-
-function _update_events(array $events) {
+function _update_events(array $events, $token) {
   $firebase_url = variable_get('firebase_url');
-  $token = _fetch_access_token();
 
   $headers = array(
     'Content-Type: application/json',
