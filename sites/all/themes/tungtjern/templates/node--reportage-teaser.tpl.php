@@ -3,7 +3,7 @@
     <div class="pure-u-1-3 pure-u-md-1-6 pure-u-lg-1-5">
       <div class="img-wrapper">
         <a href="<?php print url('node/' . $node->nid); ?>">
-          <img src="<?php print image_cache('teaser_thumbnail', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->field_image[LANGUAGE_NONE][0]['alt']); ?>" class="pure-img" />
+          <img data-src="<?php print image_cache('teaser_thumbnail', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->field_image[LANGUAGE_NONE][0]['alt']); ?>" class="pure-img" />
         </a>
       </div>
     </div>

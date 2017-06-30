@@ -2,7 +2,7 @@
   <?php if (isset($node->field_logo[LANGUAGE_NONE][0])) : ?>
     <div class="pure-u-1 pure-u-md-1-6 pure-u-lg-1-5">
       <a href="<?php print url('node/' . $node->nid); ?>">
-      <img src="<?php print image_cache('teaser_thumbnail', $node->field_logo[LANGUAGE_NONE][0]); ?>" alt="<?php print $node->title; ?>" class="pure-img" />
+      <img data-src="<?php print image_cache('teaser_thumbnail', $node->field_logo[LANGUAGE_NONE][0]); ?>" alt="<?php print $node->title; ?>" class="pure-img" />
       </a>
     </div>
     <div class="pure-u-1 pure-u-md-5-6 pure-u-lg-4-5 meta">

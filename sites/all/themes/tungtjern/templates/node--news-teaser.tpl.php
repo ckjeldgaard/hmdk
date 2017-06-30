@@ -3,7 +3,7 @@
     <div class="pure-u-1-3 pure-u-md-1-6 pure-u-lg-1-5">
       <div class="img-wrapper">
         <a href="<?php print url('node/' . $node->nid); ?>">
-          <img src="<?php print image_cache('teaser_thumbnail', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->field_image[LANGUAGE_NONE][0]['alt']); ?>" class="pure-img" />
+          <img data-src="<?php print image_cache('teaser_thumbnail', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->field_image[LANGUAGE_NONE][0]['alt']); ?>" class="pure-img" />
         </a>
       </div>
     </div>
@@ -19,7 +19,7 @@
         </span>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
         <span class="comments"><a href="<?php print url('node/' . $node->nid); ?>#comments"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></span>
-      <?php endif; ?>  
+      <?php endif; ?>
       </p>
     <h1><?php print l($node->title, 'node/' . $node->nid); ?></h1>
 <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>

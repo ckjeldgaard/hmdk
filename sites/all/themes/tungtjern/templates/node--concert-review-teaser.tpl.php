@@ -3,7 +3,7 @@
     <div class="pure-u-1-3 pure-u-md-1-6 pure-u-lg-1-5">
       <div class="img-wrapper">
         <a href="<?php print url('node/' . $node->nid); ?>">
-          <img src="<?php print image_cache('teaser_thumbnail', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->field_image[LANGUAGE_NONE][0]['alt']); ?>" class="pure-img" />
+          <img data-src="<?php print image_cache('teaser_thumbnail', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->field_image[LANGUAGE_NONE][0]['alt']); ?>" class="pure-img" />
         </a>
       </div>
     </div>
@@ -19,9 +19,9 @@
         </span>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
         <span class="comments"><a href="<?php print url('node/' . $node->nid); ?>#comments"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></span>
-      <?php endif; ?>  
+      <?php endif; ?>
       </p>
-    <h1><a href="<?php print url('node/' . $node->nid); ?>"><?php print $node->headline; ?> <span class="venue"><?php print $node->venue; ?></span></a></h1> 
+    <h1><a href="<?php print url('node/' . $node->nid); ?>"><?php print $node->headline; ?> <span class="venue"><?php print $node->venue; ?></span></a></h1>
     <span class="date"><?php print formatted_date($node->concertdate); ?><?php if ($node->enddate) : ?> - <?php print formatted_date($node->enddate); ?><?php endif; ?></span>
     <?php if (isset($node->field_tagline[LANGUAGE_NONE][0])) : ?>
       <p><?php print $node->field_tagline[LANGUAGE_NONE][0]['value']; ?></p>
