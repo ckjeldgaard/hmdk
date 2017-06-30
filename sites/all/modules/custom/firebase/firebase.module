@@ -58,7 +58,7 @@ function _get_events() {
   $sql.= "FROM node n ";
   $sql.= "INNER JOIN field_data_field_event_date d ON d.entity_id = n.nid ";
   $sql.= "WHERE n.type = :type AND d.field_event_date_value > :now AND status = :status ";
-  $sql.= "LIMIT 10 ";
+  // $sql.= "LIMIT 10 ";
 
   $rs = db_query($sql, array(':type' => 'concert', ':now' => time(), ':status' => 1));
   foreach ($rs as $row) {
@@ -74,13 +74,28 @@ function _get_events() {
 
     $title_parts = explode(" - ", $node->title);
 
+    $artists = array();
+    foreach ($node->field_artists[LANGUAGE_NONE] as $artist) {
+      $artist_name = _artist_name($artist['target_id']);
+      if ($artist_name) {
+        $artists[] = $artist_name;
+      }
+    }
+    foreach ($node->field_support_artists[LANGUAGE_NONE] as $artist) {
+      $artist_name = _artist_name($artist['target_id']);
+      if ($artist_name) {
+        $artists[] = $artist_name;
+      }
+    }
+
     $events['event-' . $row->nid] = array(
       "cancelled" => $cancelled,
       "dateEnd" => $date_end,
       "dateStart" => $date_start,
       "festival" => $is_festival,
       "name" => ($is_festival) ? $node->title : $title_parts[0],
-      "venue" => $venue
+      "venue" => $venue,
+      "artists" => $artists
     );
 
   }
@@ -91,6 +106,18 @@ function _get_events() {
   }
 
   return $events;
+}
+
+function _artist_name($artist_nid) {
+  $sql = "SELECT n.title ";
+  $sql.= "FROM node n ";
+  $sql.= "WHERE n.type = :type AND n.nid = :nid AND status = :status LIMIT 1";
+  $rs = db_query($sql, array(':type' => 'artist', ':nid' => $artist_nid, ':status' => 1));
+
+  foreach ($rs as $artist) {
+    return $artist->title;
+  }
+  return FALSE;
 }
 
 function _update_events(array $events, $token) {
