@@ -43,6 +43,20 @@ function _firebase_sync() {
   $events = _get_events();
   _update_events($events, $token);
 
+  $provinces = array(
+    'koebenhavn' => 'København',
+    'nordsjaelland' => 'Nordsjælland',
+    'bornholm' => 'Bornholm',
+    'sjaelland' => 'Sjælland',
+    'fyn' => 'Fyn',
+    'syd-soenderjylland' => 'Syd- og Sønderjylland',
+    'vestjylland' => 'Vestjylland',
+    'midtjylland' => 'Midtjylland',
+    'nordjylland' => 'Nordjylland',
+    'udlandet' => 'Udlandet'
+  );
+  _update_provinces($provinces, $token);
+
   die;
 }
 
@@ -54,11 +68,13 @@ function date_start_cmp($a, $b) {
 }
 
 function _get_events() {
-  $sql = "SELECT n.nid ";
+  $sql = "SELECT n.nid, p.field_province_value AS province ";
   $sql.= "FROM node n ";
   $sql.= "INNER JOIN field_data_field_event_date d ON d.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_venue v ON v.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_province p ON p.entity_id = v.field_venue_tid ";
   $sql.= "WHERE n.type = :type AND d.field_event_date_value > :now AND status = :status ";
-  // $sql.= "LIMIT 10 ";
+  $sql.= "LIMIT 10 ";
 
   $rs = db_query($sql, array(':type' => 'concert', ':now' => time(), ':status' => 1));
   foreach ($rs as $row) {
@@ -95,7 +111,8 @@ function _get_events() {
       "festival" => $is_festival,
       "name" => ($is_festival) ? $node->title : $title_parts[0],
       "venue" => $venue,
-      "artists" => $artists
+      "artists" => $artists,
+      "province" => $row->province
     );
 
   }
@@ -132,6 +149,23 @@ function _update_events(array $events, $token) {
   curl_setopt($curl, CURLOPT_URL, $firebase_url . '/data/events/.json');
   curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
   curl_setopt($curl, CURLOPT_POSTFIELDS, drupal_json_encode($events));
+  curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+  $result = curl_exec($curl);
+
+  print_r($result);
+  curl_close($curl);
+}
+
+function _update_provinces(array $provinces, $token) {
+  $headers = array(
+    'Content-Type: application/json',
+    'Authorization: Bearer ' . $token
+  );
+
+  $curl = curl_init();
+  curl_setopt($curl, CURLOPT_URL, variable_get('firebase_url') . '/data/provinces/.json');
+  curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
+  curl_setopt($curl, CURLOPT_POSTFIELDS, drupal_json_encode($provinces));
   curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
   $result = curl_exec($curl);
 
