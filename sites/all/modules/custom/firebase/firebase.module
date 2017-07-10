@@ -74,7 +74,7 @@ function _get_events() {
   $sql.= "INNER JOIN field_data_field_venue v ON v.entity_id = n.nid ";
   $sql.= "INNER JOIN field_data_field_province p ON p.entity_id = v.field_venue_tid ";
   $sql.= "WHERE n.type = :type AND d.field_event_date_value > :now AND status = :status ";
-  $sql.= "LIMIT 10 ";
+  // $sql.= "LIMIT 10 ";
 
   $rs = db_query($sql, array(':type' => 'concert', ':now' => time(), ':status' => 1));
   foreach ($rs as $row) {
@@ -105,10 +105,10 @@ function _get_events() {
     }
 
     $events['event-' . $row->nid] = array(
-      "cancelled" => $cancelled,
-      "dateEnd" => $date_end,
-      "dateStart" => $date_start,
-      "festival" => $is_festival,
+      "cancelled" => (bool)$cancelled,
+      "dateEnd" => (int)$date_end,
+      "dateStart" => (int)$date_start,
+      "festival" => (bool)$is_festival,
       "name" => ($is_festival) ? $node->title : $title_parts[0],
       "venue" => $venue,
       "artists" => $artists,
