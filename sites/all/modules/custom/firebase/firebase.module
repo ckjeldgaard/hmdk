@@ -109,16 +109,27 @@ function _get_events() {
     $title_parts = explode(" - ", $node->title);
 
     $artists = array();
+    $genres = array();
     foreach ($node->field_artists[LANGUAGE_NONE] as $artist) {
       $artist_name = _artist_name($artist['target_id']);
       if ($artist_name) {
         $artists[] = $artist_name;
+      }
+
+      $genre = _artist_genre($artist['target_id']);
+      if (!in_array($genre, $genres) && $genre != FALSE) {
+        $genres[] = $genre;
       }
     }
     foreach ($node->field_support_artists[LANGUAGE_NONE] as $artist) {
       $artist_name = _artist_name($artist['target_id']);
       if ($artist_name) {
         $artists[] = $artist_name;
+      }
+
+      $genre = _artist_genre($artist['target_id']);
+      if (!in_array($genre, $genres) && $genre != FALSE) {
+        $genres[] = $genre;
       }
     }
 
@@ -130,6 +141,7 @@ function _get_events() {
       "name" => ($is_festival) ? $node->title : $title_parts[0],
       "venue" => $venue,
       "artists" => $artists,
+      "genres" => $genres,
       "province" => $row->province
     );
 
@@ -151,6 +163,28 @@ function _artist_name($artist_nid) {
 
   foreach ($rs as $artist) {
     return $artist->title;
+  }
+  return FALSE;
+}
+
+function _artist_genre($artist_nid) {
+  $sql = "SELECT g.field_artist_genres_tid AS genre_tid ";
+  $sql.= "FROM node n ";
+  $sql.= "LEFT JOIN field_data_field_artist_genres g ON g.entity_id = n.nid ";
+  $sql.= "WHERE n.type = :type AND n.nid = :nid AND n.status = :status LIMIT 1";
+  $rs = db_query($sql, array(':type' => 'artist', ':nid' => $artist_nid, ':status' => 1))->fetchAssoc();
+
+  if (is_numeric($rs['genre_tid'])) {
+    $genre_tree = taxonomy_get_tree(7);
+    foreach ($genre_tree as $g) {
+      if ($g->tid == $rs['genre_tid']) {
+        if ($g->parents[0] > 0) {
+          return $g->parents[0];
+        } else {
+          return $g->tid;
+        }
+      }
+    }
   }
   return FALSE;
 }
