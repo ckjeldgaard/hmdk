@@ -56,8 +56,26 @@ function _firebase_sync() {
     'udlandet' => 'Udlandet'
   );
   _update_provinces($provinces, $token);
+  _update_genres(_get_genres(), $token);
 
   die;
+}
+
+/**
+ * @return array
+ */
+function _get_genres() {
+  $genre_taxonomy_vid = 7;
+
+  $genres = array();
+  $genre_tree = taxonomy_get_tree($genre_taxonomy_vid);
+  foreach ($genre_tree as $genre) {
+    if ($genre->parents[0] == 0) {
+      $genres[$genre->tid] = $genre->name;
+    }
+  }
+  asort($genres);
+  return $genres;
 }
 
 function date_start_cmp($a, $b) {
@@ -166,6 +184,23 @@ function _update_provinces(array $provinces, $token) {
   curl_setopt($curl, CURLOPT_URL, variable_get('firebase_url') . '/data/provinces/.json');
   curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
   curl_setopt($curl, CURLOPT_POSTFIELDS, drupal_json_encode($provinces));
+  curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+  $result = curl_exec($curl);
+
+  print_r($result);
+  curl_close($curl);
+}
+
+function _update_genres(array $genres, $token) {
+  $headers = array(
+    'Content-Type: application/json',
+    'Authorization: Bearer ' . $token
+  );
+
+  $curl = curl_init();
+  curl_setopt($curl, CURLOPT_URL, variable_get('firebase_url') . '/data/genres/.json');
+  curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
+  curl_setopt($curl, CURLOPT_POSTFIELDS, drupal_json_encode($genres));
   curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
   $result = curl_exec($curl);
 
