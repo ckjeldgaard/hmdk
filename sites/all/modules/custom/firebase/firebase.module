@@ -37,11 +37,12 @@ function firebase_init() {
 }
 
 function _firebase_sync() {
-  header("content-type:text/plain;charset=utf-8");
+  // header("content-type:text/plain;charset=utf-8");
   $token = _fetch_access_token();
 
   $events = _get_events();
   _update_events($events, $token);
+  drupal_set_message(t("Updated @count events.", array("@count" => count($events))));
 
   $provinces = array(
     'koebenhavn' => 'København',
@@ -56,22 +57,25 @@ function _firebase_sync() {
     'udlandet' => 'Udlandet'
   );
   _update_provinces($provinces, $token);
-  _update_genres(_get_genres(), $token);
+  drupal_set_message(t("Updated @count provinces.", array("@count" => count($provinces))));
 
-  die;
+  $genres = _get_genres();
+  _update_genres($genres, $token);
+  drupal_set_message(t("Updated @count genres.", array("@count" => count($genres))));
 }
 
 /**
  * @return array
  */
 function _get_genres() {
+  module_load_include('inc', 'pathauto', 'pathauto');
   $genre_taxonomy_vid = 7;
 
   $genres = array();
   $genre_tree = taxonomy_get_tree($genre_taxonomy_vid);
   foreach ($genre_tree as $genre) {
     if ($genre->parents[0] == 0) {
-      $genres[$genre->tid] = $genre->name;
+      $genres[pathauto_cleanstring($genre->name)] = $genre->name;
     }
   }
   asort($genres);
@@ -168,6 +172,8 @@ function _artist_name($artist_nid) {
 }
 
 function _artist_genre($artist_nid) {
+  module_load_include('inc', 'pathauto', 'pathauto');
+
   $sql = "SELECT g.field_artist_genres_tid AS genre_tid ";
   $sql.= "FROM node n ";
   $sql.= "LEFT JOIN field_data_field_artist_genres g ON g.entity_id = n.nid ";
@@ -179,9 +185,9 @@ function _artist_genre($artist_nid) {
     foreach ($genre_tree as $g) {
       if ($g->tid == $rs['genre_tid']) {
         if ($g->parents[0] > 0) {
-          return $g->parents[0];
+          return pathauto_cleanstring(taxonomy_term_load($g->parents[0])->name);
         } else {
-          return $g->tid;
+          return pathauto_cleanstring(taxonomy_term_load($g->tid)->name);
         }
       }
     }
