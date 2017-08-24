@@ -13,7 +13,37 @@ function workflow_menu() {
     'type' => MENU_NORMAL_ITEM,
     'file' => 'workflow.admin.inc',
   );
+  $items['admin/config/system/add_interview_request'] = array(
+    'title' => 'Add interview request',
+    'description' => 'Add a new interview request to be displayed on the dashboard.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_add_interview_request_form'),
+    'access arguments' => array('add interview request'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'workflow.admin.inc',
+  );
+  $items['bands/autocomplete'] = array(
+    'title' => 'Autocomplete for bands',
+    'page callback' => '_bands_autocomplete',
+    'access arguments' => array('add interview request'),
+    'type' => MENU_CALLBACK
+  );
   return $items;
+}
+
+function _bands_autocomplete($string) {
+  $matches = array();
+  $result = db_select('node', 'n')
+    ->fields('n', array('nid', 'title'))
+    ->condition('title', '%' . db_like($string) . '%', 'LIKE')
+    ->condition('type', 'artist')
+    ->execute();
+
+  foreach ($result as $row) {
+    $matches[$row->title] = check_plain($row->title);
+  }
+
+  drupal_json_output($matches);
 }
 
 /**
@@ -27,7 +57,7 @@ function workflow_cron() {
   foreach ($front as $obj) {
     $current_frontpage_nids[] = $obj->nid;
   }
-  
+
   // Unpromote every node not in current frontpage
   $upd = db_update('node')
     ->fields(array(
@@ -45,7 +75,7 @@ function workflow_cron() {
 
   $num_updated = $upd->execute();
   $num_rev_updated = $upd_rev->execute();
-  
+
   if ($num_updated > 0) {
     watchdog('workflow', 'Unpromoted %num nodes from frontpage on cron run.', array('%num' => $num_updated), WATCHDOG_INFO, NULL);
   }
@@ -72,6 +102,9 @@ function workflow_block_info() {
   );
   $blocks['block-accreditations'] = array(
     'info' => t('Accreditations'),
+  );
+  $blocks['block-interview-requests'] = array(
+    'info' => t('Interview requests'),
   );
   return $blocks;
 }
@@ -105,6 +138,10 @@ function workflow_block_view($delta) {
     case 'block-accreditations':
       $block['subject'] = t('Concert accreditations');
       $block['content'] = theme('block-accreditations', array('content' => _block_accreditations()));
+      break;
+    case 'block-interview-requests':
+      $block['subject'] = t('Interview requests');
+      $block['content'] = theme('block-interview-requests', array('content' => _block_interview_requests()));
       break;
   }
   return $block;
@@ -175,7 +212,7 @@ function _deadline($ts, $priority) {
   } else if ($priority == 1) { // Medium priority
     $deadline = $ts + 1209600; // 14 days
   }
-  
+
   $now = time();
   if ($deadline > $now) {
     $interval = $deadline - $now;
@@ -200,7 +237,7 @@ function _get_artist_genre_by_release($release_nid) {
   $query->condition('a.entity_id', $release_nid);
   $query->range(0, 1);
   $obj = $query->execute()->fetchObject();
-  
+
   if (is_object($obj)) {
     return $obj->name;
   }
@@ -223,7 +260,7 @@ function _block_unreviewed_releases() {
     array('data' => t('Actions')),
     array('data' => t('Create review')),
   );
-  
+
   # set the database table
   $query = db_select('node', 'n')
     ->extend('PagerDefault')->element($element)
@@ -239,7 +276,7 @@ function _block_unreviewed_releases() {
   $query->condition('n.status', 1);
   $query->condition('n.type', 'release');
   $query->condition('r.entity_id', NULL);
-  
+
   $results = $query->execute();
 
   # build the table fields
@@ -255,15 +292,15 @@ function _block_unreviewed_releases() {
       l(t('Create review'), 'node/add/review', array('query' => array('release_nid' => $row->nid))),
     );
   }
-  
+
   $output = theme('table', array('header' => $header, 'rows' => $rows ));
 
   # add the pager
   $pager = array('#theme' => 'pager', '#element' => $element);
   $output .= render($pager);
-  
+
   global $pager_total_items;
-  
+
   $form = drupal_get_form('_delete_unreviewed_form', $pager_total_items[0]);
 
   return array(
@@ -278,7 +315,7 @@ function _priority($priority) {
   $low = '<span style="color:green;font-weight:bold;">' . t('Low') . '</span>';
   $medium = '<span style="color:#dadc0a;font-weight:bold;">' . t('Medium') . '</span>';
   $high = '<span style="color:red;font-weight:bold;">' . t('High') . '</span>';
-  
+
   if ($priority == NULL) {
     return $none;
   }
@@ -296,7 +333,7 @@ function _priority($priority) {
  * Creates a sortable table displaying reviews currently in progress.
  */
 function _block_reviews_in_progress() {
-  
+
   $element = 1; // Integer to distinguish between multiple pagers on same page.
   $num_per_page = 25;
 
@@ -308,7 +345,7 @@ function _block_reviews_in_progress() {
     array('data' => t('Author'), 'field' => 'name', 'sort' => 'asc'),
     array('data' => t('Actions')),
   );
-  
+
   # set the database table
   $query = db_select('node', 'n')
     ->extend('PagerDefault')->element($element)
@@ -325,9 +362,9 @@ function _block_reviews_in_progress() {
   $query->join('users', 'u', 'n.uid = u.uid');
   $query->condition('n.status', 0);
   $query->condition('n.type', 'review');
-  
+
   $results = $query->execute();
-  
+
   # build the table fields
   $rows = array();
   foreach ($results as $row) {
@@ -345,9 +382,9 @@ function _block_reviews_in_progress() {
   # add the pager
   $pager = array('#theme' => 'pager', '#element' => $element);
   $output .= render($pager);
-  
+
   global $pager_total_items;
-  
+
   return array(
     'table' => $output,
     'count' => $pager_total_items[1],
@@ -359,7 +396,7 @@ function _block_reviews_in_progress() {
  */
 function _delete_unreviewed_form($form, &$form_state, $num) {
   $form = array();
-  
+
   $onclick = "return confirm('" . t('This button deletes all @num unreviewed releases. This action cannot be undone. Are you sure you want to proceed?', array('@num' => $num)) . "');";
   $form['delete'] = array(
     '#type' => 'submit',
@@ -368,7 +405,7 @@ function _delete_unreviewed_form($form, &$form_state, $num) {
       'onclick' => $onclick,
     ),
   );
-    
+
   return $form;
 }
 
@@ -383,14 +420,14 @@ function _delete_unreviewed_form_submit($form, &$form_state) {
     $query->condition('n.status', 1);
     $query->condition('n.type', 'release');
     $query->condition('r.entity_id', NULL);
-    
+
     $results = $query->execute();
     $num_deleted = 0;
     foreach ($results as $row) {
       node_delete($row->nid);
       $num_deleted++;
     }
-  
+
     drupal_set_message(t('@num releases were deleted.', array('@num' => $num_deleted)));
   }
 }
@@ -416,11 +453,11 @@ function workflow_form_alter(&$form, $form_state, $form_id) {
  * (I.e. the unpublished review nodes the user is the author of).
  */
 function _block_my_reviews() {
-  
+
   global $user;
-  
+
   $header = array(t('Title'), t('Actions'));
-  
+
   $query = db_select('node', 'n');
   $query->fields('n', array('nid', 'title'));
   $query->condition('n.type', 'review');
@@ -428,7 +465,7 @@ function _block_my_reviews() {
   $query->condition('n.uid', $user->uid);
   $query->orderBy('n.title');
   $results = $query->execute();
-  
+
   $rows = array();
   foreach ($results as $row) {
     $rows[] = array(
@@ -436,14 +473,14 @@ function _block_my_reviews() {
       l(t('edit'), 'node/' . $row->nid . '/edit'),
     );
   }
-  
+
   if (count($rows) > 0) {
     $output = '<p>' . t('Reviews assigned to you:') . "</p>\n";
     $output.= theme('table', array('header' => $header, 'rows' => $rows ));
   } else {
     $output = '<p>' . t('You currently have no reviews.') . "</p>\n";
   }
-  
+
   return $output;
 }
 
@@ -454,7 +491,7 @@ function _block_latest_activity() {
   $header = array(t('User'), t('Latest publish'));
   $rows = array();
   $roles = array(4, 5); // reviewer and editor
-  
+
   // Get all reviewers:
   $query = db_select('users', 'u');
   $query->fields('u', array('uid', 'name'));
@@ -462,7 +499,7 @@ function _block_latest_activity() {
   $query->condition('r.rid', $roles);
   $query->orderBy('u.name');
   $results = $query->execute();
-  
+
   // Get the date of their latest review publish:
   foreach ($results as $row) {
     $query = db_select('publication_date', 'd');
@@ -474,16 +511,16 @@ function _block_latest_activity() {
     $query->orderBy('d.published_at', 'DESC');
     $query->range(0, 1);
     $pub = $query->execute()->fetchObject();
-    
+
     $rows[] = array(
       'user' => l($row->name, 'user/' . $row->uid),
       'date' => (is_object($pub)) ? $pub->published_at : NULL,
     );
   }
-  
+
   // Sort rows by date:
   usort($rows, "sort_latest_activity");
-  
+
   // Make date column human-readable:
   $now = time();
   for ($i = 0; $i < count($rows); $i++) {
@@ -494,7 +531,7 @@ function _block_latest_activity() {
       $rows[$i]['date'] = t('Never');
     }
   }
-  
+
   return theme('table', array('header' => $header, 'rows' => $rows ));;
 }
 
@@ -508,7 +545,7 @@ function sort_latest_activity($a, $b) {
 function _block_editor_messages() {
   $message = variable_get('workflow_editor_messages');
   $form = drupal_get_form('_edit_messages_form');
-  
+
   return array(
     'message' => $message['value'],
     'can_edit' => (user_access('edit editor messages')) ? TRUE : FALSE,
@@ -516,13 +553,17 @@ function _block_editor_messages() {
   );
 }
 
+function _block_interview_requests() {
+  return 'INTERVIEW REQUESTS';
+}
+
 function _block_accreditations() {
   $element = 4; // Integer to distinguish between multiple pagers on same page.
-  
+
   $days = 4;
   $limit = 86400 * $days;
-  $date_limit = time() - $limit; 
-  
+  $date_limit = time() - $limit;
+
   $header = array(
     array('data' => t('Concert'), 'field' => 'title'),
     t('Venue'),
@@ -562,21 +603,21 @@ function _block_accreditations() {
   $query->isNull('c.field_concert_target_id');
   $query->condition('e.field_event_date_value', $date_limit, '>');
   $query->orderBy('e.field_event_date_value');
-  
+
   $results = $query->execute();
-  
+
   $concerts = array();
   foreach ($results as $row) {
-    
+
     $title_parts = explode(" - ", $row->title);
     $venue = taxonomy_term_load($row->field_venue_tid);
     $title = "<strong>" . $title_parts[0] . "</strong>";
-    
+
     $date = format_date($row->field_event_date_value, 'displaydate_short');
     if ($row->field_is_festival_value == 1 && $row->field_event_date_value2 != $row->field_event_date_value) {
       $date .= " - " .  format_date($row->field_event_date_value2, 'displaydate_short');
     }
-    
+
     $concerts[$row->nid] = array(
       'concert' => $title,
       'venue' => $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'],
@@ -587,7 +628,7 @@ function _block_accreditations() {
       'actions' => l(t('edit'), 'node/' . $row->nid . '/edit'),
     );
     $concerts[$row->nid]['reviewer_uid'][] = l($row->name, 'user/' . $row->field_reviewers_target_id);
-    
+
     if ($row->field_photographer_value == 1 && strlen($row->field_photographer_name_value) > 0) {
       $concerts[$row->nid]['photographer'].= " (" . $row->field_photographer_name_value . ")";
     }
@@ -595,14 +636,14 @@ function _block_accreditations() {
   foreach ($concerts as $nid => $concert) {
     $concerts[$nid]['reviewer_uid'] = implode(", ", $concerts[$nid]['reviewer_uid']);
   }
-  
+
   $output = theme('table', array('header' => $header, 'rows' => $concerts));
 
   $pager = array('#theme' => 'pager', '#element' => $element);
   $output .= render($pager);
-  
+
   global $pager_accreditations_total_items;
-  
+
   return array(
     'table' => $output,
     'count' => $pager_accreditations_total_items[1],

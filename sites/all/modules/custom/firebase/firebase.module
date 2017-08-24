@@ -293,10 +293,6 @@ function _service_account_file() {
     $file = file_load($firebase_service_account_file->fid);
     if ($file) {
       return $firebase_service_account_file;
-    } else {
-      $f = new stdClass();
-      $f->uri = drupal_get_path('module', 'firebase') . '/service_account.json';
-      return $f;
     }
   }
   return false;
