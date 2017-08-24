@@ -30,19 +30,35 @@ function firebase_permission() {
 }
 
 /**
- * Implements hook_init().
+ * Implements hook_cron().
  */
-function firebase_init() {
-  // _firebase_sync();
+function firebase_cron() {
+  $last_cron = variable_get('firebase_last_cron_run', 0);
+  $now = time();
+
+  // Run every 12 hours:
+  if (($now - $last_cron) > 43200) {
+    variable_set('firebase_last_cron_run', $now);
+    _firebase_sync();
+  }
+}
+
+function _firebase_admin_sync() {
+  $messages = _firebase_sync();
+  foreach ($messages as $msg) {
+    drupal_set_message($msg);
+  }
 }
 
 function _firebase_sync() {
   // header("content-type:text/plain;charset=utf-8");
   $token = _fetch_access_token();
+  $return_messages = array();
 
   $events = _get_events();
   _update_events($events, $token);
-  drupal_set_message(t("Updated @count events.", array("@count" => count($events))));
+
+  $return_messages[] = t("Updated @count events.", array("@count" => count($events)));
 
   $provinces = array(
     'koebenhavn' => 'København',
@@ -57,11 +73,14 @@ function _firebase_sync() {
     'udlandet' => 'Udlandet'
   );
   _update_provinces($provinces, $token);
-  drupal_set_message(t("Updated @count provinces.", array("@count" => count($provinces))));
+  $return_messages[] = t("Updated @count provinces.", array("@count" => count($provinces)));
 
   $genres = _get_genres();
   _update_genres($genres, $token);
-  drupal_set_message(t("Updated @count genres.", array("@count" => count($genres))));
+  $return_messages[] = t("Updated @count genres.", array("@count" => count($genres)));
+
+  watchdog('firebase', implode(" ", $return_messages), array(),WATCHDOG_INFO, NULL);
+  return $return_messages;
 }
 
 /**
@@ -142,7 +161,7 @@ function _get_events() {
       "dateEnd" => (int)$date_end,
       "dateStart" => (int)$date_start,
       "festival" => (bool)$is_festival,
-      "name" => ($is_festival) ? $node->title : $title_parts[0],
+      "name" => ($is_festival) ? $node->title : str_replace(' og ', ' & ', $title_parts[0]),
       "venue" => $venue,
       "artists" => $artists,
       "genres" => $genres,
@@ -214,7 +233,6 @@ function _update_events(array $events, $token) {
   curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
   $result = curl_exec($curl);
 
-  print_r($result);
   curl_close($curl);
 }
 
@@ -231,7 +249,6 @@ function _update_provinces(array $provinces, $token) {
   curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
   $result = curl_exec($curl);
 
-  print_r($result);
   curl_close($curl);
 }
 
@@ -248,7 +265,6 @@ function _update_genres(array $genres, $token) {
   curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
   $result = curl_exec($curl);
 
-  print_r($result);
   curl_close($curl);
 }
 
@@ -273,5 +289,15 @@ function _fetch_access_token() {
 
 function _service_account_file() {
   $firebase_service_account_file = variable_get('firebase_service_account_file');
-  return isset($firebase_service_account_file->fid) ? $firebase_service_account_file : false;
+  if (isset($firebase_service_account_file->fid)) {
+    $file = file_load($firebase_service_account_file->fid);
+    if ($file) {
+      return $firebase_service_account_file;
+    } else {
+      $f = new stdClass();
+      $f->uri = drupal_get_path('module', 'firebase') . '/service_account.json';
+      return $f;
+    }
+  }
+  return false;
 }

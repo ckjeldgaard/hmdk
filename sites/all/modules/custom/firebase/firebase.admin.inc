@@ -48,7 +48,7 @@ function _firebase_settings_form($form, &$form_state) {
   $form['sync'] = array(
     '#type' => 'submit',
     '#value' => t('Sync Firebase'),
-    '#submit' => array('_firebase_sync'),
+    '#submit' => array('_firebase_admin_sync'),
   );
 
   return $form;
