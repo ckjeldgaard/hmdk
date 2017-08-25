@@ -168,8 +168,8 @@ function _get_events() {
       "province" => $row->province,
       "startTime" => $node->field_start_time[LANGUAGE_NONE][0]['value'],
       "ticketPrice" => $node->field_ticket_price[LANGUAGE_NONE][0]['value'],
-      "buyLink" => $node->field_buy_link[LANGUAGE_NONE][0]['value'],
-      "facebookLink" => $node->field_facebook_event[LANGUAGE_NONE][0]['value'],
+      "buyLink" => $node->field_buy_link[LANGUAGE_NONE][0]['url'],
+      "facebookLink" => $node->field_facebook_event[LANGUAGE_NONE][0]['url'],
     );
 
   }
