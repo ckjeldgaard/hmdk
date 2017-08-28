@@ -63,6 +63,8 @@ function _firebase_settings_form_validate($form_id, &$form_state) {
     if ($file = file_move($file, 'private://')) {
       $file->status = 1;
       file_save($file);
+
+      file_usage_add($file, 'firebase', 'service_account_file', 1);
       $form_state['values']['firebase_service_account_file'] = $file;
     }
     else {
