@@ -8,6 +8,7 @@ function _firebase_settings_form($form, &$form_state) {
   $firebase_url = variable_get('firebase_url');
   $firebase_application_name = variable_get('firebase_application_name');
   $firebase_service_account_file = variable_get('firebase_service_account_file');
+  $last_cron = variable_get('firebase_last_cron_run', 0);
 
   $service_account_help_link = l(
     'Firebase Database REST API User Authentication',
@@ -49,6 +50,7 @@ function _firebase_settings_form($form, &$form_state) {
     '#type' => 'submit',
     '#value' => t('Sync Firebase'),
     '#submit' => array('_firebase_admin_sync'),
+    '#suffix' => '<br />' . t('Last synchronized on !time', array('!time' => date('d-m-Y H:i:s', $last_cron))),
   );
 
   return $form;
