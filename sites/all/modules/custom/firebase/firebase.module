@@ -79,8 +79,28 @@ function _firebase_sync() {
   _update_genres($genres, $token);
   $return_messages[] = t("Updated @count genres.", array("@count" => count($genres)));
 
+  $artists = _get_artists();
+  _update_artists($artists, $token);
+  $return_messages[] = t("Updated @count artists.", array("@count" => count($artists)));
+
   watchdog('firebase', implode(" ", $return_messages), array(),WATCHDOG_INFO, NULL);
   return $return_messages;
+}
+
+/**
+ * @return array Get all artists an array with Node ID as index.
+ */
+function _get_artists() {
+  $sql = "SELECT n.nid, n.title ";
+  $sql.= "FROM node n ";
+  $sql.= "WHERE n.type = :type AND n.status = :status ";
+
+  $rs = db_query($sql, array(':type' => 'artist', ':status' => 1));
+  $artists = array();
+  foreach ($rs as $row) {
+    $artists[$row->nid] = $row->title;
+  }
+  return $artists;
 }
 
 /**
@@ -139,7 +159,7 @@ function _get_events() {
         $artists[] = array(
           'id' => $artist['target_id'],
           'name' => $artist_name
-        );;
+        );
       }
 
       $genre = _artist_genre($artist['target_id']);
@@ -252,6 +272,22 @@ function _update_provinces(array $provinces, $token) {
   curl_setopt($curl, CURLOPT_URL, variable_get('firebase_url') . '/data/provinces/.json');
   curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
   curl_setopt($curl, CURLOPT_POSTFIELDS, drupal_json_encode($provinces));
+  curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+  $result = curl_exec($curl);
+
+  curl_close($curl);
+}
+
+function _update_artists(array $artists, $token) {
+  $headers = array(
+    'Content-Type: application/json',
+    'Authorization: Bearer ' . $token
+  );
+
+  $curl = curl_init();
+  curl_setopt($curl, CURLOPT_URL, variable_get('firebase_url') . '/data/artists/.json');
+  curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
+  curl_setopt($curl, CURLOPT_POSTFIELDS, drupal_json_encode($artists));
   curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
   $result = curl_exec($curl);
 
