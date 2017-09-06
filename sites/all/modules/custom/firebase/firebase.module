@@ -147,7 +147,10 @@ function _get_events() {
     foreach ($node->field_support_artists[LANGUAGE_NONE] as $artist) {
       $artist_name = _artist_name($artist['target_id']);
       if ($artist_name) {
-        $artists[] = $artist_name;
+        $artists[] = array(
+          'id' => $artist['target_id'],
+          'name' => $artist_name
+        );
       }
 
       $genre = _artist_genre($artist['target_id']);
