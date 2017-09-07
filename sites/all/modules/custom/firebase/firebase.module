@@ -98,7 +98,10 @@ function _get_artists() {
   $rs = db_query($sql, array(':type' => 'artist', ':status' => 1));
   $artists = array();
   foreach ($rs as $row) {
-    $artists[$row->nid] = $row->title;
+    $artists[] = array(
+      'id' => $row->nid,
+      'name' => $row->title
+    );
   }
   return $artists;
 }
