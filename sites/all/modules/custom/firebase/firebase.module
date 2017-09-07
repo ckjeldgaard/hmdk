@@ -99,7 +99,8 @@ function _get_artists() {
   $artists = array();
   foreach ($rs as $row) {
     $artists[$row->nid] = array(
-      'name' => $row->title
+      'name' => $row->title,
+      'lowercase' => strtolower($row->title)
     );
   }
   return $artists;
