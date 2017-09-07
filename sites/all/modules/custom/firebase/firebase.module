@@ -93,7 +93,7 @@ function _firebase_sync() {
 function _get_artists() {
   $sql = "SELECT n.nid, n.title ";
   $sql.= "FROM node n ";
-  $sql.= "WHERE n.type = :type AND n.status = :status LIMIT 100";
+  $sql.= "WHERE n.type = :type AND n.status = :status";
 
   $rs = db_query($sql, array(':type' => 'artist', ':status' => 1));
   $artists = array();
