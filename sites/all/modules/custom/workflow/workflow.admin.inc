@@ -23,13 +23,28 @@ function _add_interview_request_form() {
   global $user;
   $form = array();
 
-  $form['city'] = array(
+  $form['band'] = array(
     '#type' => 'textfield',
-    '#title' => 'City',
+    '#title' => t('Artist'),
     '#maxlength' => 128,
     '#autocomplete_path' => 'bands/autocomplete',
   );
-
+  $form['interview_request_date'] = array(
+    '#title' => t('Interview request date'),
+    '#type' => 'date_popup',
+    '#date_format' => 'm/d/Y',
+    '#default_value' => 'YYYY-MM-DD 00:00:00',
+    '#date_year_range' => '0:+3',
+    '#size' => 12,
+  );
+  $form['interview_execution_date'] = array(
+    '#title' => t('Interview execution date'),
+    '#type' => 'date_popup',
+    '#date_format' => 'm/d/Y',
+    '#default_value' => 'YYYY-MM-DD 00:00:00',
+    '#date_year_range' => '0:+3',
+    '#size' => 12,
+  );
   $form['interview_type'] = array(
     '#type' => 'select',
     '#title' => t('Type'),
@@ -43,17 +58,37 @@ function _add_interview_request_form() {
     '#default_value' => $user->uid,
     '#description' => t('Select the interviewer'),
   );
-  $form['interview_request_date'] = array(
-      '#title' => t('Interview request date'),
-      '#type' => 'date_popup',
-      '#date_format' => 'm/d/Y',
-      '#default_value' => 'YYYY-MM-DD 00:00:00',
-      '#date_year_range' => '0:+3',
-      '#size' => 12,
-      '#required' => true,
+  $form['completed'] = array(
+    '#type' => 'select',
+    '#title' => t('Completed'),
+    '#options' => _interview_completed_options(),
+    '#description' => t('Select completion status of the interview.'),
   );
+  $form['submit'] = [
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  ];
 
   return $form;
+}
+
+function _add_interview_request_form_validate($form, &$form_state) {
+  /* echo "VALIDATE<pre>";
+  print_r($form_state['values']);
+  die; */
+}
+
+function _add_interview_request_form_submit($form, &$form_state) {
+  echo "SUBMIT<pre>";
+  print_r($form_state['values']);
+  die;
+}
+
+function _interview_completed_options() {
+  return array(
+    0 => t('No'),
+    1 => t('Yes (being edited)'),
+  );
 }
 
 /**

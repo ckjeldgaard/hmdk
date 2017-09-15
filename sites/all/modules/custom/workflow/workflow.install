@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function workflow_schema() {
+  $schema['workflow_interview_requests'] = array(
+    'description' => 'Table holding interview requests displayed on the dashboard',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary identifier',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'User ID of the user who created this interview request.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Date of creation',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'artist' => array(
+        'description' => 'Artist to be interviewed.',
+        'type' => 'varchar',
+        'length' => '256',
+        'not null' => TRUE,
+      ),
+      'request_date' => array(
+        'description' => 'Interview request date.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'execution_date' => array(
+        'description' => 'Interview execution date.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'Interview type',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => TRUE,
+      ),
+      'interviewer_uid' => array(
+        'description' => 'User ID of the user in the editorial board performing the interview.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'completed' => array(
+        'description' => 'Status of the interview.',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+  return $schema;
+}
