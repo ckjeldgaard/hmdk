@@ -219,7 +219,10 @@ function workflow_permission() {
     ),
     'edit editor messages' => array(
       'title' => t('Edit editor messages'),
-    )
+    ),
+    'add interview request' => array(
+    'title' => t('Administer interview requests'),
+  )
   );
 }
 
