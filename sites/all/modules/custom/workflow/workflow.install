@@ -31,12 +31,12 @@ function workflow_schema() {
       'request_date' => array(
         'description' => 'Interview request date.',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'execution_date' => array(
         'description' => 'Interview execution date.',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'type' => array(
         'description' => 'Interview type',

@@ -22,6 +22,24 @@ function workflow_menu() {
     'type' => MENU_NORMAL_ITEM,
     'file' => 'workflow.admin.inc',
   );
+  $items['admin/config/system/edit_interview_request/%'] = array(
+    'title' => 'Edit interview request',
+    'description' => 'Edit existing interview request.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_edit_interview_request_form'),
+    'access arguments' => array('add interview request'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'workflow.admin.inc',
+  );
+  $items['admin/config/system/delete_interview_request/%'] = array(
+    'title' => 'Delete interview request',
+    'description' => 'Delete existing interview request.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_delete_interview_request'),
+    'access arguments' => array('add interview request'),
+    'type' => MENU_CALLBACK,
+    'file' => 'workflow.admin.inc',
+  );
   $items['bands/autocomplete'] = array(
     'title' => 'Autocomplete for bands',
     'page callback' => '_bands_autocomplete',
@@ -180,6 +198,11 @@ function workflow_theme() {
     ),
     'block-accreditations' => array(
       'template' => 'block--block-accreditations',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-interview-requests' => array(
+      'template' => 'block--block-interview-requests',
       'variables' => array('form' => NULL),
       'path' => drupal_get_path('module', 'workflow'),
     ),
@@ -554,7 +577,66 @@ function _block_editor_messages() {
 }
 
 function _block_interview_requests() {
-  return 'INTERVIEW REQUESTS';
+  $element = 5; // Integer to distinguish between multiple pagers on same page.
+
+  $header = array(
+    array('data' => t('Band'), 'field' => 'artist'),
+    array('data' => t('Interview request date'), 'field' => 'request_date'),
+    array('data' => t('Interview execution date'), 'field' => 'execution_date'),
+    array('data' => t('Type'), 'field' => 'type'),
+    array('data' => t('Interviewer'), 'field' => 'interviewer_uid'),
+    array('data' => t('Completed'), 'field' => 'completed'),
+    t('Actions'),
+  );
+
+  $query = db_select('workflow_interview_requests', 'i')
+    ->extend('PagerDefault')->element($element)
+    ->limit(10)
+    ->extend('TableSort')
+    ->orderByHeader($header);
+  $query->fields('u', array('name'));
+  $query->fields('i', array(
+    'id',
+    'artist',
+    'request_date',
+    'execution_date',
+    'type',
+    'interviewer_uid',
+    'completed',
+  ));
+  $query->join('users', 'u', 'u.uid = i.interviewer_uid');
+  $query->orderBy('i.id');
+  $results = $query->execute();
+
+  $interviews = array();
+  foreach ($results as $row) {
+    $interviews[] = array(
+      'artist' => $row->artist,
+      'request_date' => (strlen($row->request_date) > 0) ? format_date($row->request_date, 'displaydate_short') : '<span style="color:red">' . t('No') . '</span>',
+      'execution_date' => (strlen($row->execution_date) > 0) ? format_date($row->execution_date, 'displaydate_short') : '<span style="color:red">' . t('Date unknown') . '</span>',
+      'type' => $row->type,
+      'interviewer_uid' => l($row->name, 'user/' . $row->interviewer_uid),
+      'completed' => $row->completed,
+      'actions' =>
+        l(t('edit'), 'admin/config/system/edit_interview_request/' . $row->id) . '&emsp;' .
+        l(t('delete'), 'admin/config/system/delete_interview_request/' . $row->id, array('attributes' => array('onclick' => 'return confirm( "Er du sikker på du vil slette denne interview-forespørgsel?" ); ' ))),
+    );
+  }
+
+  $output = theme('table', array('header' => $header, 'rows' => $interviews));
+
+  $pager = array('#theme' => 'pager', '#element' => $element);
+  $output .= render($pager);
+
+  global $pager_interview_requests_total_items;
+
+  $form = drupal_get_form('_new_interview_request_form');
+
+  return array(
+    'table' => $output,
+    'count' => $pager_interview_requests_total_items[1],
+    'form' => $form,
+  );
 }
 
 function _block_accreditations() {
@@ -674,4 +756,20 @@ function _edit_messages_form($form, &$form_state) {
 
 function _edit_messages_form_submit($form, &$form_state) {
   drupal_goto('admin/config/system/editor_messages');
+}
+
+/**
+ * Defines a button form to go to the edit editor messages page.
+ */
+function _new_interview_request_form($form, &$form_state) {
+  $form = array();
+  $form['delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('New interview request'),
+  );
+  return $form;
+}
+
+function _new_interview_request_form_submit($form, &$form_state) {
+  drupal_goto('admin/config/system/add_interview_request');
 }
