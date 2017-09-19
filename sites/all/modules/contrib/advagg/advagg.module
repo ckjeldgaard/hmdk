@@ -1153,7 +1153,7 @@ function advagg_form_system_performance_settings_alter(&$form, &$form_state) {
  * Implements hook_js_alter().
  */
 function advagg_js_alter(&$js) {
-  if (module_exists('admin_menu')) {
+  if (module_exists('admin_menu') && !module_exists('adminimal_admin_menu')) {
     // Fix for admin menu; put JS in footer.
     $path = drupal_get_path('module', 'admin_menu');
     $filename = $path . '/admin_menu.js';
