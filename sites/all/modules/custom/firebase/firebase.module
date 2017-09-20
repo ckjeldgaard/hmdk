@@ -5,9 +5,16 @@ error_reporting(E_ALL);
  * Implements hook_menu().
  */
 function firebase_menu() {
-  $items['firebase/api/subscriptions'] = array(
+  $items['firebase/api/add'] = array(
     'title' => t('Create new user subscriptions and store subscription IDs'),
     'page callback' => '_firebase_api_add_subscription',
+    'access arguments' => array('use firebase api'),
+    'type' => MENU_CALLBACK,
+    'file' => 'firebase.api.inc',
+  );
+  $items['firebase/api/delete/%/%'] = array(
+    'title' => t('Delete user subscriptions'),
+    'page callback' => '_firebase_api_delete_subscription',
     'access arguments' => array('use firebase api'),
     'type' => MENU_CALLBACK,
     'file' => 'firebase.api.inc',
@@ -61,7 +68,7 @@ function firebase_cron() {
   // Run every 12 hours:
   if (($now - $last_cron) > 43200) {
     variable_set('firebase_last_cron_run', $now);
-    _firebase_sync();
+    // _firebase_sync();
   }
 }
 

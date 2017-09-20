@@ -7,20 +7,20 @@
 function _firebase_api_add_subscription() {
   header("content-type:application/json;charset=utf-8");
 
-  $subscription = _valid_subscription_id($_GET['subscription_id']);
+  $subscription = _valid_subscription_id($_POST['subscription_id']);
   if ($subscription !== TRUE) {
     _throw_api_failure($subscription);
   }
-  $artist_valid = _valid_artist($_GET['artist_id']);
+  $artist_valid = _valid_artist($_POST['artist_id']);
   if ($artist_valid !== TRUE) {
     _throw_api_failure($artist_valid);
   }
 
   try {
-    $nid = db_merge('firebase_subscriptions')
+    db_merge('firebase_subscriptions')
       ->key([
-        'subscription_id' => $_GET['subscription_id'],
-        'artist_nid' => $_GET['artist_id']
+        'subscription_id' => $_POST['subscription_id'],
+        'artist_nid' => $_POST['artist_id']
       ])
       ->fields([
         'created' => REQUEST_TIME,
@@ -35,7 +35,47 @@ function _firebase_api_add_subscription() {
     ));
 
   } catch (Exception $e) {
-    _throw_api_failure(3001, 500);
+    _throw_api_failure(4001, 500);
+  }
+}
+
+function _firebase_api_delete_subscription() {
+  header("content-type:application/json;charset=utf-8");
+  $subscription_id = arg(3);
+  $artist_id = arg(4);
+
+  if ($_SERVER['REQUEST_METHOD'] != 'DELETE') {
+    _throw_api_failure(3001);
+  }
+  $s = _valid_subscription_id($subscription_id);
+  if ($s !== TRUE) {
+    _throw_api_failure($s);
+  }
+  $a = _valid_artist($artist_id);
+  if ($a !== TRUE) {
+    _throw_api_failure($a);
+  }
+  if (!_subscription_exists($subscription_id, $artist_id)) {
+    _throw_api_failure(3002);
+  }
+
+  try {
+    $num_deleted = db_delete('firebase_subscriptions')
+      ->condition('subscription_id', $subscription_id)
+      ->condition('artist_nid', $artist_id)
+      ->execute();
+    if ($num_deleted == 0) {
+      _throw_api_failure(3003);
+    }
+
+    http_response_code(200);
+    print drupal_json_encode(array(
+      'status' => 200,
+      'message' => t('Successfully deleted subscription.'),
+    ));
+
+  } catch (Exception $e) {
+    _throw_api_failure(4002, 500);
   }
 }
 
@@ -62,6 +102,18 @@ function _valid_artist($artist_id) {
   return TRUE;
 }
 
+function _subscription_exists($subscription_id, $artist_id) {
+  $sql = "SELECT COUNT(*) AS cnt FROM firebase_subscriptions WHERE subscription_id = :subscription_id AND artist_nid = :artist_id";
+  $rs = db_query(
+    $sql,
+    array(
+      ':subscription_id' => $subscription_id,
+      ':artist_id' => $artist_id
+    )
+  )->fetchAssoc();
+  return ($rs['cnt'] == 1);
+}
+
 function _artist_exists($artist_id) {
   $sql = "SELECT COUNT(nid) AS cnt FROM node WHERE nid = :artist_id AND type = :type";
   $rs = db_query($sql, array(':artist_id' => $artist_id, ':type' => 'artist'))->fetchAssoc();
@@ -70,12 +122,16 @@ function _artist_exists($artist_id) {
 
 function _api_errors() {
   return array(
-    1001 => 'No POST subscription_id provided.',
-    1002 => 'The provided POST subscription_id is too long.',
-    2001 => 'No POST artist_id provided.',
-    2002 => 'The provided POST artist_id must be numeric.',
-    2003 => 'The provided POST artist_id doesn\'t match an existing artist.',
-    3001 => 'An internal server error occurred when trying to save the subscription. Please try again later.',
+    1001 => 'No subscription_id provided.',
+    1002 => 'The provided subscription_id is too long.',
+    2001 => 'No artist_id provided.',
+    2002 => 'The provided artist_id must be numeric.',
+    2003 => 'The provided artist_id doesn\'t match an existing artist.',
+    3001 => 'Deletion of subscriptions must be performed with a DELETE command.',
+    3002 => 'The proviced subscription_id and artist_id doesn\'t match an existing subscription.',
+    3003 => 'No subscription were deleted.',
+    4001 => 'An internal server error occurred when trying to save the subscription. Please try again later.',
+    4002 => 'An internal server error occurred when trying to delete the subscription. Please try again later.'
   );
 }
 

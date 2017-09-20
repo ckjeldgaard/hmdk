@@ -84,19 +84,46 @@ function _firebase_settings_form_submit($form_id, &$form_state) {
 }
 
 function _firebase_subscriptions_form() {
-  echo "<pre>";
-  $query = db_select('firebase_subscriptions', 's');
+
+  $form = array();
+  $header = [
+    array('data' => t('Subscription ID'), 'field' => 'subscription_id'),
+    array('data' => t('Artist'), 'field' => 'artist_nid'),
+    array('data' => t('Time added'), 'field' => 'created', 'sort' => 'desc'),
+    array('data' => t('IP address'), 'field' => 'ip')
+  ];
+  $rows = [];
+
+  $element = 1; // Integer to distinguish between multiple pagers on same page.
+
+  // echo "<pre>";
+  $query = db_select('firebase_subscriptions', 's')
+    ->extend('PagerDefault')->element($element)
+    ->limit(75)
+    ->extend('TableSort')
+    ->orderByHeader($header);
   $query->fields('s', ['subscription_id', 'artist_nid', 'created', 'ip']);
   $query->fields('n', ['title']);
   $query->join('node', 'n', 's.artist_nid = n.nid');
   $query->orderBy('s.created', 'DESC');
   $rs = $query->execute();
+
   foreach ($rs as $row) {
-    print_r($row);
+    $rows[] = [
+      $row->subscription_id,
+      l($row->title, 'node/' . $row->artist_nid) . ' (' . $row->artist_nid . ')',
+      format_date($row->created, 'fulldate'),
+      $row->ip
+    ];
   }
 
-  echo "HALLO";
-  die;
+  // print_r($rows);
+  $table = theme('table', ['header' => $header, 'rows' => $rows]);
+  $pager = array('#theme' => 'pager', '#element' => $element);
+  $table .= render($pager);
 
-  return array('_firebase_subscriptions');
+  $form['subscriptions_table'] = [
+    '#markup' => $table,
+  ];
+  return $form;
 }
