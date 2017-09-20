@@ -95,8 +95,7 @@ function _firebase_subscriptions_form() {
   $rows = [];
 
   $element = 1; // Integer to distinguish between multiple pagers on same page.
-
-  // echo "<pre>";
+  
   $query = db_select('firebase_subscriptions', 's')
     ->extend('PagerDefault')->element($element)
     ->limit(75)
