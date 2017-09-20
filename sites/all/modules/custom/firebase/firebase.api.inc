@@ -128,7 +128,7 @@ function _api_errors() {
     2002 => 'The provided artist_id must be numeric.',
     2003 => 'The provided artist_id doesn\'t match an existing artist.',
     3001 => 'Deletion of subscriptions must be performed with a DELETE command.',
-    3002 => 'The proviced subscription_id and artist_id doesn\'t match an existing subscription.',
+    3002 => 'The provided subscription_id and artist_id doesn\'t match an existing subscription.',
     3003 => 'No subscription were deleted.',
     4001 => 'An internal server error occurred when trying to save the subscription. Please try again later.',
     4002 => 'An internal server error occurred when trying to delete the subscription. Please try again later.'
