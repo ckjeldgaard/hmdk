@@ -82,3 +82,21 @@ function _firebase_settings_form_submit($form_id, &$form_state) {
   variable_set('firebase_service_account_file', $form_state['values']['firebase_service_account_file']);
   drupal_set_message(t('Firebase settings saved'));
 }
+
+function _firebase_subscriptions_form() {
+  echo "<pre>";
+  $query = db_select('firebase_subscriptions', 's');
+  $query->fields('s', ['subscription_id', 'artist_nid', 'created', 'ip']);
+  $query->fields('n', ['title']);
+  $query->join('node', 'n', 's.artist_nid = n.nid');
+  $query->orderBy('s.created', 'DESC');
+  $rs = $query->execute();
+  foreach ($rs as $row) {
+    print_r($row);
+  }
+
+  echo "HALLO";
+  die;
+
+  return array('_firebase_subscriptions');
+}

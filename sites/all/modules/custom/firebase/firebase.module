@@ -1,11 +1,17 @@
 <?php
 error_reporting(E_ALL);
 
-
 /**
  * Implements hook_menu().
  */
 function firebase_menu() {
+  $items['firebase/api/subscriptions'] = array(
+    'title' => t('Create new user subscriptions and store subscription IDs'),
+    'page callback' => '_firebase_api_add_subscription',
+    'access arguments' => array('use firebase api'),
+    'type' => MENU_CALLBACK,
+    'file' => 'firebase.api.inc',
+  );
   $items['admin/config/system/firebase'] = array(
     'title' => 'Firebase settings',
     'description' => 'Edit Firebase settings',
@@ -13,6 +19,19 @@ function firebase_menu() {
     'page arguments' => array('_firebase_settings_form'),
     'access arguments' => array('edit firebase settings'),
     'type' => MENU_NORMAL_ITEM,
+    'file' => 'firebase.admin.inc',
+  );
+  $items['admin/config/system/firebase/tab1'] = array(
+    'title' => t('Settings'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10
+  );
+  $items['admin/config/system/firebase/subscriptions'] = array(
+    'title' => t('Subscriptions'),
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_firebase_subscriptions_form'),
+    'access arguments' => array('edit firebase settings'),
     'file' => 'firebase.admin.inc',
   );
   return $items;
@@ -25,6 +44,9 @@ function firebase_permission() {
   return array(
     'edit firebase settings' => array(
       'title' => t('Edit Firebase settings'),
+    ),
+    'use firebase api' => array(
+      'title' => t('Use Firebase API'),
     )
   );
 }

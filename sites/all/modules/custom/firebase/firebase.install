@@ -21,5 +21,35 @@ function firebase_schema() {
       ),
     ),
   );
+  $schema['firebase_subscriptions'] = array(
+    'description' => 'Table containing subscription ID\'s and artists for push notifications.',
+    'fields' => array(
+      'subscription_id' => array(
+        'description' => 'GCM subscription ID',
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => TRUE,
+      ),
+      'artist_nid' => array(
+        'description' => 'Artist node ID.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Time added.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'ip' => array(
+        'description' => 'IP address for the user creating the subscription.',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('subscription_id', 'artist_nid'),
+  );
+
   return $schema;
 }
