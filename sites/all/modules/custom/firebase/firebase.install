@@ -27,7 +27,7 @@ function firebase_schema() {
       'subscription_id' => array(
         'description' => 'GCM subscription ID',
         'type' => 'varchar',
-        'length' => '128',
+        'length' => '200',
         'not null' => TRUE,
       ),
       'artist_nid' => array(

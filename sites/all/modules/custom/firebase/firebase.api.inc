@@ -6,6 +6,16 @@
 
 function _firebase_api_add_subscription() {
   header("content-type:application/json;charset=utf-8");
+  header("Access-Control-Expose-Headers:Access-Control-*");
+  header("Access-Control-Allow-Headers:Access-Control-*, Origin, X-Requested-With, Content-Type, Accept");
+  header('Access-Control-Allow-Methods:GET, POST, PUT, DELETE, OPTIONS, HEAD');
+  header('Access-Control-Allow-Origin:*');
+  header('Allow:GET, POST, PUT, DELETE, OPTIONS, HEAD');
+
+  if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    drupal_exit();
+  }
 
   $subscription = _valid_subscription_id($_POST['subscription_id']);
   if ($subscription !== TRUE) {
@@ -41,6 +51,17 @@ function _firebase_api_add_subscription() {
 
 function _firebase_api_delete_subscription() {
   header("content-type:application/json;charset=utf-8");
+  header("Access-Control-Expose-Headers:Access-Control-*");
+  header("Access-Control-Allow-Headers:Access-Control-*, Origin, X-Requested-With, Content-Type, Accept");
+  header('Access-Control-Allow-Methods:GET, POST, PUT, DELETE, OPTIONS, HEAD');
+  header('Access-Control-Allow-Origin:*');
+  header('Allow:GET, POST, PUT, DELETE, OPTIONS, HEAD');
+
+  if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    drupal_exit();
+  }
+
   $subscription_id = arg(3);
   $artist_id = arg(4);
 
@@ -83,7 +104,7 @@ function _valid_subscription_id($subscription_id) {
   if (!isset($subscription_id)) {
     return 1001;
   }
-  if (strlen($subscription_id) > 128) {
+  if (strlen($subscription_id) > 200) {
     return 1002;
   }
   return TRUE;
