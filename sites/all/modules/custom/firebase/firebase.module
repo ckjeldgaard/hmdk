@@ -19,6 +19,13 @@ function firebase_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'firebase.api.inc',
   );
+  $items['firebase/api/get/%'] = array(
+    'title' => t('Delete user subscriptions'),
+    'page callback' => '_firebase_api_get_subscriptions',
+    'access arguments' => array('use firebase api'),
+    'type' => MENU_CALLBACK,
+    'file' => 'firebase.api.inc',
+  );
   $items['admin/config/system/firebase'] = array(
     'title' => 'Firebase settings',
     'description' => 'Edit Firebase settings',
@@ -68,7 +75,7 @@ function firebase_cron() {
   // Run every 12 hours:
   if (($now - $last_cron) > 43200) {
     variable_set('firebase_last_cron_run', $now);
-    _firebase_sync();
+    // _firebase_sync();
   }
 }
 

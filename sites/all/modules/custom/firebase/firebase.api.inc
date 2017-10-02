@@ -100,6 +100,58 @@ function _firebase_api_delete_subscription() {
   }
 }
 
+function _firebase_api_get_subscriptions() {
+  header("content-type:application/json;charset=utf-8");
+  header("Access-Control-Expose-Headers:Access-Control-*");
+  header("Access-Control-Allow-Headers:Access-Control-*, Origin, X-Requested-With, Content-Type, Accept");
+  header('Access-Control-Allow-Methods:GET, POST, PUT, DELETE, OPTIONS, HEAD');
+  header('Access-Control-Allow-Origin:*');
+  header('Allow:GET, POST, PUT, DELETE, OPTIONS, HEAD');
+
+  if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    drupal_exit();
+  }
+
+  $subscription_id = arg(3);
+
+  if ($_SERVER['REQUEST_METHOD'] != 'GET') {
+    _throw_api_failure(3004);
+  }
+
+  $s = _valid_subscription_id($subscription_id);
+  if ($s !== TRUE) {
+    _throw_api_failure($s);
+  }
+
+  try {
+    $query = db_select('firebase_subscriptions', 's');
+    $query->fields('s', ['artist_nid']);
+    $query->fields('n', ['title']);
+    $query->join('node', 'n', 'n.nid = s.artist_nid');
+    $query->condition('s.subscription_id', $subscription_id);
+    $rs = $query->execute();
+
+    $artists = [];
+    foreach ($rs as $row) {
+      $artists[] = [
+        'id' => $row->artist_nid,
+        'name' => $row->title,
+      ];
+    }
+
+    http_response_code(200);
+    print drupal_json_encode([
+      'status' => 200,
+      'message' => t('Successfully fetched subscriptions.'),
+      'subscriptions' => array_values($artists),
+      'num_subscriptions' => count($artists)
+    ]);
+  } catch (Exception $e) {
+    _throw_api_failure(4003, 500);
+  }
+}
+
 function _valid_subscription_id($subscription_id) {
   if (!isset($subscription_id)) {
     return 1001;
@@ -151,8 +203,10 @@ function _api_errors() {
     3001 => 'Deletion of subscriptions must be performed with a DELETE command.',
     3002 => 'The provided subscription_id and artist_id doesn\'t match an existing subscription.',
     3003 => 'No subscription were deleted.',
+    3004 => 'Fetching subscriptions must be performed with a GET command.',
     4001 => 'An internal server error occurred when trying to save the subscription. Please try again later.',
-    4002 => 'An internal server error occurred when trying to delete the subscription. Please try again later.'
+    4002 => 'An internal server error occurred when trying to delete the subscription. Please try again later.',
+    4003 => 'An internal server error occurred when trying to get the subscriptions. Please try again later.'
   );
 }
 
