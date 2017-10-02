@@ -130,6 +130,7 @@ function _firebase_api_get_subscriptions() {
     $query->fields('n', ['title']);
     $query->join('node', 'n', 'n.nid = s.artist_nid');
     $query->condition('s.subscription_id', $subscription_id);
+    $query->orderBy('n.title');
     $rs = $query->execute();
 
     $artists = [];
@@ -137,6 +138,7 @@ function _firebase_api_get_subscriptions() {
       $artists[] = [
         'id' => $row->artist_nid,
         'name' => $row->title,
+        'lowercase' => strtolower($row->title)
       ];
     }
 
