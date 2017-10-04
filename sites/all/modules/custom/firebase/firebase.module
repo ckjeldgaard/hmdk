@@ -69,11 +69,12 @@ function firebase_permission() {
  * Implements hook_cron().
  */
 function firebase_cron() {
+  $firebase_sync_cron = variable_get('firebase_sync_cron', 0);
   $last_cron = variable_get('firebase_last_cron_run', 0);
   $now = time();
 
   // Run every 12 hours:
-  if (($now - $last_cron) > 43200) {
+  if (($now - $last_cron) > 43200 && $firebase_sync_cron == 1) {
     variable_set('firebase_last_cron_run', $now);
     _firebase_sync();
   }

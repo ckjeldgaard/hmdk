@@ -5,6 +5,7 @@
  */
 
 function _firebase_settings_form($form, &$form_state) {
+  $firebase_sync_cron = variable_get('firebase_sync_cron');
   $firebase_url = variable_get('firebase_url');
   $firebase_application_name = variable_get('firebase_application_name');
   $firebase_service_account_file = variable_get('firebase_service_account_file');
@@ -17,6 +18,12 @@ function _firebase_settings_form($form, &$form_state) {
 
   $form = array();
   $form['#attributes']['enctype'] = 'multipart/form-data';
+  $form['firebase_sync_cron'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Sync on cron'),
+    '#description' => t('Synchronize Firebase database automatically on CRON run every 12 hours?'),
+    '#default_value' => $firebase_sync_cron,
+  );
   $form['firebase_url'] = array(
     '#type' => 'textfield',
     '#title' => t('Firebase URL'),
@@ -77,6 +84,7 @@ function _firebase_settings_form_validate($form_id, &$form_state) {
 }
 
 function _firebase_settings_form_submit($form_id, &$form_state) {
+  variable_set('firebase_sync_cron', $form_state['values']['firebase_sync_cron']);
   variable_set('firebase_url', $form_state['values']['firebase_url']);
   variable_set('firebase_application_name', $form_state['values']['firebase_application_name']);
   variable_set('firebase_service_account_file', $form_state['values']['firebase_service_account_file']);
