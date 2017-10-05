@@ -7,6 +7,7 @@
 function _firebase_settings_form($form, &$form_state) {
   $firebase_sync_cron = variable_get('firebase_sync_cron');
   $firebase_url = variable_get('firebase_url');
+  $firebase_server_key = variable_get('firebase_server_key');
   $firebase_application_name = variable_get('firebase_application_name');
   $firebase_service_account_file = variable_get('firebase_service_account_file');
   $last_cron = variable_get('firebase_last_cron_run', 0);
@@ -38,6 +39,14 @@ function _firebase_settings_form($form, &$form_state) {
     '#required' => TRUE,
     '#maxlength' => 256,
     '#description' => t('Firebase application name'),
+  );
+  $form['firebase_server_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Firebase server key'),
+    '#default_value' => $firebase_server_key,
+    '#required' => TRUE,
+    '#maxlength' => 256,
+    '#description' => t('Look up Server Key from Firebase Console in Project settings > Cloud Messaging'),
   );
   $form['firebase_service_account_file'] = array(
     '#type' => 'managed_file',
@@ -86,6 +95,7 @@ function _firebase_settings_form_validate($form_id, &$form_state) {
 function _firebase_settings_form_submit($form_id, &$form_state) {
   variable_set('firebase_sync_cron', $form_state['values']['firebase_sync_cron']);
   variable_set('firebase_url', $form_state['values']['firebase_url']);
+  variable_set('firebase_server_key', $form_state['values']['firebase_server_key']);
   variable_set('firebase_application_name', $form_state['values']['firebase_application_name']);
   variable_set('firebase_service_account_file', $form_state['values']['firebase_service_account_file']);
   drupal_set_message(t('Firebase settings saved'));

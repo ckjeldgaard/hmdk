@@ -50,6 +50,52 @@ function firebase_schema() {
     ),
     'primary key' => array('subscription_id', 'artist_nid'),
   );
+  $schema['firebase_push_log'] = array(
+    'description' => 'Table holding sent push messages.',
+    'fields' => array(
+      'concert_nid' => array(
+        'description' => 'Concert node ID.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'artist_nid' => array(
+        'description' => 'Artist node ID.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'subscription_id' => array(
+        'description' => 'GCM subscription ID.',
+        'type' => 'varchar',
+        'length' => '200',
+        'not null' => TRUE,
+      ),
+      'message_title' => array(
+        'description' => 'Push notification message text title.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'message_body' => array(
+        'description' => 'Push notification message text body.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Time of creation',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'message_id' => array(
+        'description' => 'Message ID from FCM',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('concert_nid', 'artist_nid', 'subscription_id'),
+  );
 
   return $schema;
 }
