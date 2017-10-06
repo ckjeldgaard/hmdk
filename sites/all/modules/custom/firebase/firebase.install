@@ -93,8 +93,18 @@ function firebase_schema() {
         'length' => '64',
         'not null' => FALSE,
       ),
+      'accessed_time' => array(
+        'description' => 'Timestamp when accessed by client to fetch notification body. NULL indicates no access (yet).',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('concert_nid', 'artist_nid', 'subscription_id'),
+    'indexes' => array(
+      'accessed_time' => array('accessed_time'),
+      'created' => array('created'),
+    ),
   );
 
   return $schema;
