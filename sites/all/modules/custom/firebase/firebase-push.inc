@@ -67,12 +67,21 @@ function _send_push_message($artist_nid, $concert_nid) {
       $message_id = _fcm_send($a->subscription_id, $notification);
 
       if ($message_id != FALSE) {
-        _update_log($concert_nid, $artist_nid, $a->subscription_id, $message_id);
+        _set_message_id($concert_nid, $artist_nid, $a->subscription_id, $message_id);
       }
     }
   }
 }
 
+/**
+ * Checks if a push notification exists in the database log.
+ *
+ * @param integer $concert_nid Concert node ID.
+ * @param integer $artist_nid Artist node ID.
+ * @param string $subscription_id The user's subscription ID.
+ *
+ * @return bool Returns TRUE if the record exists, FALSE otherwise.
+ */
 function _in_log($concert_nid, $artist_nid, $subscription_id) {
   $result = db_select('firebase_push_log', 'l')
     ->fields('l')
@@ -84,6 +93,16 @@ function _in_log($concert_nid, $artist_nid, $subscription_id) {
   return ($result->rowCount() > 0);
 }
 
+/**
+ * Saves a new notification log entry to the database with default values for message_id and accessed_time (i.e. not read yet by user).
+ *
+ * @param $concert_nid
+ * @param $artist_nid
+ * @param $subscription_id
+ * @param $artist_name
+ *
+ * @return array Returns an array containing the saved notification's title and body texts.
+ */
 function _save_to_log($concert_nid, $artist_nid, $subscription_id, $artist_name) {
 
   $sql = 'SELECT title FROM node WHERE nid = :concert_nid';
@@ -112,7 +131,10 @@ function _save_to_log($concert_nid, $artist_nid, $subscription_id, $artist_name)
   );
 }
 
-function _update_log($concert_nid, $artist_nid, $subscription_id, $message_id) {
+/**
+ * Sets the message_id field on a notification in the database log.
+ */
+function _set_message_id($concert_nid, $artist_nid, $subscription_id, $message_id) {
   db_update('firebase_push_log')
     ->fields(array(
       'message_id' => $message_id,
@@ -123,6 +145,14 @@ function _update_log($concert_nid, $artist_nid, $subscription_id, $message_id) {
     ->execute();
 }
 
+/**
+ * Sends a push notification to a subscriber through Firebase Cloud Messaging.
+ *
+ * @param string $subscription_id The subscriber's ID.
+ * @param array $notification The push notification to send.
+ *
+ * @return string|bool Returns the message_id from FCM if successful, FALSE otherwise.
+ */
 function _fcm_send($subscription_id, $notification) {
   $fields = array(
     'to' => $subscription_id,
