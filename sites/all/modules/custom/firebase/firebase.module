@@ -21,8 +21,15 @@ function firebase_menu() {
     'file' => 'firebase.api.inc',
   );
   $items['firebase/api/get/%'] = array(
-    'title' => t('Delete user subscriptions'),
+    'title' => t('Get user subscriptions'),
     'page callback' => '_firebase_api_get_subscriptions',
+    'access arguments' => array('use firebase api'),
+    'type' => MENU_CALLBACK,
+    'file' => 'firebase.api.inc',
+  );
+  $items['firebase/api/notification/%'] = array(
+    'title' => t('Get notification for a subscription'),
+    'page callback' => '_firebase_api_get_notification',
     'access arguments' => array('use firebase api'),
     'type' => MENU_CALLBACK,
     'file' => 'firebase.api.inc',
