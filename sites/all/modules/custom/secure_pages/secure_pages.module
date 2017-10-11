@@ -9,8 +9,13 @@ function secure_pages_init() {
     "user/register",
     "contact",
   );
-  
+
   $https = (in_array($_GET['q'], $secure_pages)) ? TRUE : FALSE;
+
+  if (!$https) {
+    $https = (substr($_GET['q'], 0, 13) === "firebase/api/") ? TRUE : FALSE;
+  }
+
   secure_pages_secure_redirect($https);
 }
 
