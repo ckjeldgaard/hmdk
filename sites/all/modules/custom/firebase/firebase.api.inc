@@ -5,6 +5,9 @@
  */
 
 function _firebase_api_add_subscription() {
+  // Prevent the page from being cached:
+  drupal_page_is_cacheable(FALSE);
+
   header("content-type:application/json;charset=utf-8");
   header("Access-Control-Expose-Headers:Access-Control-*");
   header("Access-Control-Allow-Headers:Access-Control-*, Origin, X-Requested-With, Content-Type, Accept");
@@ -50,6 +53,9 @@ function _firebase_api_add_subscription() {
 }
 
 function _firebase_api_delete_subscription() {
+  // Prevent the page from being cached:
+  drupal_page_is_cacheable(FALSE);
+
   header("content-type:application/json;charset=utf-8");
   header("Access-Control-Expose-Headers:Access-Control-*");
   header("Access-Control-Allow-Headers:Access-Control-*, Origin, X-Requested-With, Content-Type, Accept");
@@ -101,6 +107,9 @@ function _firebase_api_delete_subscription() {
 }
 
 function _firebase_api_get_subscriptions() {
+  // Prevent the page from being cached:
+  drupal_page_is_cacheable(FALSE);
+
   header("content-type:application/json;charset=utf-8");
   header("Access-Control-Expose-Headers:Access-Control-*");
   header("Access-Control-Allow-Headers:Access-Control-*, Origin, X-Requested-With, Content-Type, Accept");
@@ -159,6 +168,9 @@ function _firebase_api_get_subscriptions() {
  * Accessible through the API endpoint url firebase/api/notification/%, where % is the desired subscription ID.
  */
 function _firebase_api_get_notification() {
+  // Prevent the page from being cached:
+  drupal_page_is_cacheable(FALSE);
+  
   header("content-type:application/json;charset=utf-8");
   header("Access-Control-Expose-Headers:Access-Control-*");
   header("Access-Control-Allow-Headers:Access-Control-*, Origin, X-Requested-With, Content-Type, Accept");
