@@ -7,6 +7,8 @@ define('FIREBASE_PUSH_PROCESS_QUEUE_NAME', 'firebase_push_process_queue');
  */
 function firebase_node_submit($node, $form, &$form_state) {
 
+  $production_mode = variable_get('firebase_production_mode', 1);
+
   if ($node->type == 'concert' && $node->status == 1 && strlen(variable_get('firebase_server_key', '')) > 0) {
 
     $artists = array();
@@ -21,14 +23,17 @@ function firebase_node_submit($node, $form, &$form_state) {
       'artists' => $artists
     );
 
-    $queue = DrupalQueue::get(FIREBASE_PUSH_PROCESS_QUEUE_NAME);
-    $queue->createQueue();
-    $queue->createItem($queue_item);
+    if ($production_mode == 1) {
+      $queue = DrupalQueue::get(FIREBASE_PUSH_PROCESS_QUEUE_NAME);
+      $queue->createQueue();
+      $queue->createItem($queue_item);
 
-    $message = 'Item queued for being processed and sent through FCM: ' . array_values($queue_item);
-    watchdog('firebase', $message, array(), WATCHDOG_INFO);
-
-    //_firebase_push_process_concert($queue_item);
+      $message = 'Item queued for being processed and sent through FCM: ' . array_values($queue_item);
+      watchdog('firebase', $message, [], WATCHDOG_INFO);
+    } else {
+      // Send notification immediately in Dev mode:
+      _firebase_push_process_concert($queue_item);
+    }
   }
 }
 
@@ -51,6 +56,12 @@ function firebase_cron_queue_info() {
  *   Contains the artist node ID's and concert node ID
  */
 function _firebase_push_process_concert(array $concert_node) {
+
+  $production_mode = variable_get('firebase_production_mode', 1);
+  if ($production_mode == 1) {
+    _firebase_sync();
+  }
+
   foreach($concert_node['artists'] as $artist_nid) {
     _send_push_message($artist_nid, $concert_node['node_id']);
   }

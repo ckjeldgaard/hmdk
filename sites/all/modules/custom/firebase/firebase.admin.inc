@@ -6,11 +6,12 @@
 
 function _firebase_settings_form($form, &$form_state) {
   $firebase_sync_cron = variable_get('firebase_sync_cron');
+  $firebase_production_mode = variable_get('firebase_production_mode', 0);
   $firebase_url = variable_get('firebase_url');
   $firebase_server_key = variable_get('firebase_server_key');
   $firebase_application_name = variable_get('firebase_application_name');
   $firebase_service_account_file = variable_get('firebase_service_account_file');
-  $last_cron = variable_get('firebase_last_cron_run', 0);
+  $last_sync = variable_get('firebase_last_sync_run', 0);
 
   $service_account_help_link = l(
     'Firebase Database REST API User Authentication',
@@ -24,6 +25,12 @@ function _firebase_settings_form($form, &$form_state) {
     '#title' => t('Sync on cron'),
     '#description' => t('Synchronize Firebase database automatically on CRON run every 12 hours?'),
     '#default_value' => $firebase_sync_cron,
+  );
+  $form['firebase_production_mode'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Production mode'),
+    '#description' => t('In production mode push notifications are queued to next cron run and a full Firebase database synchronization is performed.'),
+    '#default_value' => $firebase_production_mode,
   );
   $form['firebase_url'] = array(
     '#type' => 'textfield',
@@ -66,7 +73,7 @@ function _firebase_settings_form($form, &$form_state) {
     '#type' => 'submit',
     '#value' => t('Sync Firebase'),
     '#submit' => array('_firebase_admin_sync'),
-    '#suffix' => '<br />' . t('Last synchronized on !time', array('!time' => date('d-m-Y H:i:s', $last_cron))),
+    '#suffix' => '<br />' . t('Last synchronized on !time', array('!time' => date('d-m-Y H:i:s', $last_sync))),
   );
 
   return $form;
@@ -94,6 +101,7 @@ function _firebase_settings_form_validate($form_id, &$form_state) {
 
 function _firebase_settings_form_submit($form_id, &$form_state) {
   variable_set('firebase_sync_cron', $form_state['values']['firebase_sync_cron']);
+  variable_set('firebase_production_mode', $form_state['values']['firebase_production_mode']);
   variable_set('firebase_url', $form_state['values']['firebase_url']);
   variable_set('firebase_server_key', $form_state['values']['firebase_server_key']);
   variable_set('firebase_application_name', $form_state['values']['firebase_application_name']);
