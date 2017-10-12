@@ -3,10 +3,20 @@
 define('FIREBASE_PUSH_PROCESS_QUEUE_NAME', 'firebase_push_process_queue');
 
 /**
- * Implements hook_node_submit().
+ * Implements hook_node_insert().
  */
-function firebase_node_submit($node, $form, &$form_state) {
+function firebase_node_insert($node) {
+  _firebase_concert_submit($node);
+}
 
+/**
+ * Implements hook_node_update().
+ */
+function firebase_node_update($node) {
+  _firebase_concert_submit($node);
+}
+
+function _firebase_concert_submit($node) {
   $production_mode = variable_get('firebase_production_mode', 1);
 
   if ($node->type == 'concert' && $node->status == 1 && strlen(variable_get('firebase_server_key', '')) > 0) {
