@@ -23,7 +23,7 @@ function _firebase_settings_form($form, &$form_state) {
   $form['firebase_sync_cron'] = array(
     '#type' => 'checkbox',
     '#title' => t('Sync on cron'),
-    '#description' => t('Synchronize Firebase database automatically on CRON run every 12 hours?'),
+    '#description' => t('Synchronize Firebase database automatically on CRON run?'),
     '#default_value' => $firebase_sync_cron,
   );
   $form['firebase_production_mode'] = array(

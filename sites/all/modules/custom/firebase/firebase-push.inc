@@ -62,11 +62,6 @@ function firebase_cron_queue_info() {
  */
 function _firebase_push_process_concert(array $concert_node) {
 
-  $production_mode = variable_get('firebase_production_mode', 1);
-  if ($production_mode == 1) {
-    _firebase_sync();
-  }
-
   foreach($concert_node['artists'] as $artist_nid) {
     _send_push_message($artist_nid, $concert_node['node_id']);
   }
@@ -204,6 +199,12 @@ function _fcm_send($subscription_id, $notification) {
     watchdog('firebase', $message, array(), WATCHDOG_ERROR);
     return false;
   } else {
+    $params = array(
+      '@message_id' => $fcm_result['results'][0]['message_id'],
+      '@subscription' => $subscription_id,
+      '@notification' => 'Title: ' . $notification['title'] . ' - Body: ' . $notification['body']
+    );
+    watchdog('firebase', t('Successfully sent FCM push notification with message ID @message_id to subscription ID: @subscription. Notification: @notification', $params), array(), WATCHDOG_INFO);
     return $fcm_result['results'][0]['message_id'];
   }
 }

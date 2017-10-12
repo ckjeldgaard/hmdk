@@ -78,11 +78,8 @@ function firebase_permission() {
  */
 function firebase_cron() {
   $firebase_sync_cron = variable_get('firebase_sync_cron', 0);
-  $last_sync = variable_get('firebase_last_sync_run', 0);
-  $now = time();
 
-  // Run every 12 hours:
-  if (($now - $last_sync) > 43200 && $firebase_sync_cron == 1) {
+  if ($firebase_sync_cron == 1) {
     _firebase_sync();
   }
 }
