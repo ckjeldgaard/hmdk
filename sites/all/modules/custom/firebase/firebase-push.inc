@@ -28,7 +28,12 @@ function firebase_node_submit($node, $form, &$form_state) {
       $queue->createQueue();
       $queue->createItem($queue_item);
 
-      $message = 'Item queued for being processed and sent through FCM: ' . array_values($queue_item);
+      $message = t('Item queued for being processed and sent through FCM: Node ID: @node_nid. Artists: @artists',
+        array(
+          '@node_nid' => $node->nid,
+          '@artists' => implode(", ", $artists)
+        )
+      );
       watchdog('firebase', $message, [], WATCHDOG_INFO);
     } else {
       // Send notification immediately in Dev mode:
