@@ -622,7 +622,7 @@ function _block_interview_requests() {
       'type' => $row->type,
       'interviewer_uid' => l($row->name, 'user/' . $row->interviewer_uid),
       'completed' => $row->completed,
-      'approved' => $row->approved,
+      'approved' => ($row->approved) ? t('Yes') : t('No'),
       'actions' =>
         l(t('edit'), 'admin/config/system/edit_interview_request/' . $row->id) . '&emsp;' .
         l(t('delete'), 'admin/config/system/delete_interview_request/' . $row->id, array('attributes' => array('onclick' => 'return confirm( "Er du sikker på du vil slette denne interview-forespørgsel?" ); ' ))),
