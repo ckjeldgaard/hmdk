@@ -35,7 +35,7 @@ function _edit_interview_request_form() {
   $form['interview_type']['#default_value'] = '' . array_search($rs['type'], _interview_type_options());
   $form['interview_interviewer']['#default_value'] = '' . $rs['interviewer_uid'];
   $form['completed']['#default_value'] = array_search($rs['completed'], _interview_completed_options());
-  $form['approved']['#default_value'] = array_search($rs['approved'], _interview_completed_options());
+  $form['approved']['#default_value'] = $rs['approved'];
 
   return $form;
 }
