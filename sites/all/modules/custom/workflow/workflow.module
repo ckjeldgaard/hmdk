@@ -589,6 +589,7 @@ function _block_interview_requests() {
     array('data' => t('Type'), 'field' => 'type'),
     array('data' => t('Interviewer'), 'field' => 'interviewer_uid'),
     array('data' => t('Completed'), 'field' => 'completed'),
+    array('data' => t('Approved'), 'field' => 'approved'),
     t('Actions'),
   );
 
@@ -606,6 +607,7 @@ function _block_interview_requests() {
     'type',
     'interviewer_uid',
     'completed',
+    'approved',
   ));
   $query->join('users', 'u', 'u.uid = i.interviewer_uid');
   $query->orderBy('i.id');
@@ -620,6 +622,7 @@ function _block_interview_requests() {
       'type' => $row->type,
       'interviewer_uid' => l($row->name, 'user/' . $row->interviewer_uid),
       'completed' => $row->completed,
+      'approved' => $row->approved,
       'actions' =>
         l(t('edit'), 'admin/config/system/edit_interview_request/' . $row->id) . '&emsp;' .
         l(t('delete'), 'admin/config/system/delete_interview_request/' . $row->id, array('attributes' => array('onclick' => 'return confirm( "Er du sikker på du vil slette denne interview-forespørgsel?" ); ' ))),

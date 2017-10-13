@@ -35,6 +35,7 @@ function _edit_interview_request_form() {
   $form['interview_type']['#default_value'] = '' . array_search($rs['type'], _interview_type_options());
   $form['interview_interviewer']['#default_value'] = '' . $rs['interviewer_uid'];
   $form['completed']['#default_value'] = array_search($rs['completed'], _interview_completed_options());
+  $form['approved']['#default_value'] = array_search($rs['approved'], _interview_completed_options());
 
   return $form;
 }
@@ -87,6 +88,10 @@ function _add_interview_request_form() {
     '#options' => _interview_completed_options(),
     '#description' => t('Select completion status of the interview.'),
   );
+  $form['approved'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Approved'),
+  );
   $form['submit'] = [
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -108,6 +113,7 @@ function _add_interview_request_form_submit($form, &$form_state) {
     'type' => _interview_type_options()[$form_state['values']['interview_type']],
     'interviewer_uid' => $form_state['values']['interview_interviewer'],
     'completed' => _interview_completed_options()[$form_state['values']['completed']],
+    'approved' => $form_state['values']['approved']
   ))->execute();
   drupal_set_message(t('Successfully added new interview request.'));
   drupal_goto('admin/dashboard');
@@ -122,6 +128,7 @@ function _edit_interview_request_form_submit($form, &$form_state) {
       'type' => _interview_type_options()[$form_state['values']['interview_type']],
       'interviewer_uid' => $form_state['values']['interview_interviewer'],
       'completed' => _interview_completed_options()[$form_state['values']['completed']],
+      'approved' => $form_state['values']['approved']
     ))
     ->condition('id', arg(4))
     ->execute();
