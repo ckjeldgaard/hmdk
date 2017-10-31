@@ -30,7 +30,8 @@ function _firebase_concert_submit($node) {
     }
     $queue_item = array(
       'node_id' => $node->nid,
-      'artists' => $artists
+      'artists' => $artists,
+      'created' => $node->created
     );
 
     if ($production_mode == 1) {
@@ -73,16 +74,17 @@ function firebase_cron_queue_info() {
 function _firebase_push_process_concert(array $concert_node) {
 
   foreach($concert_node['artists'] as $artist_nid) {
-    _send_push_message($artist_nid, $concert_node['node_id']);
+    _send_push_message($artist_nid, $concert_node['node_id'], $concert_node['created']);
   }
 }
 
-function _send_push_message($artist_nid, $concert_nid) {
+function _send_push_message($artist_nid, $concert_nid, $created) {
   $query = db_select('firebase_subscriptions', 's');
   $query->fields('s', ['subscription_id']);
   $query->fields('n', ['title']);
   $query->join('node', 'n', 'n.nid = s.artist_nid');
   $query->condition('s.artist_nid', $artist_nid);
+  $query->condition('s.created', $created, '>');
   $rs = $query->execute();
 
   foreach($rs as $a) {
