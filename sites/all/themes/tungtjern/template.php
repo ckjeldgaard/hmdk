@@ -11,12 +11,12 @@ require dirname(__FILE__) . "/preprocess/preprocess.php";
  */
 function tungtjern_theme(&$existing, $type, $theme, $path) {
   $hooks = array();
-  
+
   $hooks['user_login_block'] = array(
     'template' => 'templates/user-login-block',
     'render element' => 'form',
   );
- 
+
   return $hooks;
 }
 
@@ -53,7 +53,7 @@ function tungtjern_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'user_profile_form') {
     unset($form['contact']);
   }
-  
+
   // Google Analytics event tracking when new user registers:
   if ($form_id == 'user_register_form') {
     $ga_event = "ga('send', 'event', { eventCategory: 'registration', eventAction: 'user'});";
@@ -68,10 +68,10 @@ function tungtjern_form_alter(&$form, &$form_state, $form_id) {
  */
 function tungtjern_preprocess_html(&$variables) {
   global $base_root;
-  
+
   $font_awesome_path = drupal_get_path('theme', 'tungtjern') . "/styles/font-awesome.min.css";
   drupal_add_css($font_awesome_path, array('group' => CSS_THEME, 'type' => 'file', 'preprocess' => FALSE));
-  
+
   if (current_path() == 'nyheder') {
     $element = array(
       '#tag' => 'link',
@@ -124,7 +124,7 @@ function tungtjern_button($variables) {
   if ($element['#id'] != 'edit-preview') {
     $element['#attributes']['class'][] = 'pure-button-primary';
   }
-  
+
   if (!empty($element['#attributes']['disabled'])) {
     $element['#attributes']['class'][] = 'form-button-disabled';
   }
@@ -149,7 +149,7 @@ function tungtjern_status_messages($variables) {
     if (!empty($status_heading[$type])) {
       $output .= '<label><strong>' . $status_heading[$type] . "</strong></label>\n";
     }
-    
+
     if (count($messages) > 1) {
       $output .= " <ul>\n";
       foreach ($messages as $message) {
@@ -196,16 +196,16 @@ function tungtjern_menu_link(&$variables) {
   if ($variables['element']['#original_link']['menu_name'] == 'user-menu' && strpos($variables['element']['#original_link']['link_path'], 'facebook') !== FALSE) {
     $variables['element']['#attributes']['class'][] = 'facebook';
   }
-  
+
   $element = $variables['element'];
   $sub_menu = '';
-  
+
   if ($element['#below']) {
     // Wrap in dropdown-menu.
     unset($element['#below']['#theme_wrappers']);
     $sub_menu = '<ul>' . drupal_render($element['#below']) . '</ul>';
   }
-  
+
   if (in_array('expanded', $element['#attributes']['class'])) {
     $element['#localized_options']['html'] = TRUE;
     $output = l('<span>' . $element['#title'] . '</span>', $element['#href'], $element['#localized_options']);
@@ -265,12 +265,12 @@ function tungtjern_form_element($variables) {
         $output .= ' ' . theme('form_element_label', $variables);
         $output .= ' ' . $prefix . $element['#children'] . $suffix . "\n";
         break;
-  
+
       case 'after':
         $output .= ' ' . $prefix . $element['#children'] . $suffix;
         $output .= ' ' . theme('form_element_label', $variables) . "\n";
         break;
-  
+
       case 'none':
       case 'attribute':
         // Output no label and no required marker, only the children.
@@ -326,7 +326,7 @@ function tungtjern_form_element_label($variables) {
   if ($element['#type'] == 'radio') {
     $attributes['class'] = 'pure-radio';
   }
-  
+
   // The leading whitespace helps visually separate fields from inline labels.
   if (!empty($variables['rendered_element'])) {
     return ' <label' . drupal_attributes($attributes) . '>' . $variables['rendered_element'] . $t('!title !required', array('!title' => $title, '!required' => $required)) . "</label>\n";
@@ -344,7 +344,7 @@ function tungtjern_textfield($variables) {
   $element['#attributes']['type'] = 'text';
   element_set_attributes($element, array('id', 'name', 'value', 'size', 'maxlength'));
   _form_set_class($element, array('form-text'));
-  
+
   $extra = '';
   if ($element['#autocomplete_path'] && drupal_valid_path($element['#autocomplete_path'])) {
     drupal_add_library('system', 'drupal.autocomplete');
@@ -372,7 +372,7 @@ function tungtjern_pager($variables) {
   $tags = $variables['tags'];
   $element = $variables['element'];
   $parameters = $variables['parameters'];
-  
+
   $quantity = $variables['quantity'];
   global $pager_page_array, $pager_total;
 
@@ -410,7 +410,7 @@ function tungtjern_pager($variables) {
 
   $rel_prev = FALSE;
   $rel_next = FALSE;
-  
+
   if ($pager_total[$element] > 1) {
     if (isset($li_first)) {
       $items[] = array(
@@ -424,7 +424,7 @@ function tungtjern_pager($variables) {
         'data' => $li_previous,
       );
     }
-    
+
     // When there is more than one page, create the pager list.
     if ($i != $pager_max) {
       if ($i > 1) {
@@ -477,7 +477,7 @@ function tungtjern_pager($variables) {
         'data' => $li_last,
       );
     }
-    
+
     if ($rel_prev) {
       $link_prev = array(
         '#type' => 'html_tag',
@@ -500,7 +500,7 @@ function tungtjern_pager($variables) {
       );
       drupal_add_html_head($link_next, 'link_rel_next');
     }
-    
+
     return theme('item_list', array(
       'items' => $items,
       'attributes' => array('class' => array('pager', 'pure-paginator')),
@@ -519,7 +519,7 @@ function tungtjern_pager_link($variables) {
   $attributes = $variables['attributes'];
 
   $attributes['class'][] = 'pure-button';
-  
+
   $page = isset($_GET['page']) ? $_GET['page'] : '';
   if ($new_page = implode(',', pager_load_array($page_new[$element], $element, explode(',', $page)))) {
     $parameters['page'] = $new_page;
@@ -553,11 +553,11 @@ function tungtjern_pager_link($variables) {
       $attributes['title'] = t('Go to page @number', array('@number' => $text));
     }
   }
-  
+
   if ($text == t('»')) {
     $attributes['class'][] = 'next';
   }
-  
+
   if ($text == t('«')) {
     $attributes['class'][] = 'prev';
   }
@@ -671,7 +671,7 @@ function formatted_date($timestamp, $clock = FALSE) {
 
 /**
  * Primitive function to apply the correct gentive to a noun in Danish.
- * 
+ *
  * @param string $noun The noun.
  * @return string Returns the noun with an s-ending or an apostrophe.
  */
@@ -703,19 +703,19 @@ function _user_role($uid) {
   $query->condition('u.uid', $uid);
   $query->range(0, 1);
   $obj = $query->execute()->fetchObject();
-  
+
   if (isset($obj->rid)) {
     return $roles[$obj->rid];
   }
   if (_get_num_reviews_by_author($uid) > 0) {
     return t("Former reviewer");
   }
-  
+
   return FALSE;
 }
 
 function _get_node_title($nid) {
   $rs = db_query('SELECT title FROM node WHERE nid = :nid', array(':nid' => $nid));
-  $record = $rs->fetchObject();  
+  $record = $rs->fetchObject();
   return $record->title;
 }
