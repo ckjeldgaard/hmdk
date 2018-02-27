@@ -677,7 +677,7 @@ function _block_accreditations() {
   $query->fields('v', array('field_venue_tid'));
   $query->fields('d', array('field_event_date_value', 'field_event_date_value2'));
   $query->leftJoin('field_data_field_concert', 'c', 'c.field_concert_target_id = n.nid');
-  $query->join('field_data_field_reviewers', 'r', 'r.entity_id = n.nid');
+  $query->leftJoin('field_data_field_reviewers', 'r', 'r.entity_id = n.nid');
   $query->join('field_data_field_concert_status', 's', 's.entity_id = n.nid');
   $query->join('field_data_field_photographer', 'p', 'p.entity_id = n.nid');
   $query->leftJoin('field_data_field_photographer_name', 'pn', 'pn.entity_id = n.nid');
@@ -690,6 +690,10 @@ function _block_accreditations() {
   $query->condition('n.type', 'concert');
   $query->isNull('c.field_concert_target_id');
   $query->condition('e.field_event_date_value', $date_limit, '>');
+  $or = db_or();
+  $or->condition('p.field_photographer_value', 1);
+  $or->isNotNull('r.field_reviewers_target_id');
+  $query->condition($or);
   $query->orderBy('e.field_event_date_value');
 
   $results = $query->execute();
