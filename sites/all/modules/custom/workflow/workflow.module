@@ -682,7 +682,7 @@ function _block_accreditations() {
   $query->join('field_data_field_photographer', 'p', 'p.entity_id = n.nid');
   $query->leftJoin('field_data_field_photographer_name', 'pn', 'pn.entity_id = n.nid');
   $query->join('field_data_field_event_date', 'e', 'e.entity_id = n.nid');
-  $query->join('users', 'u', 'u.uid = r.field_reviewers_target_id');
+  $query->leftJoin('users', 'u', 'u.uid = r.field_reviewers_target_id');
   $query->join('field_data_field_is_festival', 'f', 'f.entity_id = n.nid');
   $query->join('field_data_field_venue', 'v', 'v.entity_id = n.nid');
   $query->join('field_data_field_event_date', 'd', 'd.entity_id = n.nid');
